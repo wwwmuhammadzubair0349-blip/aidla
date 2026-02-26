@@ -13,7 +13,7 @@ import Signup from "./pages/Signup.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
 
-// ✅ Layouts (correct paths)
+// Layouts
 import UserLayout from "./pages/layouts/UserLayout.jsx";
 import AdminLayout from "./pages/layouts/AdminLayout.jsx";
 
@@ -78,26 +78,152 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
+// Enhanced Public Header
 function PublicHeader() {
-  return (
-    <div className="header">
-      <div className="container">
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-          <div style={{ fontWeight: 800, letterSpacing: 0.4 }}>AIDLA</div>
-          <div style={{ color: "var(--muted)", fontSize: 14 }}>Public Area</div>
-        </div>
+  const [search, setSearch] = useState("");
 
-        <nav className="nav">
-          <Link to="/">Home</Link>
-          <Link to="/about">About</Link>
-          <Link to="/blogs">Blogs</Link>
-          <Link to="/news">News</Link>
-          <Link to="/leaderboard">Leaderboard</Link>
-          <Link to="/signup">Signup</Link>
-          <Link to="/login">Login</Link>
+  const handleSearch = (e) => {
+    e.preventDefault();
+    // Implement search functionality later
+    console.log("Searching for:", search);
+  };
+
+  return (
+    <header
+      style={{
+        position: "sticky",
+        top: 0,
+        zIndex: 100,
+        background: "rgba(255,255,255,0.9)",
+        backdropFilter: "blur(10px)",
+        borderBottom: "1px solid rgba(203,213,225,0.3)",
+        padding: "12px 24px",
+      }}
+    >
+      <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+        {/* Logo */}
+        <Link
+          to="/"
+          style={{
+            textDecoration: "none",
+            fontSize: "1.8rem",
+            fontWeight: 900,
+            background: "linear-gradient(135deg, #1e3a8a, #3b82f6)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+          }}
+        >
+          AIDLA
+        </Link>
+
+        {/* Navigation */}
+        <nav style={{ display: "flex", gap: 24, fontWeight: 600 }}>
+          {[
+            { to: "/", label: "Home" },
+            { to: "/about", label: "About" },
+            { to: "/blogs", label: "Blogs" },
+            { to: "/news", label: "News" },
+            { to: "/leaderboard", label: "Leaderboard" },
+          ].map((item) => (
+            <Link
+              key={item.to}
+              to={item.to}
+              style={{
+                textDecoration: "none",
+                color: "#334155",
+                transition: "color 0.2s",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "#3b82f6")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "#334155")}
+            >
+              {item.label}
+            </Link>
+          ))}
         </nav>
+
+        {/* Weather, Search, Auth */}
+        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+          {/* Weather widget */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              background: "#f1f5f9",
+              padding: "6px 12px",
+              borderRadius: 30,
+            }}
+          >
+            <span style={{ fontSize: "1.2rem" }}>☀️</span>
+            <span style={{ fontWeight: 600 }}>24°C Sunny</span>
+          </div>
+
+          {/* Search form */}
+          <form onSubmit={handleSearch} style={{ position: "relative" }}>
+            <input
+              type="text"
+              placeholder="Search..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{
+                padding: "8px 16px 8px 40px",
+                borderRadius: 30,
+                border: "1px solid #e2e8f0",
+                background: "#ffffff",
+                width: 200,
+              }}
+            />
+            <span
+              style={{
+                position: "absolute",
+                left: 12,
+                top: 8,
+                color: "#94a3b8",
+                pointerEvents: "none",
+              }}
+            >
+              🔍
+            </span>
+          </form>
+
+          {/* Auth buttons */}
+          <div style={{ display: "flex", gap: 12 }}>
+            <Link
+              to="/signup"
+              style={{
+                padding: "8px 16px",
+                borderRadius: 30,
+                border: "none",
+                background: "transparent",
+                fontWeight: 600,
+                color: "#334155",
+                textDecoration: "none",
+                transition: "color 0.2s",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "#3b82f6")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "#334155")}
+            >
+              Signup
+            </Link>
+            <Link
+              to="/login"
+              style={{
+                padding: "8px 24px",
+                borderRadius: 30,
+                border: "none",
+                background: "linear-gradient(135deg, #1e3a8a, #3b82f6)",
+                color: "#fff",
+                fontWeight: 600,
+                textDecoration: "none",
+                boxShadow: "0 4px 10px rgba(59,130,246,0.3)",
+              }}
+            >
+              Login
+            </Link>
+          </div>
+        </div>
       </div>
-    </div>
+    </header>
   );
 }
 
@@ -107,7 +233,6 @@ export default function App() {
   // hide public header on user/admin areas
   const hidePublicHeader = location.pathname.startsWith("/user") || location.pathname.startsWith("/admin");
 
-  // ✅ One single routes tree used for both cases (no missing routes)
   const AppRoutes = (
     <Routes>
       {/* Public */}
@@ -134,7 +259,6 @@ export default function App() {
         <Route path="feed" element={<UserFeed />} />
         <Route path="test" element={<Test />} />
 
-        {/* ✅ Wallet nested routes (THIS FIXES YOUR ISSUE) */}
         <Route path="wallet" element={<UserWallet />}>
           <Route index element={<WalletOverview />} />
           <Route path="transactions" element={<WalletTransactions />} />
