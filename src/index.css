@@ -1,0 +1,96 @@
+:root {
+  --bg: #0b0f19;
+  --card: #121a2a;
+  --text: #e8eefc;
+  --muted: #a9b4d0;
+  --border: rgba(255, 255, 255, 0.08);
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  --radius: 16px;
+  --max: 1100px;
+}
+
+* { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+a { color: var(--text); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.container {
+  width: 100%;
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(10px);
+  background: rgba(11, 15, 25, 0.75);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 0;
+}
+
+.nav a {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.03);
+}
+
+.page {
+  margin-top: 16px;
+  padding: 16px;
+}
+
+.grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+}
+
+/* Tablet */
+@media (min-width: 640px) {
+  .container { padding: 20px; }
+  .grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  .grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* Big screens */
+@media (min-width: 1400px) {
+  :root { --max: 1200px; }
+}
+html, body {
+  height: 100%;
+  overflow-x: hidden;         /* stop horizontal reflow */
+}
+
+body {
+  overflow-y: scroll;         /* keep scrollbar always visible (no jump) */
+}
