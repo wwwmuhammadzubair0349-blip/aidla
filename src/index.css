@@ -94,3 +94,11 @@ html, body {
 body {
   overflow-y: scroll;         /* keep scrollbar always visible (no jump) */
 }
+.btn{
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid #e5e7eb;
+  background:#fff;
+  cursor:pointer;
+}
+.btn:disabled{ opacity:.6; cursor:not-allowed; }

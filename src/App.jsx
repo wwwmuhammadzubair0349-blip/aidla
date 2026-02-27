@@ -5,7 +5,9 @@ import { supabase } from "./lib/supabase.js";
 import Home from "./pages/Home.jsx";
 import About from "./pages/About.jsx";
 import Blogs from "./pages/Blogs.jsx";
+import BlogPost from "./pages/BlogPost.jsx";
 import News from "./pages/News.jsx";
+import NewsPost from "./pages/NewsPost.jsx";
 import Leaderboard from "./pages/Leaderboard.jsx";
 
 import Login from "./pages/Login.jsx";
@@ -45,8 +47,8 @@ import AdminTests from "./pages/admin/AdminTests.jsx";
 import AdminLuckyWheel from "./pages/admin/AdminLuckyWheel.jsx";
 import AdminLuckyDraw from "./pages/admin/AdminLuckyDraw.jsx";
 import AdminShop from "./pages/admin/Shop.jsx";
-import AdminBlogs from "./pages/admin/Blogs.jsx";
-import AdminNews from "./pages/admin/News.jsx";
+import AdminBlogs from "./pages/admin/AdminBlogs.jsx";
+import AdminNews from "./pages/admin/AdminNews.jsx";
 import AdminMining from "./pages/admin/Mining.jsx";
 import AdminInvite from "./pages/admin/Invite.jsx";
 import AdminCourses from "./pages/admin/Courses.jsx";
@@ -498,7 +500,9 @@ export default function App() {
       <Route path="/"           element={<Home />} />
       <Route path="/about"      element={<About />} />
       <Route path="/blogs"      element={<Blogs />} />
+      <Route path="/blogs/:slug" element={<BlogPost />} />
       <Route path="/news"       element={<News />} />
+      <Route path="/news/:slug" element={<NewsPost />} />
       <Route path="/leaderboard" element={<Leaderboard />} />
       <Route path="/signup"     element={<Signup />} />
       <Route path="/login"      element={<Login />} />
