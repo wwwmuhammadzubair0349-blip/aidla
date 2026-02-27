@@ -675,21 +675,30 @@ export default function LuckyDraw() {
       const rows = res.data || [];
       setResults(rows);
 
-      // Auto-trigger draw animation at draw time
+      // ✅ Auto-trigger draw animation ONLY ONCE when draw time is reached
+      // Animation will NOT replay on page refresh/revisit - users can use the replay button
       const drawMs2 = d.draw_at ? new Date(d.draw_at).getTime() : 0;
-      if (drawMs2 && Date.now() >= drawMs2 && rows.length > 0 && !drawAnimShownRef.current) {
+      const isDrawTimeReached = drawMs2 && Date.now() >= drawMs2;
+      const hasResults = rows.length > 0;
+      const animationNotShownYet = !drawAnimShownRef.current;
+      
+      if (isDrawTimeReached && hasResults && animationNotShownYet) {
+        // Mark animation as shown NOW (before setting state) to prevent multiple triggers
         drawAnimShownRef.current = true;
         showDrawAnimRef.current = true;
-        setShowDrawAnim(true);
         try { localStorage.setItem("ld_draw_anim_shown", "true"); } catch {}
-        // Queue announcements — they fire via onDrawComplete only AFTER animation shows winner
+        
+        // Queue all results for announcement
         const toAnnounce = rows.filter(r => {
           const annMs = r.announced_at ? new Date(r.announced_at).getTime() : 0;
           return (!annMs || Date.now() >= annMs) && !announcedIdsRef.current.has(String(r.id));
         });
         setPendingAnnouncements(toAnnounce);
-      } else if (drawMs2 && Date.now() >= drawMs2 && rows.length > 0 && drawAnimShownRef.current) {
-        // Animation already shown — fire any new announcements that weren't queued
+        
+        // Now trigger the animation display
+        setShowDrawAnim(true);
+      } else if (isDrawTimeReached && hasResults && drawAnimShownRef.current) {
+        // Animation already shown before — only fire new announcements that weren't queued
         rows.forEach(r => {
           const annMs = r.announced_at ? new Date(r.announced_at).getTime() : 0;
           const isAnn = !annMs || Date.now() >= annMs;
