@@ -39,6 +39,11 @@ export async function handler() {
   <url><loc>${base}/contact</loc></url>
   <url><loc>${base}/privacy-policy</loc></url>
   <url><loc>${base}/terms</loc></url>
+
+  <url><loc>${base}/signup</loc></url>
+<url><loc>${base}/login</loc></url>
+<url><loc>${base}/forgot-password</loc></url>
+
   `;
 
   blogs?.forEach((b) => {

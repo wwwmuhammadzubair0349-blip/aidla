@@ -3,9 +3,5 @@ Allow: /
 
 Disallow: /admin/
 Disallow: /user/
-Disallow: /login
-Disallow: /signup
-Disallow: /forgot-password
-Disallow: /reset-password
 
 Sitemap: https://aidla.netlify.app/sitemap.xml

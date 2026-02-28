@@ -1043,7 +1043,7 @@ export default function CoverLetterMaker() {
       </div>
 
       <footer className="cvm-footer">
-        <div style={{ marginBottom: 8, fontSize: "1.1rem" }}>✉️</div>
+        <div style={{ marginBottom: 8, fontSize: "1.1rem" }}>🕌</div>
         <p>&copy; 2025 <strong>AIDLA</strong>. All rights reserved. Designed with ❤️ for learners everywhere.</p>
         <p style={{ marginTop: 8 }}>
           <Link to="/privacy-policy">Privacy Policy</Link>

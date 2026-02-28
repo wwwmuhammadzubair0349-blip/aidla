@@ -1,70 +1,73 @@
 import { Link, Route, Routes, Navigate, useLocation, NavLink } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { supabase } from "./lib/supabase.js";
 
-import Home from "./pages/Home.jsx";
-import About from "./pages/About.jsx";
-import Blogs from "./pages/Blogs.jsx";
-import BlogPost from "./pages/BlogPost.jsx";
-import News from "./pages/News.jsx";
-import NewsPost from "./pages/NewsPost.jsx";
-import Leaderboard from "./pages/Leaderboard.jsx";
-import Contact from "./pages/contact.jsx"; 
-import PrivacyPolicy from "./pages/privacy-policy.jsx";
-import Terms from "./pages/terms.jsx";
-import ToolsHome from "./pages/tools/toolshome.jsx";
-import WordToPdf from "./pages/tools/pdf/WordToPdf";
-import ImageToPdf from "./pages/tools/pdf/ImageToPdf";
-import JpgToPng from "./pages/tools/image/JpgToPng";
-import CvMaker from "./pages/tools/career/CvMaker";
-import CoverLetterMaker from "./pages/tools/career/CoverLetterMaker";
-import Login from "./pages/Login.jsx";
-import Signup from "./pages/Signup.jsx";
-import ForgotPassword from "./pages/ForgotPassword.jsx";
-import ResetPassword from "./pages/ResetPassword.jsx";
+// Lazy-loaded pages (Performance fix)
+const Home = lazy(() => import("./pages/Home.jsx"));
+const About = lazy(() => import("./pages/About.jsx"));
+const Blogs = lazy(() => import("./pages/Blogs.jsx"));
+const BlogPost = lazy(() => import("./pages/BlogPost.jsx"));
+const News = lazy(() => import("./pages/News.jsx"));
+const NewsPost = lazy(() => import("./pages/NewsPost.jsx"));
+const Leaderboard = lazy(() => import("./pages/Leaderboard.jsx"));
+const Contact = lazy(() => import("./pages/contact.jsx"));
+const PrivacyPolicy = lazy(() => import("./pages/privacy-policy.jsx"));
+const Terms = lazy(() => import("./pages/terms.jsx"));
+
+const ToolsHome = lazy(() => import("./pages/tools/toolshome.jsx"));
+const WordToPdf = lazy(() => import("./pages/tools/pdf/WordToPdf"));
+const ImageToPdf = lazy(() => import("./pages/tools/pdf/ImageToPdf"));
+const JpgToPng = lazy(() => import("./pages/tools/image/JpgToPng"));
+const CvMaker = lazy(() => import("./pages/tools/career/CvMaker"));
+const CoverLetterMaker = lazy(() => import("./pages/tools/career/CoverLetterMaker"));
+
+const Login = lazy(() => import("./pages/Login.jsx"));
+const Signup = lazy(() => import("./pages/Signup.jsx"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword.jsx"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword.jsx"));
 
 // Layouts
-import UserLayout from "./pages/layouts/UserLayout.jsx";
-import AdminLayout from "./pages/layouts/AdminLayout.jsx";
+const UserLayout = lazy(() => import("./pages/layouts/UserLayout.jsx"));
+const AdminLayout = lazy(() => import("./pages/layouts/AdminLayout.jsx"));
 
 // User pages
-import UserDashboard from "./pages/user/Dashboard.jsx";
-import UserFeed from "./pages/user/Feed.jsx";
-import UserWallet from "./pages/user/Wallet.jsx";
-import UserProfile from "./pages/user/Profile.jsx";
-import UserInvite from "./pages/user/invite.jsx";
-import Learning from "./pages/user/Learning.jsx";
-import Courses from "./pages/user/Courses.jsx";
-import Mining from "./pages/user/Mining.jsx";
-import LuckyDraw from "./pages/user/LuckyDraw.jsx";
-import LuckyWheel from "./pages/user/LuckyWheel.jsx";
-import Shop from "./pages/user/Shop.jsx";
-import Bot from "./pages/user/Bot.jsx";
-import Social from "./pages/user/Social.jsx";
-import Test from "./pages/user/test.jsx";
+const UserDashboard = lazy(() => import("./pages/user/Dashboard.jsx"));
+const UserFeed = lazy(() => import("./pages/user/Feed.jsx"));
+const UserWallet = lazy(() => import("./pages/user/Wallet.jsx"));
+const UserProfile = lazy(() => import("./pages/user/Profile.jsx"));
+const UserInvite = lazy(() => import("./pages/user/invite.jsx"));
+const Learning = lazy(() => import("./pages/user/Learning.jsx"));
+const Courses = lazy(() => import("./pages/user/Courses.jsx"));
+const Mining = lazy(() => import("./pages/user/Mining.jsx"));
+const LuckyDraw = lazy(() => import("./pages/user/LuckyDraw.jsx"));
+const LuckyWheel = lazy(() => import("./pages/user/LuckyWheel.jsx"));
+const Shop = lazy(() => import("./pages/user/Shop.jsx"));
+const Bot = lazy(() => import("./pages/user/Bot.jsx"));
+const Social = lazy(() => import("./pages/user/Social.jsx"));
+const Test = lazy(() => import("./pages/user/test.jsx"));
 
 // Wallet sub pages
-import WalletOverview from "./pages/user/wallet/Overview.jsx";
-import WalletTransactions from "./pages/user/wallet/Transactions.jsx";
-import WalletDeposit from "./pages/user/wallet/Deposit.jsx";
-import WalletWithdraw from "./pages/user/wallet/Withdraw.jsx";
+const WalletOverview = lazy(() => import("./pages/user/wallet/Overview.jsx"));
+const WalletTransactions = lazy(() => import("./pages/user/wallet/Transactions.jsx"));
+const WalletDeposit = lazy(() => import("./pages/user/wallet/Deposit.jsx"));
+const WalletWithdraw = lazy(() => import("./pages/user/wallet/Withdraw.jsx"));
 
 // Admin pages
-import AdminPool from "./pages/admin/AdminPool.jsx";
-import AdminTests from "./pages/admin/AdminTests.jsx";
-import AdminLuckyWheel from "./pages/admin/AdminLuckyWheel.jsx";
-import AdminLuckyDraw from "./pages/admin/AdminLuckyDraw.jsx";
-import AdminShop from "./pages/admin/Shop.jsx";
-import AdminBlogs from "./pages/admin/AdminBlogs.jsx";
-import AdminNews from "./pages/admin/AdminNews.jsx";
-import AdminMining from "./pages/admin/Mining.jsx";
-import AdminInvite from "./pages/admin/Invite.jsx";
-import AdminCourses from "./pages/admin/Courses.jsx";
-import AdminDeposits from "./pages/admin/Deposits.jsx";
-import AdminWithdraws from "./pages/admin/Withdraws.jsx";
-import AdminUsers from "./pages/admin/Users.jsx";
-import AdminLeaderboard from "./pages/admin/Leaderboard.jsx";
-import AdminHomepage from "./pages/admin/Homepage.jsx";
+const AdminPool = lazy(() => import("./pages/admin/AdminPool.jsx"));
+const AdminTests = lazy(() => import("./pages/admin/AdminTests.jsx"));
+const AdminLuckyWheel = lazy(() => import("./pages/admin/AdminLuckyWheel.jsx"));
+const AdminLuckyDraw = lazy(() => import("./pages/admin/AdminLuckyDraw.jsx"));
+const AdminShop = lazy(() => import("./pages/admin/Shop.jsx"));
+const AdminBlogs = lazy(() => import("./pages/admin/AdminBlogs.jsx"));
+const AdminNews = lazy(() => import("./pages/admin/AdminNews.jsx"));
+const AdminMining = lazy(() => import("./pages/admin/Mining.jsx"));
+const AdminInvite = lazy(() => import("./pages/admin/Invite.jsx"));
+const AdminCourses = lazy(() => import("./pages/admin/Courses.jsx"));
+const AdminDeposits = lazy(() => import("./pages/admin/Deposits.jsx"));
+const AdminWithdraws = lazy(() => import("./pages/admin/Withdraws.jsx"));
+const AdminUsers = lazy(() => import("./pages/admin/Users.jsx"));
+const AdminLeaderboard = lazy(() => import("./pages/admin/Leaderboard.jsx"));
+const AdminHomepage = lazy(() => import("./pages/admin/Homepage.jsx"));
 
 // ─────────────────────────────────────────
 // Animated SVG White Cat (shared)
@@ -503,7 +506,8 @@ export default function App() {
   const location = useLocation();
   const hidePublicHeader = location.pathname.startsWith("/user") || location.pathname.startsWith("/admin");
 
-  const AppRoutes = (
+const AppRoutes = (
+  <Suspense fallback={<div style={{ padding: 24, fontWeight: 800 }}>Loading...</div>}>
     <Routes>
       {/* Public */}
       <Route path="/"           element={<Home />} />
@@ -571,7 +575,8 @@ export default function App() {
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
-  );
+  </Suspense>
+);
 
   return (
     <div>
