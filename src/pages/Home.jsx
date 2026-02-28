@@ -5,13 +5,13 @@ import { supabase } from "../lib/supabase";
 
 /* ─────────────────────────────── Quotes ─────────────────────────────── */
 const QUOTES = [
-  {
-    text: "اقْرَأْ بِاسْمِ رَبِّكَ الَّذِي خَلَقَ",
-    translation: "Read in the name of your Lord who created.",
-    source: "Quran 96:1",
-    lang: "ar",
-    bg: "https://images.unsplash.com/photo-1585036156261-1e2ac2a46284?w=900&q=80",
-  },
+ // {
+   // text: "اقْرَأْ بِاسْمِ رَبِّكَ الَّذِي خَلَقَ",
+  //  translation: "Read in the name of your Lord who created.",
+   // source: "Quran 96:1",
+   // lang: "ar",
+   // bg: "https://images.unsplash.com/photo-1585036156261-1e2ac2a46284?w=900&q=80",
+ // },
   {
     text: "طَلَبُ الْعِلْمِ فَرِيضَةٌ عَلَى كُلِّ مُسْلِمٍ",
     translation: "Seeking knowledge is an obligation upon every Muslim.",
@@ -19,13 +19,13 @@ const QUOTES = [
     lang: "ar",
     bg: "https://images.unsplash.com/photo-1609599006353-e629aaabfeae?w=900&q=80",
   },
-  {
-    text: "وَقُلْ رَّبِّ زِدْنِي عِلْمًا",
-    translation: "And say: My Lord, increase me in knowledge.",
-    source: "Quran 20:114",
-    lang: "ar",
-    bg: "https://images.unsplash.com/photo-1566375981478-6bca65b5f8b9?w=900&q=80",
-  },
+ // {
+    //text: "وَقُلْ رَّبِّ زِدْنِي عِلْمًا",
+    //translation: "And say: My Lord, increase me in knowledge.",
+   // source: "Quran 20:114",
+   // lang: "ar",
+   // bg: "https://images.unsplash.com/photo-1566375981478-6bca65b5f8b9?w=900&q=80",
+ // },
   {
     text: "خِيرُ النَّاسِ أَنْفَعُهُمْ لِلنَّاسِ",
     translation: "The best of people are those most beneficial to others.",
@@ -1181,7 +1181,7 @@ export default function Home() {
         <div style={{ marginBottom: 10, fontSize: "1.1rem" }}>🕌</div>
         <p>© 2025 <strong>AIDLA</strong>. All rights reserved. Designed with ❤️ for learners everywhere.</p>
         <p style={{ marginTop: 8 }}>
-          <Link to="/privacy" style={{ color: "rgba(255,255,255,0.4)", marginRight: 16, textDecoration: "none" }}>Privacy</Link>
+          <Link to="/privacy-policy" style={{ color: "rgba(255,255,255,0.4)", marginRight: 16, textDecoration: "none" }}>Privacy Policy</Link>
           <Link to="/terms" style={{ color: "rgba(255,255,255,0.4)", marginRight: 16, textDecoration: "none" }}>Terms</Link>
           <Link to="/contact" style={{ color: "rgba(255,255,255,0.4)", textDecoration: "none" }}>Contact</Link>
         </p>

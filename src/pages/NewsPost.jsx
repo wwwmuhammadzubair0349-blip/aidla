@@ -147,6 +147,7 @@ const styles = `
     word-break: break-word;
   }
 
+  /* Meta Row & Author */
   .np-meta {
     display: flex;
     align-items: center;
@@ -155,6 +156,25 @@ const styles = `
     margin-bottom: clamp(16px, 4vw, 28px);
     padding-bottom: clamp(14px, 3.5vw, 22px);
     border-bottom: 1px solid rgba(245,158,11,0.12);
+  }
+  .np-author {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+    color: var(--navy);
+    font-size: 0.8rem;
+  }
+  .np-author-icon {
+    background: rgba(245,158,11,0.1);
+    color: #92400e;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
   }
 
   .np-date-pill {
@@ -201,10 +221,10 @@ const styles = `
   .np-content {
     color: #2d3748;
     font-size: clamp(0.88rem, 2.2vw, 1.02rem);
-    line-height: 1.85;
+    line-height: 1.7; /* Tightened slightly */
     word-break: break-word;
   }
-  .np-content p { margin: 0 0 16px 0; }
+  .np-content p { margin: 0 0 1.1em 0; } /* Professional bottom margin */
   .np-content h1,.np-content h2,.np-content h3,
   .np-content h4,.np-content h5,.np-content h6 {
     font-family: 'Playfair Display', serif;
@@ -237,6 +257,76 @@ const styles = `
     padding: 2px 6px; border-radius: 4px; font-size: 0.85em;
   }
   .np-content pre code { background: none; color: inherit; padding: 0; }
+
+  /* ── Related Posts Section ── */
+  .np-related-section {
+    margin-top: clamp(30px, 6vw, 50px);
+    padding-top: clamp(20px, 4vw, 30px);
+    border-top: 1px solid rgba(245,158,11,0.15);
+  }
+  .np-related-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.2rem, 4vw, 1.5rem);
+    color: var(--navy);
+    margin: 0 0 20px 0;
+    font-weight: 800;
+  }
+  .np-related-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+  }
+  .np-related-card {
+    text-decoration: none;
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid rgba(245,158,11,0.1);
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+  }
+  .np-related-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(11,20,55,0.08);
+  }
+  .np-related-img {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: var(--light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+  }
+  .np-related-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .np-related-text {
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .np-related-text h4 {
+    font-size: 0.95rem;
+    color: var(--navy);
+    margin: 0;
+    font-weight: 700;
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .np-related-text span {
+    font-size: 0.7rem;
+    color: var(--slate);
+    font-weight: 600;
+    text-transform: uppercase;
+  }
 
   /* Footer CTA */
   .np-footer-cta {
@@ -334,6 +424,23 @@ const styles = `
   @media (max-width: 640px) {
     .site-footer { padding: 18px 14px; font-size: 0.72rem; margin-top: 24px; }
     .np-footer-cta { justify-content: center; text-align: center; }
+
+    /* Forces 2 cards per row on mobile */
+    .np-related-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .np-related-text {
+      padding: 10px;
+      gap: 6px;
+    }
+    .np-related-text h4 {
+      font-size: 0.82rem; 
+      line-height: 1.3;
+    }
+    .np-related-text span {
+      font-size: 0.65rem;
+    }
   }
 
   @media (max-width: 360px) {
@@ -341,6 +448,9 @@ const styles = `
     .np-title { font-size: 1.25rem; }
     .np-body { padding: 14px 12px; }
     .np-footer-cta { padding: 12px; }
+
+    .np-related-grid { gap: 8px; }
+    .np-related-text h4 { font-size: 0.75rem; }
   }
 `;
 
@@ -360,10 +470,14 @@ const fadeUp = {
 export default function NewsPost() {
   const { slug } = useParams();
   const [post, setPost] = useState(null);
+  const [relatedPosts, setRelatedPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState("");
 
   useEffect(() => {
+    // Scroll to top when slug changes
+    window.scrollTo(0, 0);
+
     const load = async () => {
       setLoading(true);
       setMsg("");
@@ -391,6 +505,19 @@ export default function NewsPost() {
 
       setPost(data);
 
+      // Fetch related news posts
+      const { data: relatedData } = await supabase
+        .from("news_posts")
+        .select("id, title, slug, cover_image_url, created_at")
+        .eq("status", "published")
+        .is("deleted_at", null)
+        .neq("slug", slug)
+        .limit(4);
+
+      if (relatedData) {
+        setRelatedPosts(relatedData);
+      }
+
       // SEO meta
       document.title = data.meta_title || data.title || "News";
 
@@ -415,7 +542,7 @@ export default function NewsPost() {
     };
 
     load();
-  }, [slug]);
+  },[slug]);
 
   const formatDate = (d) => {
     if (!d) return "New";
@@ -511,7 +638,13 @@ export default function NewsPost() {
               <h1 className="np-title">{post.title}</h1>
 
               <div className="np-meta">
+                <div className="np-author">
+                  <span className="np-author-icon">✍️</span>
+                  {post.author_name || post.author || "AIDLA Team"}
+                </div>
+                <span className="np-dot" />
                 <span className="np-date-pill">{formatDate(post.created_at)}</span>
+                
                 {post.content && (
                   <>
                     <span className="np-dot" />
@@ -530,11 +663,36 @@ export default function NewsPost() {
                 }
               >
                 {!post.content_html && post.content
-                  ? post.content.split("\n").map((line, i) =>
-                      line.trim() === "" ? <br key={i} /> : <p key={i}>{line}</p>
-                    )
+                  ? post.content.split("\n").map((line, i) => {
+                      if (line.trim() === "") return null; // Ignores empty return lines
+                      return <p key={i}>{line}</p>;
+                    })
                   : null}
               </div>
+
+              {/* Related Posts Section */}
+              {relatedPosts.length > 0 && (
+                <div className="np-related-section">
+                  <h3 className="np-related-title">You might also like...</h3>
+                  <div className="np-related-grid">
+                    {relatedPosts.map((rp) => (
+                      <Link to={`/news/${rp.slug}`} key={rp.id} className="np-related-card">
+                        <div className="np-related-img">
+                          {rp.cover_image_url ? (
+                            <img src={rp.cover_image_url} alt={rp.title} loading="lazy" />
+                          ) : (
+                            <div className="np-cover-placeholder" style={{ fontSize: "2rem" }}>📡</div>
+                          )}
+                        </div>
+                        <div className="np-related-text">
+                          <h4>{rp.title}</h4>
+                          <span>{formatDate(rp.created_at)}</span>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Footer CTA */}
@@ -546,13 +704,14 @@ export default function NewsPost() {
         )}
       </div>
 
+{/* ─── Footer ─── */}
       <footer className="site-footer">
         <div style={{ marginBottom: 10, fontSize: "1.1rem" }}>🕌</div>
         <p>© 2025 <strong>AIDLA</strong>. All rights reserved. Designed with ❤️ for learners everywhere.</p>
         <p style={{ marginTop: 8 }}>
-          <Link to="/privacy">Privacy</Link>
-          <Link to="/terms">Terms</Link>
-          <Link to="/contact">Contact</Link>
+          <Link to="/privacy-policy" style={{ color: "rgba(255,255,255,0.4)", marginRight: 16, textDecoration: "none" }}>Privacy Policy</Link>
+          <Link to="/terms" style={{ color: "rgba(255,255,255,0.4)", marginRight: 16, textDecoration: "none" }}>Terms</Link>
+          <Link to="/contact" style={{ color: "rgba(255,255,255,0.4)", textDecoration: "none" }}>Contact</Link>
         </p>
       </footer>
     </div>

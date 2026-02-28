@@ -151,6 +151,25 @@ const styles = `
     padding-bottom: clamp(14px, 3.5vw, 22px);
     border-bottom: 1px solid rgba(59,130,246,0.1);
   }
+  .bp-author {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+    color: var(--navy);
+    font-size: 0.8rem;
+  }
+  .bp-author-icon {
+    background: rgba(59,130,246,0.1);
+    color: var(--sky);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+  }
   .bp-date-pill {
     background: rgba(59,130,246,0.1);
     color: var(--royal);
@@ -265,6 +284,76 @@ const styles = `
     background: none;
     color: inherit;
     padding: 0;
+  }
+
+  /* ── Related Posts Section ── */
+  .bp-related-section {
+    margin-top: clamp(30px, 6vw, 50px);
+    padding-top: clamp(20px, 4vw, 30px);
+    border-top: 1px solid rgba(59,130,246,0.1);
+  }
+  .bp-related-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.2rem, 4vw, 1.5rem);
+    color: var(--navy);
+    margin: 0 0 20px 0;
+    font-weight: 800;
+  }
+  .bp-related-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+  }
+  .bp-related-card {
+    text-decoration: none;
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid rgba(59,130,246,0.08);
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+  }
+  .bp-related-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(11,20,55,0.08);
+  }
+  .bp-related-img {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: var(--light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+  }
+  .bp-related-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .bp-related-text {
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .bp-related-text h4 {
+    font-size: 0.95rem;
+    color: var(--navy);
+    margin: 0;
+    font-weight: 700;
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .bp-related-text span {
+    font-size: 0.7rem;
+    color: var(--slate);
+    font-weight: 600;
+    text-transform: uppercase;
   }
 
   /* ── Divider ── */
@@ -387,6 +476,23 @@ const styles = `
   @media (max-width: 640px) {
     .site-footer { padding: 18px 14px; font-size: 0.72rem; margin-top: 24px; }
     .bp-footer-cta { justify-content: center; text-align: center; }
+
+    /* Forces 2 cards per row on mobile for the related blogs section */
+    .bp-related-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .bp-related-text {
+      padding: 10px;
+      gap: 6px;
+    }
+    .bp-related-text h4 {
+      font-size: 0.82rem; 
+      line-height: 1.3;
+    }
+    .bp-related-text span {
+      font-size: 0.65rem;
+    }
   }
 
   /* ── 320px specific tweaks ── */
@@ -395,6 +501,9 @@ const styles = `
     .bp-body { padding: 14px 12px; }
     .bp-footer-cta { padding: 12px; }
     .bp-back { font-size: 0.68rem; padding: 5px 10px; }
+
+    .bp-related-grid { gap: 8px; }
+    .bp-related-text h4 { font-size: 0.75rem; }
   }
 `;
 
@@ -433,9 +542,12 @@ export default function BlogPost() {
   const { slug } = useParams();
   const [loading, setLoading] = useState(true);
   const [post, setPost] = useState(null);
-  const [msg, setMsg] = useState("");
+  const [relatedPosts, setRelatedPosts] = useState([]);
+  const[msg, setMsg] = useState("");
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+
     const load = async () => {
       setLoading(true);
       setMsg("");
@@ -462,6 +574,18 @@ export default function BlogPost() {
       }
 
       setPost(data);
+
+      const { data: relatedData } = await supabase
+        .from("blogs_posts")
+        .select("id, title, slug, cover_image_url, published_at")
+        .is("deleted_at", null)
+        .eq("status", "published")
+        .neq("slug", slug)
+        .limit(4);
+
+      if (relatedData) {
+        setRelatedPosts(relatedData);
+      }
 
       const siteUrl = "https://aidla.netlify.app";
       const canonical = data.canonical_url || `${siteUrl}/blogs/${slug}`;
@@ -575,9 +699,15 @@ export default function BlogPost() {
               {/* Title */}
               <h1 className="bp-title">{post.title}</h1>
 
-              {/* Meta Row */}
+              {/* Meta Row (Now featuring the Author) */}
               <div className="bp-meta">
+                <div className="bp-author">
+                  <span className="bp-author-icon">✍️</span>
+                  {post.author_name || post.author || "AIDLA Team"}
+                </div>
+                <span className="bp-dot" />
                 <span className="bp-date-pill">{formatDate(post.published_at)}</span>
+                
                 {post.content && (
                   <>
                     <span className="bp-dot" />
@@ -603,16 +733,41 @@ export default function BlogPost() {
                     : undefined
                 }
               >
+                {/* 
+                  FIX: The massive gaps were caused by empty lines triggering empty <br/> tags.
+                  This ignores the empty gaps safely without changing your CSS layout.
+                */}
                 {!post.content_html && post.content
-                  ? post.content.split("\n").map((line, i) =>
-                      line.trim() === "" ? (
-                        <br key={i} />
-                      ) : (
-                        <p key={i}>{line}</p>
-                      )
-                    )
+                  ? post.content.split("\n").map((line, i) => {
+                      if (line.trim() === "") return null;
+                      return <p key={i}>{line}</p>;
+                    })
                   : null}
               </div>
+
+              {/* "You Might Also Like" Related Posts Section */}
+              {relatedPosts.length > 0 && (
+                <div className="bp-related-section">
+                  <h3 className="bp-related-title">You might also like...</h3>
+                  <div className="bp-related-grid">
+                    {relatedPosts.map((rp) => (
+                      <Link to={`/blogs/${rp.slug}`} key={rp.id} className="bp-related-card">
+                        <div className="bp-related-img">
+                          {rp.cover_image_url ? (
+                            <img src={rp.cover_image_url} alt={rp.title} loading="lazy" />
+                          ) : (
+                            <div className="bp-cover-placeholder" style={{ fontSize: "2rem" }}>📰</div>
+                          )}
+                        </div>
+                        <div className="bp-related-text">
+                          <h4>{rp.title}</h4>
+                          <span>{formatDate(rp.published_at)}</span>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Footer CTA */}
@@ -628,14 +783,14 @@ export default function BlogPost() {
         )}
       </div>
 
-      {/* Site Footer */}
+{/* ─── Footer ─── */}
       <footer className="site-footer">
         <div style={{ marginBottom: 10, fontSize: "1.1rem" }}>🕌</div>
         <p>© 2025 <strong>AIDLA</strong>. All rights reserved. Designed with ❤️ for learners everywhere.</p>
         <p style={{ marginTop: 8 }}>
-          <Link to="/privacy">Privacy</Link>
-          <Link to="/terms">Terms</Link>
-          <Link to="/contact">Contact</Link>
+          <Link to="/privacy-policy" style={{ color: "rgba(255,255,255,0.4)", marginRight: 16, textDecoration: "none" }}>Privacy Policy</Link>
+          <Link to="/terms" style={{ color: "rgba(255,255,255,0.4)", marginRight: 16, textDecoration: "none" }}>Terms</Link>
+          <Link to="/contact" style={{ color: "rgba(255,255,255,0.4)", textDecoration: "none" }}>Contact</Link>
         </p>
       </footer>
     </div>

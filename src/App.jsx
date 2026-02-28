@@ -9,7 +9,15 @@ import BlogPost from "./pages/BlogPost.jsx";
 import News from "./pages/News.jsx";
 import NewsPost from "./pages/NewsPost.jsx";
 import Leaderboard from "./pages/Leaderboard.jsx";
-
+import Contact from "./pages/contact.jsx"; 
+import PrivacyPolicy from "./pages/privacy-policy.jsx";
+import Terms from "./pages/terms.jsx";
+import ToolsHome from "./pages/tools/toolshome.jsx";
+import WordToPdf from "./pages/tools/pdf/WordToPdf";
+import ImageToPdf from "./pages/tools/pdf/ImageToPdf";
+import JpgToPng from "./pages/tools/image/JpgToPng";
+import CvMaker from "./pages/tools/career/CvMaker";
+import CoverLetterMaker from "./pages/tools/career/CoverLetterMaker";
 import Login from "./pages/Login.jsx";
 import Signup from "./pages/Signup.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
@@ -159,6 +167,7 @@ const NAV_LINKS = [
   { to: "/about",       label: "About",       icon: "💡" },
   { to: "/blogs",       label: "Blogs",       icon: "📝" },
   { to: "/news",        label: "News",        icon: "📰" },
+  { to: "/tools",       label: "Tools",       icon: "🧰" },
   { to: "/leaderboard", label: "Leaderboard", icon: "🏆" },
 ];
 
@@ -504,6 +513,15 @@ export default function App() {
       <Route path="/news"       element={<News />} />
       <Route path="/news/:slug" element={<NewsPost />} />
       <Route path="/leaderboard" element={<Leaderboard />} />
+      <Route path="/contact"    element={<Contact />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/terms"           element={<Terms />} />
+      <Route path="/tools" element={<ToolsHome />} />
+<Route path="/tools/pdf/word-to-pdf" element={<WordToPdf />} />
+<Route path="/tools/pdf/image-to-pdf" element={<ImageToPdf />} />
+<Route path="/tools/image/jpg-to-png" element={<JpgToPng />} />
+<Route path="/tools/career/cv-maker" element={<CvMaker />} />
+<Route path="/tools/career/cover-letter-maker" element={<CoverLetterMaker />} />
       <Route path="/signup"     element={<Signup />} />
       <Route path="/login"      element={<Login />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />

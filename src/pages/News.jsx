@@ -401,7 +401,7 @@ export default function News() {
         <div style={{ marginBottom: 10, fontSize: "1.1rem" }}>🕌</div>
         <p>© 2025 <strong>AIDLA</strong>. All rights reserved. Designed with ❤️ for learners everywhere.</p>
         <p style={{ marginTop: 8 }}>
-          <Link to="/privacy">Privacy</Link>
+          <Link to="/privacy-policy">Privacy Policy</Link>
           <Link to="/terms">Terms</Link>
           <Link to="/contact">Contact</Link>
         </p>

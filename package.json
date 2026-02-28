@@ -12,6 +12,9 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.98.0",
     "framer-motion": "^12.34.3",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.2.0",
+    "mammoth": "^1.11.0",
     "react": "^19.2.0",
     "react-confetti": "^6.4.0",
     "react-dom": "^19.2.0",

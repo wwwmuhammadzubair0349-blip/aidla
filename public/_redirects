@@ -1,1 +1,6 @@
-/*  /index.html  200
+# 1) Dynamic sitemap (your Netlify Function)
+/sitemap.xml  /.netlify/functions/sitemap  200
+
+# 2) SPA fallback (must stay at the end)
+# NOTE: do NOT include a leading slash in index.html here
+/*  index.html  200
