@@ -99,14 +99,12 @@ export default function Signup() {
       return;
     }
 
-    // Check format: AIDLA-XXXXXX (6 digits)
     const refCodeRegex = /^AIDLA-\d{6}$/;
     if (!refCodeRegex.test(refCode.trim())) {
       setRefCodeError("Invalid format. Use AIDLA-XXXXXX (6 digits)");
       return;
     }
 
-    // Check if code exists in database
     const verifyRefCode = async () => {
       try {
         const { data, error } = await supabase
@@ -155,16 +153,22 @@ export default function Signup() {
     setLoading(true);
 
     try {
+      // ── FIX: pass full_name in options.data so {{ .Data.full_name }} works in email ──
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: "https://aidla.online/email-confirmed",
+          data: {
+            full_name: fullName,
+          },
+        },
       });
       if (error) throw error;
 
       const userId = data.user?.id;
 
       if (userId) {
-        // Generate unique referral code: AIDLA-XXXXXX (6 random digits)
         let myReferCode;
         let isUnique = false;
         
@@ -172,7 +176,6 @@ export default function Signup() {
           const randomDigits = String(Math.floor(Math.random() * 1000000)).padStart(6, '0');
           myReferCode = `AIDLA-${randomDigits}`;
           
-          // Check if code is unique
           const { data: existing } = await supabase
             .from("users_profiles")
             .select("user_id")
@@ -207,7 +210,6 @@ export default function Signup() {
     }
   }
 
-  // --- FIXED 2060 CSS LAYOUT ---
   const css = `
     * {
       box-sizing: border-box;
@@ -215,23 +217,20 @@ export default function Signup() {
       padding: 0;
     }
 
-    /* FULLSCREEN OVERLAY - Fixed to prevent top cutoff */
     .fullscreen-wrapper {
       position: fixed;
       top: 0;
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: #f0f4f8; /* Soft white/gray base */
+      background: #f0f4f8;
       overflow-y: auto;
       overflow-x: hidden;
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
       z-index: 99999;
-      /* Safely pads the top and bottom so content never gets stuck off-screen */
       padding: 50px 20px; 
     }
 
-    /* Floating 3D Background Orbs */
     .bg-orb {
       position: fixed;
       border-radius: 50%;
@@ -242,14 +241,14 @@ export default function Signup() {
     .orb-1 {
       width: 400px;
       height: 400px;
-      background: rgba(30, 58, 138, 0.15); /* Navy */
+      background: rgba(30, 58, 138, 0.15);
       top: -100px;
       left: -100px;
     }
     .orb-2 {
       width: 300px;
       height: 300px;
-      background: rgba(59, 130, 246, 0.15); /* Blue */
+      background: rgba(59, 130, 246, 0.15);
       bottom: -50px;
       right: -50px;
       animation-duration: 25s;
@@ -260,18 +259,16 @@ export default function Signup() {
       100% { transform: translate(50px, 50px) scale(1.1); }
     }
 
-    /* Main 3D Card */
     .card-2060 {
       width: 100%;
       max-width: 480px;
-      margin: 0 auto; /* Horizontally centers the card safely */
+      margin: 0 auto;
       background: rgba(255, 255, 255, 0.85);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border: 1px solid rgba(255, 255, 255, 1);
       border-radius: 28px;
       padding: 40px;
-      /* Advanced Neumorphic + Glass Shadow */
       box-shadow: 
         20px 20px 60px rgba(15, 23, 42, 0.08), 
         -20px -20px 60px rgba(255, 255, 255, 0.9),
@@ -286,7 +283,6 @@ export default function Signup() {
       to { opacity: 1; transform: translateY(0) scale(1); }
     }
 
-    /* 3D Back Button */
     .back-btn {
       display: inline-flex;
       align-items: center;
@@ -311,7 +307,6 @@ export default function Signup() {
     }
     .back-btn svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 3; fill: none; }
 
-    /* Branding Section */
     .brand-header { text-align: center; margin-bottom: 30px; margin-top: 10px; }
     .brand-title {
       font-size: 3rem;
@@ -325,7 +320,6 @@ export default function Signup() {
     }
     .brand-subtitle { font-size: 0.9rem; color: #64748b; font-weight: 600; letter-spacing: 0.5px; }
 
-    /* 3D Floating Ecosystem Badges */
     .eco-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -348,7 +342,6 @@ export default function Signup() {
     .eco-badge:hover { transform: translateY(-4px) scale(1.05); }
     .eco-badge svg { width: 18px; height: 18px; margin-bottom: 4px; stroke: #3b82f6; stroke-width: 2; fill: none; }
 
-    /* Inputs */
     .input-group { margin-bottom: 20px; position: relative; }
     .label-3d { display: block; margin-bottom: 8px; font-weight: 700; color: #334155; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
     
@@ -376,11 +369,9 @@ export default function Signup() {
         0 0 15px rgba(59, 130, 246, 0.2);
     }
 
-    /* Input Error State */
     .input-error { border-color: rgba(239, 68, 68, 0.5); box-shadow: 0 0 15px rgba(239, 68, 68, 0.1); }
     .error-text { color: #ef4444; font-size: 0.75rem; font-weight: 600; margin-top: 6px; display: block; animation: fadeIn 0.3s ease; }
 
-    /* Password Toggle & Strength */
     .eye-btn {
       position: absolute;
       right: 15px;
@@ -399,12 +390,11 @@ export default function Signup() {
     
     .strength-meter { display: flex; gap: 4px; margin-top: 8px; height: 4px; border-radius: 2px; overflow: hidden; }
     .strength-bar { flex: 1; background: #e2e8f0; transition: all 0.4s ease; border-radius: 2px; }
-    .strength-1 { background: #ef4444; } /* Weak */
-    .strength-2 { background: #f59e0b; } /* Fair */
-    .strength-3 { background: #3b82f6; } /* Good */
-    .strength-4 { background: #10b981; } /* Strong */
+    .strength-1 { background: #ef4444; }
+    .strength-2 { background: #f59e0b; }
+    .strength-3 { background: #3b82f6; }
+    .strength-4 { background: #10b981; }
 
-    /* 2060 Submit Button */
     .btn-2060 {
       width: 100%;
       padding: 18px;
@@ -457,7 +447,6 @@ export default function Signup() {
 
     @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* Responsive adjustments */
     @media (max-width: 500px) {
       .fullscreen-wrapper { padding: 30px 15px; }
       .card-2060 { padding: 30px 20px; border-radius: 20px; }
@@ -473,19 +462,16 @@ export default function Signup() {
     <div className="fullscreen-wrapper">
       <style>{css}</style>
       
-      {/* 3D Ambient Background Orbs */}
       <div className="bg-orb orb-1"></div>
       <div className="bg-orb orb-2"></div>
 
       <div className="card-2060">
         
-        {/* Back Button */}
         <Link to="/home" className="back-btn">
           <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" strokeLinecap="round" strokeLinejoin="round"/></svg>
           Back
         </Link>
         
-        {/* Branding & 3D Icons */}
         <div className="brand-header">
           <h1 className="brand-title">AIDLA</h1>
           <p className="brand-subtitle">The Ecosystem of Tomorrow</p>
@@ -510,7 +496,6 @@ export default function Signup() {
           </div>
         </div>
 
-        {/* Form */}
         <form onSubmit={onSubmit}>
           
           <div className="input-group">
@@ -570,7 +555,6 @@ export default function Signup() {
                 )}
               </button>
             </div>
-            {/* Password Strength Meter */}
             {password.length > 0 && (
               <div className="strength-meter">
                 {[1, 2, 3, 4].map((level) => (

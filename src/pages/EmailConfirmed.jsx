@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "../lib/supabase"; // adjust path if needed
+import logo from "../assets/logo.jpg";
 
 /* ─────────────────────────────────────────────
    Inline styles — same tokens as Terms / Email
@@ -309,14 +310,27 @@ export default function EmailConfirmed() {
           <div className="ec-bar" />
 
           <div className="ec-inner">
-            {/* success icon */}
+            {/* logo */}
             <motion.div
-              className="ec-icon-wrap"
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1,   opacity: 1 }}
               transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+              style={{ marginBottom: 22 }}
             >
-              <span className="ec-check">✅</span>
+              <img
+                src={logo}
+                alt="AIDLA Logo"
+                style={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: "50%",
+                  objectFit: "cover",
+                  display: "block",
+                  margin: "0 auto",
+                  boxShadow: "0 8px 28px rgba(11,20,55,0.18)",
+                  border: "2px solid rgba(59,130,246,0.12)",
+                }}
+              />
             </motion.div>
 
             {/* badge */}

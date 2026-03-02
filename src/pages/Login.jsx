@@ -1,15 +1,14 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { supabase } from "../lib/supabase.js";
 
 export default function Login() {
-    const location = useLocation();
+  const location = useLocation();
   const prefillEmail = location.state?.email ?? "";
   const navigate = useNavigate();
   const adminEmail = (import.meta.env.VITE_ADMIN_EMAIL || "").toLowerCase();
 
-const [email, setEmail] = useState(prefillEmail);
-
+  const [email, setEmail] = useState(prefillEmail);
   const [password, setPassword] = useState("");
   
   const [userName, setUserName] = useState("");
@@ -24,7 +23,7 @@ const [email, setEmail] = useState(prefillEmail);
   // 1) Load Remembered Email on Mount
   useEffect(() => {
     const savedEmail = localStorage.getItem("aidla_remembered_email");
-    if (savedEmail) {
+    if (savedEmail && !prefillEmail) {
       setEmail(savedEmail);
       setRememberMe(true);
     }
@@ -47,13 +46,11 @@ const [email, setEmail] = useState(prefillEmail);
           .maybeSingle();
 
         if (data && data.full_name) {
-          // User exists - extract first name
           const firstName = data.full_name.split(" ")[0];
           setUserName(firstName);
           setUserExists(true);
           setUserNotFoundMsg("");
         } else {
-          // User doesn't exist
           setUserName("");
           setUserExists(false);
           setUserNotFoundMsg("No account found. Plz create account first");
@@ -63,7 +60,6 @@ const [email, setEmail] = useState(prefillEmail);
       }
     };
 
-    // Debounce to prevent spamming the database
     const timeoutId = setTimeout(fetchUserNameAndCheck, 400);
     return () => clearTimeout(timeoutId);
   }, [email]);
@@ -80,7 +76,6 @@ const [email, setEmail] = useState(prefillEmail);
       });
       if (error) throw error;
 
-      // Save or Clear Remembered Email
       if (rememberMe) {
         localStorage.setItem("aidla_remembered_email", email);
       } else {
@@ -89,7 +84,6 @@ const [email, setEmail] = useState(prefillEmail);
 
       const userEmail = (data.user?.email || "").toLowerCase();
       
-      // Route based on admin status
       if (userEmail === adminEmail) {
         navigate("/admin");
       } else {
@@ -102,7 +96,6 @@ const [email, setEmail] = useState(prefillEmail);
     }
   }
 
-  // --- 2060 3D NEXT-GEN CSS ---
   const css = `
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -185,7 +178,6 @@ const [email, setEmail] = useState(prefillEmail);
     .input-3d::placeholder { color: #cbd5e1; font-weight: 500; }
     .input-3d:focus { outline: none; background: #ffffff; border-color: rgba(59, 130, 246, 0.4); box-shadow: inset 2px 2px 5px rgba(15, 23, 42, 0.03), inset -2px -2px 5px rgba(255, 255, 255, 1), 0 0 15px rgba(59, 130, 246, 0.2); }
 
-    /* Input Error State */
     .input-error { border-color: rgba(239, 68, 68, 0.5); box-shadow: 0 0 15px rgba(239, 68, 68, 0.1); }
     .error-text { color: #ef4444; font-size: 0.75rem; font-weight: 600; margin-top: 6px; display: block; animation: fadeIn 0.3s ease; }
 
@@ -195,7 +187,6 @@ const [email, setEmail] = useState(prefillEmail);
     }
     .eye-btn:hover { color: #1e3a8a; }
 
-    /* Custom 3D Checkbox for Remember Me */
     .remember-wrapper {
       display: flex; align-items: center; gap: 12px; margin-top: 10px; margin-bottom: 24px; cursor: pointer; user-select: none;
     }
@@ -318,7 +309,6 @@ const [email, setEmail] = useState(prefillEmail);
             </div>
           </div>
 
-          {/* Remember Me Checkbox */}
           <label className="remember-wrapper">
             <input 
               type="checkbox" 
