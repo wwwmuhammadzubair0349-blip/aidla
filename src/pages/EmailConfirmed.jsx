@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { supabase } from "../lib/supabaseClient"; // adjust path if needed
+import { supabase } from "../lib/supabase"; // adjust path if needed
 
 /* ─────────────────────────────────────────────
    Inline styles — same tokens as Terms / Email
