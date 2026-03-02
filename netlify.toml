@@ -1,2 +1,12 @@
 [functions]
   directory = "netlify/functions"
+
+
+# ✅ Edge Function for dynamic previews
+[[edge_functions]]
+function = "og"
+path = "/blogs/*"
+
+[[edge_functions]]
+function = "og"
+path = "/news/*"
