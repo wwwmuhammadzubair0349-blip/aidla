@@ -1,7 +1,14 @@
 User-agent: *
 Allow: /
 
+# Private dashboards
 Disallow: /admin/
 Disallow: /user/
 
-Sitemap: https://aidla.netlify.app/sitemap.xml
+# Auth pages (do not index)
+Disallow: /signup
+Disallow: /login
+Disallow: /forgot-password
+Disallow: /reset-password
+
+Sitemap: https://aidla.online/sitemap.xml

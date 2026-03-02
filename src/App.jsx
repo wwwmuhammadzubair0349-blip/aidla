@@ -13,6 +13,7 @@ const Leaderboard = lazy(() => import("./pages/Leaderboard.jsx"));
 const Contact = lazy(() => import("./pages/contact.jsx"));
 const PrivacyPolicy = lazy(() => import("./pages/privacy-policy.jsx"));
 const Terms = lazy(() => import("./pages/terms.jsx"));
+import EmailConfirmed from "./pages/EmailConfirmed";
 
 const ToolsHome = lazy(() => import("./pages/tools/toolshome.jsx"));
 const WordToPdf = lazy(() => import("./pages/tools/pdf/WordToPdf"));
@@ -526,6 +527,7 @@ const AppRoutes = (
 <Route path="/tools/image/jpg-to-png" element={<JpgToPng />} />
 <Route path="/tools/career/cv-maker" element={<CvMaker />} />
 <Route path="/tools/career/cover-letter-maker" element={<CoverLetterMaker />} />
+<Route path="/email-confirmed" element={<EmailConfirmed />} />
       <Route path="/signup"     element={<Signup />} />
       <Route path="/login"      element={<Login />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />

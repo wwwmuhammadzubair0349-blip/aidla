@@ -217,7 +217,7 @@ export default function Terms() {
         <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
           <span className="tc-badge">Legal</span>
           <h1 className="tc-title">Terms <span className="tc-title-accent">&amp; Conditions</span></h1>
-          <p className="tc-meta">Last Updated: March 2026</p>
+          <p className="tc-meta">Last Updated: February 2026</p>
         </motion.div>
 
         <motion.div className="tc-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, delay: 0.1 }}>

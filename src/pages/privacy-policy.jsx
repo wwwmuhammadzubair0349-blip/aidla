@@ -207,7 +207,7 @@ export default function PrivacyPolicy() {
         <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
           <span className="pp-badge">Legal</span>
           <h1 className="pp-title">Privacy <span className="pp-title-accent">Policy</span></h1>
-          <p className="pp-meta">Last Updated: March 2026</p>
+          <p className="pp-meta">Last Updated: February 2026</p>
         </motion.div>
 
         <motion.div className="pp-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, delay: 0.1 }}>

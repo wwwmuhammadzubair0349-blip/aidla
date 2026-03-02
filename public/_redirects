@@ -1,7 +1,9 @@
-# Dynamic sitemap
-/sitemap.xml  /.netlify/functions/sitemap  200
+# Canonical domain redirect
+https://aidla.netlify.app/*  https://aidla.online/:splat  301!
 
-# React SPA fallback (VERY IMPORTANT)
-# MUST BE LAST LINE
-/admin/*  /index.html  200
-/*        /index.html  200
+# Sitemap function
+/sitemap.xml   /.netlify/functions/sitemap   200
+
+# SPA fallback
+/admin/*   /index.html   200
+/*         /index.html   200

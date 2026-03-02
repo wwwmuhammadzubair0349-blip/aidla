@@ -3,10 +3,13 @@ import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "../lib/supabase.js";
 
 export default function Login() {
+    const location = useLocation();
+  const prefillEmail = location.state?.email ?? "";
   const navigate = useNavigate();
   const adminEmail = (import.meta.env.VITE_ADMIN_EMAIL || "").toLowerCase();
 
-  const [email, setEmail] = useState("");
+const [email, setEmail] = useState(prefillEmail);
+
   const [password, setPassword] = useState("");
   
   const [userName, setUserName] = useState("");

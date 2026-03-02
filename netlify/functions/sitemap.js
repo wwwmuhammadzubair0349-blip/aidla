@@ -6,7 +6,8 @@ const supabase = createClient(
 );
 
 export async function handler() {
-  const base = "https://aidla.netlify.app";
+  const base =
+  process.env.URL || "https://aidla.online";
 
   // BLOGS
   const { data: blogs } = await supabase
