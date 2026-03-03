@@ -1,6 +1,8 @@
 import { Link, Route, Routes, Navigate, useLocation, NavLink } from "react-router-dom";
 import { useEffect, useState, lazy, Suspense } from "react";
 import { supabase } from "./lib/supabase.js";
+import { registerPushToken, listenForNotifications } from "./lib/notifications";
+
 
 // Lazy-loaded pages (Performance fix)
 const Home = lazy(() => import("./pages/Home.jsx"));
@@ -183,10 +185,14 @@ function ProtectedRoute({ children }) {
   const [session, setSession] = useState(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setLoading(false);
-    });
+supabase.auth.getSession().then(({ data }) => {
+  setSession(data.session);
+  setLoading(false);
+  if (data.session?.user) {
+    registerPushToken();
+    listenForNotifications();
+  }
+});
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
     return () => sub.subscription.unsubscribe();
   }, []);

@@ -28,6 +28,14 @@ function normalizeOptions(options) {
   return options || {};
 }
 
+// ── Slug helper for share URL ─────────────────────────────────────────────────
+function slugify(text) {
+  return (text || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
 // ── Sound Engine ──────────────────────────────────────────────────────────────
 function useCountdownSound() {
   const ctxRef = useRef(null);
@@ -121,7 +129,6 @@ function StatusOverlay({ type, reason, testEndAt, testTitle, qualifiedCount, win
   const ended = endMs ? nowMs >= endMs : true;
   const hasWinners = winners && winners.length > 0;
 
-  // ── Auto-close timer for winner overlay (10 seconds) ──
   const AUTO_CLOSE_SEC = 10;
   const [autoCloseLeft, setAutoCloseLeft] = React.useState(type === "winner" ? AUTO_CLOSE_SEC : null);
   const autoCloseRef = React.useRef(null);
@@ -131,21 +138,14 @@ function StatusOverlay({ type, reason, testEndAt, testTitle, qualifiedCount, win
     setAutoCloseLeft(AUTO_CLOSE_SEC);
     autoCloseRef.current = setInterval(() => {
       setAutoCloseLeft(prev => {
-        if (prev <= 1) {
-          clearInterval(autoCloseRef.current);
-          onClose && onClose();
-          return 0;
-        }
+        if (prev <= 1) { clearInterval(autoCloseRef.current); onClose && onClose(); return 0; }
         return prev - 1;
       });
     }, 1000);
     return () => clearInterval(autoCloseRef.current);
   }, [type]);
 
-  const handleClose = () => {
-    clearInterval(autoCloseRef.current);
-    onClose && onClose();
-  };
+  const handleClose = () => { clearInterval(autoCloseRef.current); onClose && onClose(); };
 
   const reasonLabel =
     reason === "TIMEOUT"    ? "Time Ran Out"    :
@@ -154,28 +154,10 @@ function StatusOverlay({ type, reason, testEndAt, testTitle, qualifiedCount, win
     reason === "manual_out" ? "Exited Manually" : "Eliminated";
 
   const configs = {
-    eliminated: {
-      icon: "💀", title: "ELIMINATED", titleColor: "#f87171",
-      glowColor: "rgba(239,68,68,0.14)", borderColor: "rgba(239,68,68,0.25)",
-      desc: `You were eliminated (${reasonLabel}). Better luck next time!`,
-    },
-    not_registered: {
-      icon: "🚫", title: "NOT REGISTERED", titleColor: "#fb923c",
-      glowColor: "rgba(249,115,22,0.12)", borderColor: "rgba(249,115,22,0.25)",
-      desc: "You did not register for this test in time.",
-    },
-    qualified: {
-      icon: "🎓", title: "QUALIFIED!", titleColor: "#4ade80",
-      glowColor: "rgba(74,222,128,0.14)", borderColor: "rgba(74,222,128,0.3)",
-      desc: hasWinners
-        ? "You completed the test! Results have been announced."
-        : "You completed the test successfully! Awaiting admin approval for final results.",
-    },
-    winner: {
-      icon: "🏆", title: "YOU WON!", titleColor: "#fbbf24",
-      glowColor: "rgba(251,191,36,0.2)", borderColor: "rgba(251,191,36,0.45)",
-      desc: `Congratulations! You are a winner of "${testTitle || "this test"}"!`,
-    },
+    eliminated: { icon: "💀", title: "ELIMINATED", titleColor: "#f87171", glowColor: "rgba(239,68,68,0.14)", borderColor: "rgba(239,68,68,0.25)", desc: `You were eliminated (${reasonLabel}). Better luck next time!` },
+    not_registered: { icon: "🚫", title: "NOT REGISTERED", titleColor: "#fb923c", glowColor: "rgba(249,115,22,0.12)", borderColor: "rgba(249,115,22,0.25)", desc: "You did not register for this test in time." },
+    qualified: { icon: "🎓", title: "QUALIFIED!", titleColor: "#4ade80", glowColor: "rgba(74,222,128,0.14)", borderColor: "rgba(74,222,128,0.3)", desc: hasWinners ? "You completed the test! Results have been announced." : "You completed the test successfully! Awaiting admin approval for final results." },
+    winner: { icon: "🏆", title: "YOU WON!", titleColor: "#fbbf24", glowColor: "rgba(251,191,36,0.2)", borderColor: "rgba(251,191,36,0.45)", desc: `Congratulations! You are a winner of "${testTitle || "this test"}"!` },
   };
   const cfg = configs[type] || configs.eliminated;
 
@@ -184,31 +166,20 @@ function StatusOverlay({ type, reason, testEndAt, testTitle, qualifiedCount, win
       <style>{statusOverlayCSS}</style>
       {type === "winner" && <FireworksCanvas />}
       <div className="taso-bg" style={{ background: `radial-gradient(ellipse 65% 55% at 50% 42%, ${cfg.glowColor} 0%, transparent 70%)` }} />
-
       <div className="taso-card" style={{ borderColor: cfg.borderColor }}>
-
-        {/* ── X close button (top-right, always visible) ── */}
         <button className="taso-x-btn" onClick={handleClose} title="Close">×</button>
-
-        {/* ── Auto-close ring for winner ── */}
         {type === "winner" && autoCloseLeft !== null && autoCloseLeft > 0 && (
           <div className="taso-auto-close">
             <svg className="taso-ring-svg" viewBox="0 0 36 36">
               <circle className="taso-ring-bg" cx="18" cy="18" r="15.9" />
-              <circle
-                className="taso-ring-fill"
-                cx="18" cy="18" r="15.9"
-                strokeDasharray={`${(autoCloseLeft / AUTO_CLOSE_SEC) * 100} 100`}
-              />
+              <circle className="taso-ring-fill" cx="18" cy="18" r="15.9" strokeDasharray={`${(autoCloseLeft / AUTO_CLOSE_SEC) * 100} 100`} />
             </svg>
             <span className="taso-auto-close-num">{autoCloseLeft}</span>
           </div>
         )}
-
         <div className="taso-icon">{cfg.icon}</div>
         <div className="taso-title" style={{ color: cfg.titleColor }}>{cfg.title}</div>
         <div className="taso-desc">{cfg.desc}</div>
-
         {type === "winner" && myWinnerData && (
           <div className="taso-prize-box">
             <div className="taso-prize-label">YOUR PRIZE</div>
@@ -216,24 +187,19 @@ function StatusOverlay({ type, reason, testEndAt, testTitle, qualifiedCount, win
             {myWinnerData.rank_no && <div className="taso-prize-rank">Rank #{myWinnerData.rank_no}</div>}
           </div>
         )}
-
         {type === "qualified" && (
           <div className="taso-qual-box">
             <div className="taso-q-num">{qualifiedCount || "—"}</div>
             <div className="taso-q-label">Players Qualified</div>
           </div>
         )}
-
         {!ended && (type === "eliminated" || type === "not_registered" || type === "qualified") && (
           <div className="taso-cd-wrap">
-            <div className="taso-cd-label">
-              {type === "qualified" ? "Results announced in" : "Test ends in"}
-            </div>
+            <div className="taso-cd-label">{type === "qualified" ? "Results announced in" : "Test ends in"}</div>
             <div className="taso-cd-timer">{msToHMS(timeToEnd)}</div>
             <div className="taso-cd-sub">Pending admin approval</div>
           </div>
         )}
-
         {ended && hasWinners && (
           <div className="taso-winners-reveal">
             <div className="taso-wr-title">🎖 Winners Announced</div>
@@ -246,7 +212,6 @@ function StatusOverlay({ type, reason, testEndAt, testTitle, qualifiedCount, win
             ))}
           </div>
         )}
-
         {ended && !hasWinners && type !== "winner" && (
           <div className="taso-cd-wrap" style={{ background: "rgba(22,163,74,0.1)", borderColor: "rgba(22,163,74,0.25)" }}>
             <div className="taso-cd-label" style={{ color: "#4ade80" }}>Test Has Ended</div>
@@ -255,14 +220,9 @@ function StatusOverlay({ type, reason, testEndAt, testTitle, qualifiedCount, win
             {!qualifiedCount && <div className="taso-cd-sub">Awaiting admin approval of results</div>}
           </div>
         )}
-
         <div style={{display:"flex",gap:8,flexWrap:"wrap",justifyContent:"center",marginTop:4}}>
-          {onClose && type !== "winner" && (
-            <button className="taso-back-btn" onClick={handleClose}>← Back to Lobby</button>
-          )}
-          {onRewatch && (
-            <button className="taso-rewatch-btn" onClick={onRewatch}>🎬 Replay Test</button>
-          )}
+          {onClose && type !== "winner" && <button className="taso-back-btn" onClick={handleClose}>← Back to Lobby</button>}
+          {onRewatch && <button className="taso-rewatch-btn" onClick={onRewatch}>🎬 Replay Test</button>}
         </div>
       </div>
     </div>,
@@ -374,6 +334,46 @@ function TestEndedBanner({ qualifiedCount, winnersAnnounced }) {
   );
 }
 
+// ── Prizes Section Component ──────────────────────────────────────────────────
+function PrizesSection({ prizes }) {
+  if (!prizes || prizes.length === 0) return null;
+
+  const rankMedal = (r) => r === 1 ? "🥇" : r === 2 ? "🥈" : r === 3 ? "🥉" : `#${r}`;
+  const rankColor = (r) => r === 1 ? { bg: "rgba(251,191,36,0.10)", border: "rgba(251,191,36,0.30)", text: "#b45309" }
+                         : r === 2 ? { bg: "rgba(148,163,184,0.10)", border: "rgba(148,163,184,0.30)", text: "#475569" }
+                         : r === 3 ? { bg: "rgba(180,83,9,0.08)",   border: "rgba(180,83,9,0.22)",   text: "#92400e" }
+                         :           { bg: "rgba(30,58,138,0.05)",   border: "rgba(30,58,138,0.12)",  text: "#1e3a8a" };
+
+  return (
+    <div className="ta-section">
+      <div className="ta-section-title">🎁 Prizes</div>
+      <div className="ta-prizes-grid">
+        {prizes.map((p) => {
+          const c = rankColor(p.rank_no);
+          return (
+            <div
+              key={p.rank_no}
+              className="ta-prize-card"
+              style={{ background: c.bg, borderColor: c.border }}
+            >
+              <div className="ta-prize-medal">{rankMedal(p.rank_no)}</div>
+              <div className="ta-prize-body">
+                <div className="ta-prize-rank" style={{ color: c.text }}>Rank {p.rank_no}</div>
+                <div className="ta-prize-text">
+                  {p.prize_text || (p.prize_type === "coins" ? `${Number(p.coins_amount).toLocaleString()} coins` : "Prize")}
+                </div>
+                {p.prize_type === "coins" && p.coins_amount > 0 && p.prize_text && (
+                  <div className="ta-prize-coins">💰 {Number(p.coins_amount).toLocaleString()} coins</div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ── Main Component ────────────────────────────────────────────────────────────
 export default function TestArena() {
   const [loading, setLoading]           = useState(true);
@@ -383,6 +383,10 @@ export default function TestArena() {
   const [registered, setRegistered]     = useState(false);
   const [tick, setTick]                 = useState(0);
   const [userId, setUserId]             = useState(null);
+
+  // ── NEW: prizes state ──
+  const [prizes, setPrizes]             = useState([]);
+  const [shareCopied, setShareCopied]   = useState(false);
 
   // session
   const [sessionId, setSessionId]       = useState(null);
@@ -415,12 +419,9 @@ export default function TestArena() {
   const [outReason, setOutReason]         = useState(null);
   const [myWinnerData, setMyWinnerData]   = useState(null);
 
-  // ── FIX: Use a ref to track selectedTest.id for polling closure ──
   const selectedTestIdRef = useRef(null);
-  // shownWinRef: tracks whether winner overlay is CURRENTLY displayed to prevent
-  // duplicate re-triggers while it's open. Does NOT permanently block re-showing.
-  const shownWinRef = useRef(false);
-  const uidRef = useRef(null);
+  const shownWinRef       = useRef(false);
+  const uidRef            = useRef(null);
 
   const { playTick, playFail, playSuccess } = useCountdownSound();
   const lastTickRef = useRef(null);
@@ -491,7 +492,22 @@ export default function TestArena() {
     return null;
   };
 
-  // ── FIX: loadWinners with error handling + correct column selection ──
+  // ── NEW: load prizes from test_prizes table ──
+  const loadPrizes = async (testId) => {
+    if (!testId) return;
+    const { data, error } = await supabase
+      .from("test_prizes")
+      .select("rank_no,prize_type,prize_text,coins_amount,prize")
+      .eq("test_id", testId)
+      .eq("enabled", true)
+      .order("rank_no", { ascending: true });
+    if (error) {
+      console.error("loadPrizes error:", error.message);
+      return;
+    }
+    setPrizes(data || []);
+  };
+
   const loadWinners = async (testId, uid, autoShowCelebration = false) => {
     if (!testId) return null;
     const { data, error } = await supabase
@@ -499,48 +515,33 @@ export default function TestArena() {
       .select("rank_no,user_name,user_id,prize_text,prize,coins_amount")
       .eq("test_id", testId)
       .order("rank_no", { ascending: true });
-
-    if (error) {
-      // Surface the error so it's never silent
-      console.error("loadWinners error:", error.message);
-      setMsg("Winners load error: " + error.message);
-      return null;
-    }
-
+    if (error) { console.error("loadWinners error:", error.message); setMsg("Winners load error: " + error.message); return null; }
     setWinners(data || []);
-
     if (uid && data?.length > 0) {
       const myWin = data.find(r => r.user_id === uid);
       if (myWin) {
         setMyWinnerData(myWin);
-        // Show winner overlay if requested AND not already showing it
-        // shownWinRef=true only while overlay is open — prevents double-fire
-        if (autoShowCelebration && !shownWinRef.current) {
-          shownWinRef.current = true;
-          setStatusOverlay("winner");
-        }
+        if (autoShowCelebration && !shownWinRef.current) { shownWinRef.current = true; setStatusOverlay("winner"); }
         return myWin;
       }
     }
     return null;
   };
 
-  // ── FIX: Polling uses refs instead of stale closure values ──
+  // ── Polling ──
   useEffect(() => {
     loadTests();
     const iv = setInterval(() => {
-      // Use refs — always have the latest values even in stale closure
       const tid = selectedTestIdRef.current;
       const uid = uidRef.current;
       if (tid && uid) {
         loadLeaderboard(tid, uid);
-        loadWinners(tid, uid, true); // autoShowCelebration=true so winner screen appears
+        loadWinners(tid, uid, true);
       }
     }, 3000);
     return () => clearInterval(iv);
   }, []);
 
-  // ── Keep selectedTestIdRef in sync ──
   useEffect(() => {
     selectedTestIdRef.current = selectedTest?.id || null;
   }, [selectedTest]);
@@ -549,19 +550,14 @@ export default function TestArena() {
   useEffect(() => {
     if (!inTest || runPhase !== "PLAYING") return;
     if (timeLeft <= 5 && timeLeft > 0) {
-      if (lastTickRef.current !== timeLeft) {
-        lastTickRef.current = timeLeft;
-        playTick(timeLeft === 1);
-      }
+      if (lastTickRef.current !== timeLeft) { lastTickRef.current = timeLeft; playTick(timeLeft === 1); }
     }
   }, [timeLeft, inTest, runPhase]);
 
   // ── OUT on page leave ──
   useEffect(() => {
     const beforeUnload = async () => {
-      if (sessionId) {
-        try { await supabase.rpc("test_mark_out", { p_session_id: sessionId, p_reason: "left_page" }); } catch {}
-      }
+      if (sessionId) { try { await supabase.rpc("test_mark_out", { p_session_id: sessionId, p_reason: "left_page" }); } catch {} }
     };
     window.addEventListener("beforeunload", beforeUnload);
     return () => window.removeEventListener("beforeunload", beforeUnload);
@@ -585,8 +581,9 @@ export default function TestArena() {
 
   const selectTest = async (t) => {
     setSelectedTest(t);
-    selectedTestIdRef.current = t.id; // ← update ref immediately
+    selectedTestIdRef.current = t.id;
     setMsg(""); setRegistered(false); setStatusOverlay(null); setMyWinnerData(null); setWinners([]);
+    setPrizes([]); // clear old prizes
     resetRunState();
     const uid = uidRef.current;
     if (!uid) return;
@@ -600,17 +597,29 @@ export default function TestArena() {
     const isReg = await loadRegistration(t.id, uid);
     const lbStatus = await loadLeaderboard(t.id, uid);
     const myWin = await loadWinners(t.id, uid, false);
+    await loadPrizes(t.id); // ← fetch prizes for this test
 
-    // Priority: winner > qualified > not_registered
-    if (myWin) {
-      // Always show winner screen when selecting a test where user won
-      shownWinRef.current = true;
-      setStatusOverlay("winner");
-    } else if (lbStatus === "qualified" && (tPhase === "ENDED" || tPhase === "TEST_LIVE")) {
-      setStatusOverlay("qualified");
-    } else if ((tPhase === "ENDED" || tPhase === "TEST_LIVE") && !isReg) {
-      setStatusOverlay("not_registered");
-    }
+    if (myWin) { shownWinRef.current = true; setStatusOverlay("winner"); }
+    else if (lbStatus === "qualified" && (tPhase === "ENDED" || tPhase === "TEST_LIVE")) { setStatusOverlay("qualified"); }
+    else if ((tPhase === "ENDED" || tPhase === "TEST_LIVE") && !isReg) { setStatusOverlay("not_registered"); }
+  };
+
+  // ── Share button handler ──
+  const handleShare = () => {
+    if (!selectedTest) return;
+    const slug = slugify(selectedTest.title);
+    const url = `${window.location.origin}/user/test?t=${slug}&id=${selectedTest.id}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2500);
+    }).catch(() => {
+      // fallback: select text
+      const ta = document.createElement("textarea");
+      ta.value = url; document.body.appendChild(ta); ta.select();
+      document.execCommand("copy"); document.body.removeChild(ta);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2500);
+    });
   };
 
   // ── Register ──
@@ -671,12 +680,8 @@ export default function TestArena() {
     const tid = selectedTestIdRef.current;
     const myWin = await loadWinners(tid, uid, false);
     await loadLeaderboard(tid, uid);
-    if (myWin) {
-      shownWinRef.current = true;
-      setStatusOverlay("winner");
-    } else {
-      setStatusOverlay("qualified");
-    }
+    if (myWin) { shownWinRef.current = true; setStatusOverlay("winner"); }
+    else { setStatusOverlay("qualified"); }
   };
 
   const outMe = async (reason) => {
@@ -771,20 +776,8 @@ export default function TestArena() {
           winners={winners}
           myWinnerData={myWinnerData}
           tick={tick}
-          onRewatch={(statusOverlay === "winner" || statusOverlay === "qualified") ? () => {
-            // Replay: keep shownWinRef=true so auto-poll doesn't immediately re-open
-            setStatusOverlay(null);
-          } : null}
-          onClose={() => {
-            if (statusOverlay === "winner") {
-              // User manually closed winner overlay (or auto-closed after 10s)
-              // Keep shownWinRef=true → polling will NOT re-open it automatically
-              // User can still click "🏆 I Won!" chip to see it again anytime
-            } else {
-              // For non-winner overlays, closing is fine — nothing to block
-            }
-            setStatusOverlay(null);
-          }}
+          onRewatch={(statusOverlay === "winner" || statusOverlay === "qualified") ? () => { setStatusOverlay(null); } : null}
+          onClose={() => { setStatusOverlay(null); }}
         />
       )}
 
@@ -846,7 +839,7 @@ export default function TestArena() {
               </div>
             ) : (
               <>
-                {/* Test Info */}
+                {/* ── Test Info Card ── */}
                 <div className="ta-card">
                   <div className="ta-detail-top">
                     <div className="ta-detail-left">
@@ -865,6 +858,10 @@ export default function TestArena() {
                       </div>
                     </div>
                     <div className="ta-detail-actions">
+                      {/* ── Share Button ── */}
+                      <button className={`ta-btn ta-btn-share ${shareCopied ? "ta-btn-share-copied" : ""}`} onClick={handleShare}>
+                        {shareCopied ? "✅ Copied!" : "🔗 Share"}
+                      </button>
                       <button onClick={onRegister} disabled={registered || phase !== "REG_OPEN"} className={`ta-btn ${registered || phase !== "REG_OPEN" ? "ta-btn-dim" : "ta-btn-primary"}`}>
                         {registered ? "✅ Registered" : "Register"}
                       </button>
@@ -909,6 +906,9 @@ export default function TestArena() {
                     </div>
                   </div>
 
+                  {/* ── Prizes Section ── always shown when prizes exist ── */}
+                  <PrizesSection prizes={prizes} />
+
                   {/* Powerups */}
                   {(selectedTest.revive_enabled || selectedTest.skip_enabled || selectedTest.add_time_enabled) && (
                     <div className="ta-section">
@@ -922,7 +922,7 @@ export default function TestArena() {
                   )}
                 </div>
 
-                {/* Question Runner */}
+                {/* ── Question Runner — own card ── */}
                 {inTest && question && (
                   <div className="ta-card ta-question-card">
                     <div className="ta-timer-bar-wrap">
@@ -962,15 +962,19 @@ export default function TestArena() {
                   </div>
                 )}
 
-                {/* Leaderboard */}
+                {/* ── Live Leaderboard — own card, always visible ── */}
                 <div className="ta-card">
                   <div className="ta-section-title" style={{ marginBottom: 12 }}>
                     🏆 Live Leaderboard
-                    {qualifiedCount > 0 && (
-                      <span className="ta-qualified-badge">{qualifiedCount} Qualified</span>
-                    )}
+                    {qualifiedCount > 0 && <span className="ta-qualified-badge">{qualifiedCount} Qualified</span>}
                   </div>
-                  {leaderboard.length === 0 ? <div className="ta-empty">No players yet.</div> : (
+                  {leaderboard.length === 0 ? (
+                    <div className="ta-lb-empty">
+                      <div className="ta-lb-empty-icon">📋</div>
+                      <div className="ta-lb-empty-text">No players yet</div>
+                      <div className="ta-lb-empty-sub">Be the first to register and compete!</div>
+                    </div>
+                  ) : (
                     <div className="ta-lb-list">
                       {leaderboard.map((r, i) => (
                         <div key={i} className={`ta-lb-row ${i===0?"ta-lb-first":i===1?"ta-lb-second":i===2?"ta-lb-third":""}`}>
@@ -986,7 +990,7 @@ export default function TestArena() {
                   )}
                 </div>
 
-                {/* Winners */}
+                {/* ── Winners — own card ── */}
                 {winnersAnnounced && (
                   <div className="ta-card ta-winners-card">
                     <div className="ta-section-title" style={{ marginBottom: 12 }}>🎖 Winners</div>
@@ -998,17 +1002,12 @@ export default function TestArena() {
                             <div className="ta-winner-name">{w.user_name}</div>
                             {(w.prize_text || w.prize) && <div className="ta-winner-prize">{w.prize_text || w.prize}</div>}
                           </div>
-                          {myWinnerData?.user_id === w.user_id && (
-                            <span className="ta-winner-you-tag">🌟 You</span>
-                          )}
+                          {myWinnerData?.user_id === w.user_id && <span className="ta-winner-you-tag">🌟 You</span>}
                         </div>
                       ))}
                     </div>
                     {myWinnerData && (
-                      <button className="ta-winner-celebrate-btn" onClick={() => {
-                        shownWinRef.current = true;
-                        setStatusOverlay("winner");
-                      }}>
+                      <button className="ta-winner-celebrate-btn" onClick={() => { shownWinRef.current = true; setStatusOverlay("winner"); }}>
                         🎊 View My Win & Celebrate
                       </button>
                     )}
@@ -1080,6 +1079,10 @@ const mainCSS = `
   .ta-btn-gold{background:linear-gradient(135deg,#d97706,#f59e0b);color:#fff;box-shadow:0 3px 0 #b45309,0 6px 14px rgba(245,158,11,0.28);animation:taGold 2s ease infinite;}
   @keyframes taGold{0%,100%{box-shadow:0 3px 0 #b45309,0 6px 14px rgba(245,158,11,0.28)}50%{box-shadow:0 3px 0 #b45309,0 6px 24px rgba(245,158,11,0.56)}}
   .ta-btn-dim{background:#e2e8f0;color:#94a3b8;cursor:not-allowed;}
+  /* ── Share Button ── */
+  .ta-btn-share{background:rgba(30,58,138,0.07);color:#1e3a8a;border:1px solid rgba(30,58,138,0.18);}
+  .ta-btn-share:hover{background:rgba(30,58,138,0.13);transform:translateY(-1px);}
+  .ta-btn-share-copied{background:rgba(22,163,74,0.1)!important;color:#15803d!important;border-color:rgba(22,163,74,0.25)!important;}
   .ta-cd-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;border:1px solid;margin-top:10px;flex-wrap:wrap;}
   .ta-cd-BEFORE_REG{background:rgba(30,58,138,0.07);border-color:rgba(30,58,138,0.2)!important;}
   .ta-cd-REG_OPEN{background:rgba(22,163,74,0.07);border-color:rgba(22,163,74,0.22)!important;}
@@ -1100,6 +1103,17 @@ const mainCSS = `
   .ta-tl-past-text{text-decoration:line-through;color:var(--ta-muted)!important;font-weight:600!important;}
   .ta-tl-time{font-size:clamp(9px,1.4vw,11px);color:var(--ta-muted);font-weight:600;}
   .ta-tl-tz{font-size:8px;letter-spacing:1px;font-weight:700;opacity:0.65;}
+
+  /* ── Prizes Grid ── */
+  .ta-prizes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;}
+  .ta-prize-card{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:13px;border:1px solid;transition:transform 0.15s;box-shadow:2px 2px 8px rgba(15,23,42,0.04),-2px -2px 6px rgba(255,255,255,0.8);}
+  .ta-prize-card:hover{transform:translateY(-2px);}
+  .ta-prize-medal{font-size:22px;flex-shrink:0;line-height:1;}
+  .ta-prize-body{min-width:0;}
+  .ta-prize-rank{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;}
+  .ta-prize-text{font-weight:800;font-size:clamp(0.78rem,2vw,0.88rem);color:var(--ta-text);line-height:1.3;word-break:break-word;}
+  .ta-prize-coins{font-size:10px;font-weight:700;color:var(--ta-blue);margin-top:3px;}
+
   .ta-powerups-info{display:flex;gap:8px;flex-wrap:wrap;}
   .ta-pu-chip{display:flex;align-items:center;gap:8px;padding:10px 13px;border-radius:13px;background:#fff;border:1px solid rgba(30,58,138,0.09);box-shadow:3px 3px 8px rgba(15,23,42,0.04),-3px -3px 8px rgba(255,255,255,0.9);flex:1;min-width:100px;}
   .ta-pu-icon{font-size:18px;flex-shrink:0;}
@@ -1131,6 +1145,11 @@ const mainCSS = `
   .ta-pu-btn-icon{font-size:14px;}
   .ta-pu-btn-count{padding:1px 6px;border-radius:100px;background:rgba(255,255,255,0.25);font-size:10px;font-weight:800;}
   .ta-pu-revive-info{font-size:11px;color:var(--ta-muted);font-weight:600;margin-left:4px;}
+  /* ── Leaderboard empty state ── */
+  .ta-lb-empty{display:flex;flex-direction:column;align-items:center;padding:28px 16px;gap:6px;}
+  .ta-lb-empty-icon{font-size:32px;opacity:0.4;}
+  .ta-lb-empty-text{font-weight:700;font-size:0.88rem;color:var(--ta-muted);}
+  .ta-lb-empty-sub{font-size:0.78rem;color:#94a3b8;font-weight:500;}
   .ta-lb-list{display:flex;flex-direction:column;gap:6px;}
   .ta-lb-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:12px;background:#fff;border:1px solid rgba(30,58,138,0.07);box-shadow:2px 2px 6px rgba(15,23,42,0.04),-2px -2px 6px rgba(255,255,255,0.9);flex-wrap:wrap;transition:transform 0.15s;}
   .ta-lb-row:hover{transform:translateX(2px);}
@@ -1167,49 +1186,34 @@ const mainCSS = `
   .ta-msg-close{background:transparent;border:none;color:var(--ta-muted);font-size:18px;cursor:pointer;padding:0 0 0 10px;font-weight:700;}
   .ta-msg-close:hover{color:var(--ta-text);}
   @media(max-width:600px){
-    /* Layout */
     .ta-grid{gap:8px;}
     .ta-card{border-radius:14px;padding:11px 12px;}
-
-    /* Header */
     .ta-header{margin-bottom:10px;gap:7px;}
     .ta-header-icon{font-size:22px;}
     .ta-title{font-size:1.15rem;}
     .ta-sub{font-size:0.6rem;letter-spacing:1px;}
-
-    /* Test list items */
     .ta-tests-scroll{max-height:44vh;}
     .ta-test-item{padding:8px 10px;}
     .ta-test-item-name{font-size:0.8rem;}
     .ta-test-item-meta{font-size:9px;}
     .ta-test-pill{font-size:9px;padding:2px 6px;}
-
-    /* Detail header */
     .ta-detail-top{flex-direction:column;gap:8px;margin-bottom:8px;}
     .ta-detail-name{font-size:0.95rem;}
     .ta-detail-chips{gap:4px;}
     .ta-chip{font-size:10px;padding:3px 8px;}
     .ta-detail-actions{flex-direction:row;flex-wrap:wrap;gap:6px;}
     .ta-btn{padding:7px 12px;font-size:0.78rem;border-radius:9px;}
-
-    /* Countdown bar */
     .ta-cd-bar{padding:8px 10px;gap:6px;border-radius:10px;margin-top:8px;}
     .ta-cd-label{font-size:0.72rem;}
     .ta-cd-timer{font-size:0.88rem;letter-spacing:1px;}
-
-    /* Ended banner */
     .ta-ended-banner{padding:10px 12px;gap:8px;border-radius:11px;margin-top:8px;}
     .ta-ended-icon{font-size:18px;}
     .ta-ended-title{font-size:0.82rem;}
     .ta-ended-sub{font-size:10px;}
     .ta-ended-num{font-size:1.15rem;}
     .ta-ended-count{padding:4px 10px;border-radius:9px;}
-
-    /* Section titles */
     .ta-section{margin-top:12px;}
     .ta-section-title{font-size:0.65rem;letter-spacing:1.4px;margin-bottom:7px;}
-
-    /* Schedule timeline — 3 columns compact */
     .ta-timeline{grid-template-columns:1fr 1fr 1fr;gap:4px;}
     .ta-tl-step{padding:7px 7px;border-radius:10px;gap:5px;}
     .ta-tl-dot{width:22px;height:22px;font-size:9px;flex-shrink:0;}
@@ -1217,15 +1221,15 @@ const mainCSS = `
     .ta-tl-date{font-size:9px;}
     .ta-tl-time{font-size:8px;}
     .ta-tl-tz{font-size:7px;}
-
-    /* Powerup chips */
+    .ta-prizes-grid{grid-template-columns:repeat(2,1fr);gap:6px;}
+    .ta-prize-card{padding:8px 10px;gap:7px;border-radius:11px;}
+    .ta-prize-medal{font-size:18px;}
+    .ta-prize-text{font-size:0.78rem;}
     .ta-powerups-info{gap:5px;}
     .ta-pu-chip{padding:7px 9px;border-radius:10px;gap:6px;min-width:0;flex:1;}
     .ta-pu-icon{font-size:14px;}
     .ta-pu-name{font-size:0.75rem;}
     .ta-pu-meta{font-size:9px;}
-
-    /* Question card */
     .ta-timer-bar-wrap{margin-bottom:10px;}
     .ta-timer-display{font-size:0.95rem;min-width:40px;}
     .ta-q-header{margin-bottom:7px;}
@@ -1239,8 +1243,6 @@ const mainCSS = `
     .ta-pu-btn{padding:6px 10px;font-size:0.74rem;border-radius:9px;}
     .ta-pu-btn-icon{font-size:12px;}
     .ta-pu-revive-info{font-size:10px;}
-
-    /* Leaderboard */
     .ta-lb-list{gap:5px;}
     .ta-lb-row{padding:7px 10px;border-radius:10px;gap:6px;}
     .ta-lb-rank{font-size:13px;width:20px;}
@@ -1249,8 +1251,6 @@ const mainCSS = `
     .ta-lb-time,.ta-lb-correct{display:none;}
     .ta-lb-status{font-size:9px;padding:2px 6px;}
     .ta-qualified-badge{font-size:9px;padding:2px 7px;}
-
-    /* Winners section */
     .ta-winner-row{padding:8px 10px;border-radius:10px;gap:7px;}
     .ta-winner-rank{font-size:16px;}
     .ta-winner-name{font-size:0.82rem;}
@@ -1258,9 +1258,7 @@ const mainCSS = `
     .ta-winner-you-tag{font-size:9px;padding:2px 7px;}
     .ta-winner-celebrate-btn{padding:8px;font-size:0.78rem;border-radius:10px;}
   }
-
   @media(max-width:400px){
-    /* Extra tight for very small phones (320px) */
     .ta-card{padding:9px 10px;border-radius:12px;}
     .ta-timeline{grid-template-columns:1fr;}
     .ta-tl-step{flex-direction:row;align-items:center;}
@@ -1273,5 +1271,6 @@ const mainCSS = `
     .ta-q-text{font-size:0.84rem;}
     .ta-option{padding:8px 9px;}
     .ta-option-text{font-size:0.78rem;}
+    .ta-prizes-grid{grid-template-columns:1fr 1fr;}
   }
 `;
