@@ -123,7 +123,8 @@ export default function Wallet() {
       <div className="wallet-tabs">
         <Tab to="/user/wallet" label="Overview" end />
         <Tab to="/user/wallet/transactions" label="Transactions" />
-        <Tab to="/user/wallet/deposit" label="Deposit" />
+       {/* <Tab to="/user/wallet/deposit" label="Deposit" /> */}
+
         <Tab to="/user/wallet/withdraw" label="Withdraw" />
         <Tab to="/user/wallet/invite" label="Invite" />
       </div>

@@ -226,8 +226,8 @@ export default function PrivacyPolicy() {
                 </ul>
               )}
               {s.email && (
-                <a className="pp-email-link" href="mailto:support@aidla.netlify.app">
-                  support@aidla.netlify.app
+                <a className="pp-email-link" href="mailto:support@aidla.online">
+                  support@aidla.online
                 </a>
               )}
             </motion.div>

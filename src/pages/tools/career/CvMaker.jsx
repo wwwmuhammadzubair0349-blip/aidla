@@ -957,7 +957,7 @@ export default function CvMaker() {
               <div className="cvm-preview-header-title">Live Preview</div>
               <div style={{display:"flex",gap:6,flexWrap:"wrap",alignItems:"center"}}>
                 <button className="cvm-btn" style={{padding:"6px 12px",fontSize:"0.76rem",background:"rgba(59,130,246,0.06)",border:"1.5px solid rgba(59,130,246,0.15)",color:"var(--royal)",fontWeight:700,borderRadius:20}} onClick={onReset}>Reset</button>
-                <button className="cvm-btn cvm-btn-primary" style={{padding:"7px 14px",fontSize:"0.78rem"}} onClick={onPrint}>🖨️ Print PDF</button>
+
               </div>
             </div>
 

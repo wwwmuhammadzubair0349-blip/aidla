@@ -23,8 +23,8 @@ const BOT_KB = [
   { keywords: ["password", "forgot password", "reset password"], answer: "To reset your password:\n1. Go to the login page\n2. Click Forgot Password\n3. Enter your registered email\n4. Check your inbox for a reset link" },
   { keywords: ["profile", "account", "settings", "edit profile"], answer: "You can manage your AIDLA profile from Settings after logging in. Update your name, picture, and preferences there." },
   { keywords: ["blog", "blogs", "articles", "news"], answer: "Stay updated through:\n- Blogs: educational tips and strategies\n- News: platform updates and announcements\nBoth are accessible from the main navigation." },
-  { keywords: ["contact", "support", "help", "email"], answer: "You can reach AIDLA support at support@aidla.netlify.app or use the contact form on this page!" },
-  { keywords: ["delete account", "remove account", "deactivate"], answer: "To delete your account, email support@aidla.netlify.app with your registered email. We will process it within 3-5 business days." },
+  { keywords: ["contact", "support", "help", "email"], answer: "You can reach AIDLA support at support@aidla.online or use the contact form on this page!" },
+  { keywords: ["delete account", "remove account", "deactivate"], answer: "To delete your account, email support@aidla.online with your registered email. We will process it within 3-5 business days." },
   { keywords: ["redeem", "withdraw", "exchange coins"], answer: "Coin redemption details vary by event and promotion. Check active events or contact support for options." },
   { keywords: ["coin balance", "my coins", "check coins"], answer: "You can check your coin balance in your Profile or Dashboard after logging in. Coins update in real time!" },
 ];
@@ -37,7 +37,7 @@ function getBotAnswer(message) {
       return entry.answer;
     }
   }
-  return "I'm not sure about that yet. For detailed help, please use the contact form or email support@aidla.netlify.app and a human will assist you shortly!";
+  return "I'm not sure about that yet. For detailed help, please use the contact form or email support@aidla.online and a human will assist you shortly!";
 }
 
 const QUICK_REPLIES = [
@@ -625,7 +625,7 @@ export default function Contact() {
             </div>
             <div className="ct-card-body">
               {[
-                { icon: "@", label: "Email", val: "support@aidla.netlify.app" },
+                { icon: "@", label: "Email", val: "support@aidla.online" },
                 { icon: "W", label: "Platform", val: "AIDLA Learning & Rewards" },
                 { icon: "T", label: "Response Time", val: "Within 24-48 hours" },
                 { icon: "H", label: "Support Hours", val: "Daily, 9 AM - 9 PM" },

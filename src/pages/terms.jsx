@@ -237,8 +237,8 @@ export default function Terms() {
                 </ul>
               )}
               {s.email && (
-                <a className="tc-email-link" href="mailto:support@aidla.netlify.app">
-                  support@aidla.netlify.app
+                <a className="tc-email-link" href="mailto:support@aidla.online">
+                  support@aidla.online
                 </a>
               )}
             </motion.div>
