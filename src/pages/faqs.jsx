@@ -112,13 +112,12 @@ function FAQItem({ faq, isOpen, onToggle, searchQuery, userVotes, onVote }) {
       </button>
 
       {/* Expanded content */}
-      <div
-        id={`faq-body-${faq.id}`}
-        className="faq-answer-wrap"
-        style={{ maxHeight: isOpen ? bodyRef.current?.scrollHeight + "px" : "0" }}
-        role="region"
-        aria-labelledby={`faq-${faq.id}`}
-      >
+<div
+  id={`faq-body-${faq.id}`}
+  className={`faq-answer-wrap ${isOpen ? "faq-answer-wrap--open" : ""}`}
+  role="region"
+  aria-labelledby={`faq-${faq.id}`}
+>
         <div
           ref={bodyRef}
           className="faq-answer-inner"
