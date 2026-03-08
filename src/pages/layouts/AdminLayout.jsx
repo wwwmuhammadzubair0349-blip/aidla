@@ -278,7 +278,7 @@ export default function AdminLayout() {
             <Tab to="/admin/homepage" label=" Post Generator" />
             <Tab to="/admin/AdminHome" label="AdminHome" />
             <Tab to="/admin/adminfaqs" label="FAQs" />
-            <Tab to="/admin/feedadmin" label="Feed Admin" />
+            <Tab to="/admin/FeedAdmin" label="Feed Admin" />
           </nav>
         </div>
       </header>
