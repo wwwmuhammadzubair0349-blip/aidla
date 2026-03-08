@@ -78,7 +78,7 @@ const AdminLeaderboard = lazy(() => import("./pages/admin/Leaderboard.jsx"));
 const AdminHomepage = lazy(() => import("./pages/admin/Homepage.jsx"));
 const AdminHome = lazy(() => import("./pages/admin/Adminhome.jsx"));
 const AdminFAQs = lazy(() => import("./pages/admin/adminfaqs.jsx"));
-const FeedAdmin = lazy(() => import("./pages/admin/FeedAdmin.jsx"));
+const FeedAdmin = lazy(() => import("./pages/admin/feedadmin.jsx"));
 
 
 

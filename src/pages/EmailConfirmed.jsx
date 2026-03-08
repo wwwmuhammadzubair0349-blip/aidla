@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "../lib/supabase";
 import logo from "../assets/logo.jpg";
-import Footer from "../pages/components/Footer";
+import Footer from "../pages/components/footer";
 import "./email-confirmed.css";
 
 const CIRC = 2 * Math.PI * 22; // ≈ 138.2

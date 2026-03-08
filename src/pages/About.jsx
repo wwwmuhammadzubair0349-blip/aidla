@@ -2,7 +2,7 @@ import React from "react";
 import { Helmet } from "react-helmet";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import Footer from "../pages/components/Footer";
+import Footer from "../pages/components/footer";
 import "./About.css";
 
 const SITE_URL = "https://aidla.online";

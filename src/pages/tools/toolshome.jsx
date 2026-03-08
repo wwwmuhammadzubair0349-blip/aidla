@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Helmet } from "react-helmet"; // or "react-helmet-async"
-import Footer from "../components/Footer"; // adjust path if needed
+import Footer from "../components/footer"; // adjust path if needed
 import "./tools.css"; // external CSS
 
 // Tool definitions with descriptions for SEO

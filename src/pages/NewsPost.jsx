@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Helmet } from "react-helmet"; // or "react-helmet-async"
 import { supabase } from "../lib/supabase";
-import Footer from "../components/Footer"; // adjust path if needed
+import Footer from "../components/footer"; // adjust path if needed
 import "./newsPost.css";
 
 /* ── helpers (unchanged) ── */

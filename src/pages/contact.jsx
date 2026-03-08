@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Helmet } from "react-helmet-async"; // or react-helmet
 import { supabase } from "../lib/supabase";
-import Footer from "../pages/components/Footer"; // adjust path if needed
+import Footer from "../pages/components/footer"; // adjust path if needed
 import "./contact.css"; // external CSS
 import { FaTrashAlt, FaMinus } from 'react-icons/fa';
 // ============================================================

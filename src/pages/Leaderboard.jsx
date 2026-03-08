@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "../lib/supabase";
-import Footer from "../pages/components/Footer"; // Imported footer
+import Footer from "../pages/components/footer"; // Imported footer
 import "./leaderboard.css";                       // Extracted styles
 
 /* ═══════════════════════════════════════════════════════════════

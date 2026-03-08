@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Helmet } from "react-helmet"; // or "react-helmet-async"
 import { supabase } from "../lib/supabase";
-import Footer from "../pages/components/Footer"; // adjust path if needed
+import Footer from "../pages/components/footer"; // adjust path if needed
 import "./news.css";
 
 const CAT_COLORS = {

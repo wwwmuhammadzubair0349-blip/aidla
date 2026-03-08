@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Helmet } from "react-helmet"; // or "react-helmet-async"
-import Footer from "../../components/Footer"; // adjust path if needed
+import Footer from "../../components/footer"; // adjust path if needed
 import "./word-to-pdf.css"; // external CSS
 
 /*

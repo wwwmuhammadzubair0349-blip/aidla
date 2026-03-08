@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Helmet } from "react-helmet"; // or "react-helmet-async"
-import Footer from "../pages/components/Footer";
+import Footer from "../pages/components/footer";
 import "./privacy.css";
 
 // You can set this dynamically from a CMS or environment variable

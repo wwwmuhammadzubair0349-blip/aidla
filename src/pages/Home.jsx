@@ -3,7 +3,7 @@ import { Helmet } from "react-helmet";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { supabase } from "../lib/supabase";
-import Footer from "../pages/components/Footer"; // adjust path if needed
+import Footer from "../pages/components/footer"; // adjust path if needed
 import "./Home.css";
 
 /* ─────────────────────────────── Quotes ─────────────────────────────── */

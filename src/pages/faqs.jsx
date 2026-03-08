@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from "react";
 import { Helmet } from "react-helmet";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
-import Footer from "./components/Footer";
+import Footer from "./components/footer";
 import "./Faqs.css";
 
 /* ─────────────────────── Constants ─────────────────────── */
