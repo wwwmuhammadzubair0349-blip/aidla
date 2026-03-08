@@ -20,7 +20,7 @@ const FAQPage = lazy(() => import("./pages/FAQPage.jsx"));
 import EmailConfirmed from "./pages/EmailConfirmed";
 
 // components pages
-import Footer from "./pages/components/Footer.jsx";
+import Footer from "./pages/components/footer.jsx";
 
 const ToolsHome = lazy(() => import("./pages/tools/toolshome.jsx"));
 const WordToPdf = lazy(() => import("./pages/tools/pdf/WordToPdf"));
