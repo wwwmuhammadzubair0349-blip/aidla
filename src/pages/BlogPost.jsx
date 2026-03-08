@@ -320,10 +320,15 @@ export default function BlogPost() {
       setLoading(false);
 
       // Increment view count once
-      if (!viewedRef.current) {
+       // Replace the existing increment block with this:
+        if (!viewedRef.current) {
         viewedRef.current = true;
-        supabase.rpc("blogs_increment_view",{ p_post_id:data.id });
-      }
+              supabase.rpc("blogs_increment_view", { p_post_id: data.id })
+          .then(({ error }) => {
+      if (error) console.error("❌ View increment error:", error.message);
+      else console.log("✅ View incremented for:", data.id);
+    });
+}
     };
     load();
   }, [slug]);

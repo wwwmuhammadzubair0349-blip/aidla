@@ -237,210 +237,257 @@ export default function Profile() {
     * { box-sizing: border-box; }
 
     .profile-wrapper {
-      padding: 25px;
+      padding: 14px;
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      max-width: 1000px;
+      max-width: 700px;
       margin: 0 auto;
       color: #0f172a;
-      min-height: 100vh;
     }
 
     .page-title {
-      font-size: 2.5rem;
+      font-size: 1.4rem;
       font-weight: 900;
-      letter-spacing: -1px;
+      letter-spacing: -0.5px;
       background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      margin-bottom: 30px;
-      filter: drop-shadow(2px 2px 4px rgba(30, 58, 138, 0.15));
+      margin: 0 0 14px 0;
+      filter: drop-shadow(1px 1px 2px rgba(30,58,138,0.1));
     }
 
     .card-2060 {
-      background: rgba(255, 255, 255, 0.9);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 1);
-      border-radius: 24px;
-      padding: 30px;
-      margin-bottom: 30px;
-      box-shadow: 
-        15px 15px 40px rgba(15, 23, 42, 0.06), 
-        -15px -15px 40px rgba(255, 255, 255, 0.9),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+      background: rgba(255,255,255,0.95);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow:
+        8px 8px 20px rgba(15,23,42,0.06),
+        -8px -8px 20px rgba(255,255,255,0.9),
+        inset 0 0 0 1px rgba(255,255,255,0.5);
     }
 
     .section-title {
-      font-size: 1.3rem;
+      font-size: 0.9rem;
       font-weight: 800;
       color: #1e3a8a;
-      margin-bottom: 0;
       border-bottom: 2px solid #f1f5f9;
-      padding-bottom: 10px;
+      padding-bottom: 8px;
+      margin-bottom: 14px;
     }
 
-    /* Avatar 3D Section */
+    /* Avatar */
     .avatar-section {
       display: flex;
       align-items: center;
-      gap: 30px;
+      gap: 16px;
       flex-wrap: wrap;
     }
 
     .avatar-3d-frame {
-      width: 120px;
-      height: 120px;
+      width: 80px;
+      height: 80px;
       border-radius: 50%;
       background: #f8fafc;
-      box-shadow: 
-        inset 5px 5px 10px rgba(15, 23, 42, 0.08), 
-        inset -5px -5px 10px rgba(255, 255, 255, 1),
-        5px 5px 15px rgba(15, 23, 42, 0.05);
+      box-shadow:
+        inset 4px 4px 8px rgba(15,23,42,0.08),
+        inset -4px -4px 8px rgba(255,255,255,1),
+        4px 4px 10px rgba(15,23,42,0.05);
       display: grid;
       place-items: center;
       overflow: hidden;
-      border: 4px solid #ffffff;
+      border: 3px solid #fff;
       flex-shrink: 0;
     }
 
     .avatar-3d-frame img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
+      width: 100%; height: 100%; object-fit: cover;
     }
 
     .avatar-placeholder {
       color: #94a3b8;
       font-weight: 600;
-      font-size: 0.85rem;
+      font-size: 0.7rem;
+      text-align: center;
     }
 
-    /* Fixed 3D File Upload Button (Uses Label) */
     .btn-upload-3d {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 12px 20px;
+      gap: 6px;
+      padding: 9px 14px;
       background: #f1f5f9;
       color: #1e3a8a;
       font-weight: 700;
-      font-size: 0.95rem;
+      font-size: 0.78rem;
       border: none;
-      border-radius: 12px;
-      box-shadow: 
-        4px 4px 10px rgba(15, 23, 42, 0.05), 
-        -4px -4px 10px rgba(255, 255, 255, 1);
-      transition: all 0.2s ease;
+      border-radius: 10px;
+      box-shadow: 3px 3px 8px rgba(15,23,42,0.05), -3px -3px 8px rgba(255,255,255,1);
+      transition: all 0.2s;
       cursor: pointer;
     }
-    .btn-upload-3d:hover:not(.disabled) {
-      color: #3b82f6;
-      transform: translateY(-2px);
-      box-shadow: 6px 6px 12px rgba(15, 23, 42, 0.08), -6px -6px 12px rgba(255, 255, 255, 1);
-    }
-    .btn-upload-3d:active:not(.disabled) {
-      transform: translateY(1px);
-      box-shadow: inset 2px 2px 5px rgba(15,23,42,0.05), inset -2px -2px 5px rgba(255,255,255,1);
-    }
-    .btn-upload-3d.disabled {
-      opacity: 0.7;
-      cursor: not-allowed;
-    }
+    .btn-upload-3d:hover:not(.disabled) { color: #3b82f6; transform: translateY(-1px); }
+    .btn-upload-3d.disabled { opacity: 0.7; cursor: not-allowed; }
 
     /* Form Grid */
     .form-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
     }
 
-    .full-width {
-      grid-column: 1 / -1;
-    }
+    .full-width { grid-column: 1 / -1; }
 
     .input-group { position: relative; }
-    .label-3d { display: block; margin-bottom: 8px; font-weight: 700; color: #334155; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
-    
-    .input-3d {
-      width: 100%; padding: 14px 16px; border-radius: 14px; border: 2px solid transparent;
-      background: #f8fafc; color: #0f172a; font-size: 1rem; font-weight: 600;
-      box-shadow: inset 5px 5px 10px rgba(15, 23, 42, 0.06), inset -5px -5px 10px rgba(255, 255, 255, 1);
-      transition: all 0.3s ease; font-family: inherit;
+
+    .label-3d {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 700;
+      color: #334155;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
     }
-    .input-3d:read-only { background: #e2e8f0; color: #64748b; cursor: not-allowed; box-shadow: inset 2px 2px 5px rgba(15, 23, 42, 0.03); }
-    .input-3d::placeholder { color: #cbd5e1; font-weight: 500; }
-    .input-3d:not(:read-only):focus { 
-      outline: none; background: #ffffff; border-color: rgba(59, 130, 246, 0.4); 
-      box-shadow: inset 2px 2px 5px rgba(15, 23, 42, 0.03), inset -2px -2px 5px rgba(255, 255, 255, 1), 0 0 15px rgba(59, 130, 246, 0.2); 
+
+    .input-3d {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 2px solid transparent;
+      background: #f8fafc;
+      color: #0f172a;
+      font-size: 0.85rem;
+      font-weight: 600;
+      box-shadow: inset 3px 3px 7px rgba(15,23,42,0.06), inset -3px -3px 7px rgba(255,255,255,1);
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .input-3d:read-only {
+      background: #e2e8f0;
+      color: #64748b;
+      cursor: not-allowed;
+      box-shadow: inset 1px 1px 4px rgba(15,23,42,0.03);
+    }
+    .input-3d::placeholder { color: #cbd5e1; font-weight: 500; font-size: 0.8rem; }
+    .input-3d:not(:read-only):focus {
+      outline: none;
+      background: #fff;
+      border-color: rgba(59,130,246,0.4);
+      box-shadow: inset 2px 2px 5px rgba(15,23,42,0.03), inset -2px -2px 5px rgba(255,255,255,1), 0 0 0 3px rgba(59,130,246,0.1);
     }
 
     textarea.input-3d {
       resize: vertical;
-      min-height: 100px;
+      min-height: 80px;
     }
 
+    /* Buttons */
     .btn-2060 {
-      padding: 16px 30px; border-radius: 14px; border: none; background: linear-gradient(135deg, #1e3a8a, #3b82f6);
-      color: #ffffff; font-size: 1.1rem; font-weight: 800; letter-spacing: 1px; cursor: pointer;
-      box-shadow: 0 8px 0 #1e3a8a, 0 15px 20px rgba(30, 58, 138, 0.2), inset 0 2px 0 rgba(255, 255, 255, 0.2);
-      transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1); position: relative;
-      display: inline-flex; justify-content: center; align-items: center; min-width: 150px;
+      padding: 11px 18px;
+      border-radius: 11px;
+      border: none;
+      background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+      color: #fff;
+      font-size: 0.85rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      box-shadow: 0 5px 0 #1e3a8a, 0 8px 14px rgba(30,58,138,0.2), inset 0 2px 0 rgba(255,255,255,0.2);
+      transition: all 0.12s;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 100px;
     }
-    .btn-2060:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 10px 0 #1e3a8a, 0 20px 25px rgba(30, 58, 138, 0.3), inset 0 2px 0 rgba(255,255,255,0.2); }
-    .btn-2060:active:not(:disabled) { transform: translateY(8px); box-shadow: 0 0px 0 #1e3a8a, 0 5px 10px rgba(30, 58, 138, 0.3), inset 0 2px 0 rgba(255,255,255,0.2); }
-    .btn-2060:disabled { background: #94a3b8; box-shadow: 0 8px 0 #64748b; cursor: not-allowed; opacity: 0.8; transform: translateY(0); }
+    .btn-2060:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 7px 0 #1e3a8a, 0 12px 18px rgba(30,58,138,0.25), inset 0 2px 0 rgba(255,255,255,0.2); }
+    .btn-2060:active:not(:disabled) { transform: translateY(5px); box-shadow: 0 0 0 #1e3a8a, 0 2px 6px rgba(30,58,138,0.2), inset 0 2px 0 rgba(255,255,255,0.2); }
+    .btn-2060:disabled { background: #94a3b8; box-shadow: 0 5px 0 #64748b; cursor: not-allowed; opacity: 0.8; }
 
-    .btn-edit { background: linear-gradient(135deg, #1e3a8a, #3b82f6); }
-    .btn-cancel { background: linear-gradient(135deg, #94a3b8, #cbd5e1); }
-    .btn-container { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
+    .btn-cancel {
+      background: linear-gradient(135deg, #94a3b8, #cbd5e1);
+      box-shadow: 0 5px 0 #64748b, 0 8px 14px rgba(15,23,42,0.1), inset 0 2px 0 rgba(255,255,255,0.2);
+    }
+    .btn-cancel:hover:not(:disabled) { box-shadow: 0 7px 0 #64748b, 0 12px 18px rgba(15,23,42,0.15), inset 0 2px 0 rgba(255,255,255,0.2); }
+    .btn-cancel:active:not(:disabled) { box-shadow: 0 0 0 #64748b; }
+
+    .btn-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 4px;
+    }
 
     .header-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
-      gap: 15px;
+      margin-bottom: 14px;
+      gap: 10px;
       flex-wrap: wrap;
     }
 
+    .header-row .section-title { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
+
     .msg-box {
-      margin-bottom: 25px; padding: 16px; border-radius: 14px; font-weight: 700; font-size: 0.95rem; animation: fadeIn 0.4s ease;
-      display: block; width: 100%;
+      margin-bottom: 14px;
+      padding: 11px 14px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.82rem;
+      animation: fadeIn 0.3s ease;
+      display: block;
+      width: 100%;
     }
 
-    /* Loader styling */
     .loader-container {
-      display: flex; flex-direction: column; align-items: center; justify-content: center; height: 50vh; color: #1e3a8a; font-weight: 700;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      height: 40vh; color: #1e3a8a; font-weight: 700;
+      font-size: 0.9rem; gap: 12px;
     }
+
     .spinner {
-      width: 40px; height: 40px; border: 4px solid rgba(59, 130, 246, 0.2); border-top-color: #3b82f6; border-radius: 50%;
-      animation: spin 1s linear infinite; margin-bottom: 15px;
+      width: 32px; height: 32px;
+      border: 3px solid rgba(59,130,246,0.2);
+      border-top-color: #3b82f6;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
     }
 
     @keyframes spin { to { transform: rotate(360deg); } }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
 
+    /* Tablet */
     @media (max-width: 768px) {
-      .profile-wrapper { padding: 15px; }
-      .page-title { font-size: 2rem; margin-bottom: 20px; }
-      .card-2060 { padding: 20px; margin-bottom: 20px; border-radius: 18px; }
-      .avatar-section { gap: 15px; flex-direction: column; }
-      .form-grid { grid-template-columns: 1fr; }
-      .btn-2060 { width: 100%; min-width: auto; padding: 14px 20px; font-size: 1rem; }
-      .btn-container { flex-direction: column; }
-      .btn-cancel { width: 100%; margin-right: 0; }
-      .header-row { flex-direction: column; align-items: stretch; }
-      .header-row .btn-2060 { width: 100%; }
+      .profile-wrapper { padding: 12px; }
+      .form-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
     }
 
-    @media (max-width: 600px) {
-      .card-2060 { padding: 15px; }
-      .page-title { font-size: 1.5rem; }
-      .avatar-section { justify-content: center; text-align: center; }
-      .section-title { font-size: 1.1rem; }
-      .input-3d { padding: 12px 14px; font-size: 0.95rem; }
-      .label-3d { font-size: 0.75rem; }
-      .avatar-3d-frame { width: 100px; height: 100px; }
+    /* Mobile */
+    @media (max-width: 540px) {
+      .profile-wrapper { padding: 10px; }
+      .page-title { font-size: 1.2rem; }
+      .card-2060 { padding: 13px; border-radius: 14px; }
+      .form-grid { grid-template-columns: 1fr; gap: 9px; }
+      .avatar-section { flex-direction: row; align-items: center; }
+      .avatar-3d-frame { width: 68px; height: 68px; }
+      .btn-2060 { width: 100%; font-size: 0.82rem; padding: 10px; }
+      .btn-container { flex-direction: column; }
+      .header-row { flex-direction: row; }
+      .input-3d { padding: 9px 11px; font-size: 0.82rem; }
     }
+
+    /* Very small */
+    @media (max-width: 360px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .avatar-3d-frame { width: 60px; height: 60px; }
+      .page-title { font-size: 1.1rem; }
+    }
+      .avatar-section {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
   `;
 
   if (loading) {
@@ -475,88 +522,97 @@ export default function Profile() {
       )}
 
       {/* Avatar Section */}
-      <div className="card-2060">
-        <div className="section-title">Profile Picture</div>
-        <div className="avatar-section">
-          
-          <div className="avatar-3d-frame">
-            {form.avatar_url ? (
-              <img src={form.avatar_url} alt="User Avatar" />
-            ) : (
-              <span className="avatar-placeholder">No Image</span>
-            )}
-          </div>
+<div className="card-2060">
+  <div className="section-title">Profile Picture</div>
+  <div className="avatar-section">
 
-          <div>
-            <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-              
-              {/* FIXED HTML LABEL FILE UPLOAD */}
-              <label className={`btn-upload-3d ${uploading ? "disabled" : ""}`}>
-                <input
-                  type="file"
-                  accept="image/*"
-                  disabled={uploading}
-                  style={{ display: "none" }}
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files.length > 0) {
-                      uploadAvatar(e.target.files[0]);
-                      e.target.value = ""; // Reset to allow re-uploading same file
-                    }
-                  }}
-                />
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                {uploading ? "Uploading..." : "Change Avatar"}
-              </label>
+    <div className="avatar-3d-frame">
+      {form.avatar_url ? (
+        <img src={form.avatar_url} alt="User Avatar" />
+      ) : (
+        <span className="avatar-placeholder">No Photo</span>
+      )}
+    </div>
 
-              {form.avatar_url && (
-                <button
-                  type="button"
-                  disabled={uploading}
-                  onClick={deleteAvatar}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    padding: "12px 20px",
-                    background: "#fee2e2",
-                    color: "#b91c1c",
-                    fontWeight: "700",
-                    fontSize: "0.95rem",
-                    border: "none",
-                    borderRadius: "12px",
-                    boxShadow: "4px 4px 10px rgba(15, 23, 42, 0.05), -4px -4px 10px rgba(255, 255, 255, 1)",
-                    cursor: uploading ? "not-allowed" : "pointer",
-                    transition: "all 0.2s ease",
-                    opacity: uploading ? 0.6 : 1
-                  }}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
-                  {uploading ? "Deleting..." : "Delete Avatar"}
-                </button>
-              )}
-            </div>
-            <p style={{ color: "#64748b", fontSize: "0.85rem", marginTop: "10px", fontWeight: "500" }}>
-              Max size 3MB. Formats: JPG, PNG.
-            </p>
-          </div>
-        </div>
+    <div style={{ display: "flex", flexDirection: "column", gap: "7px", flex: 1 }}>
+      <div style={{ display: "flex", gap: "7px", flexWrap: "wrap" }}>
+
+        <label className={`btn-upload-3d ${uploading ? "disabled" : ""}`}>
+          <input
+            type="file"
+            accept="image/*"
+            disabled={uploading}
+            style={{ display: "none" }}
+            onChange={(e) => {
+              if (e.target.files && e.target.files.length > 0) {
+                uploadAvatar(e.target.files[0]);
+                e.target.value = "";
+              }
+            }}
+          />
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          {uploading ? "Uploading..." : "Change Avatar"}
+        </label>
+
+        {form.avatar_url && (
+          <button
+            type="button"
+            disabled={uploading}
+            onClick={deleteAvatar}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: "5px",
+              padding: "9px 14px", background: "#fee2e2", color: "#b91c1c",
+              fontWeight: "700", fontSize: "0.78rem", border: "none",
+              borderRadius: "10px", cursor: uploading ? "not-allowed" : "pointer",
+              opacity: uploading ? 0.6 : 1, transition: "all 0.2s",
+              boxShadow: "3px 3px 8px rgba(15,23,42,0.05), -3px -3px 8px rgba(255,255,255,1)"
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            {uploading ? "Deleting..." : "Delete"}
+          </button>
+        )}
       </div>
+
+      <p style={{ color: "#94a3b8", fontSize: "0.65rem", margin: 0, fontWeight: "500" }}>
+        Max 3MB · JPG, PNG
+      </p>
+    </div>
+
+  </div>
+</div>
 
       {/* Form Details Section */}
       <div className="card-2060">
-        <div className="header-row">
-          <div className="section-title">Personal Details</div>
-          {!isEditMode && (
-            <button 
-              type="button"
-              className="btn-2060 btn-edit" 
-              onClick={() => setIsEditMode(true)}
-              style={{ minWidth: "120px", padding: "12px 20px", fontSize: "0.95rem" }}
-            >
-              ✏️ Edit
-            </button>
-          )}
-        </div>
+<div className="header-row">
+  {!isEditMode ? (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", borderBottom: "2px solid #f1f5f9", paddingBottom: "8px" }}>
+      <span style={{ fontSize: "0.9rem", fontWeight: 800, color: "#1e3a8a" }}>Personal Details</span>
+      <button
+        type="button"
+        onClick={() => setIsEditMode(true)}
+        style={{
+          display: "inline-flex", alignItems: "center", gap: "5px",
+          padding: "6px 12px", background: "#f1f5f9", color: "#1e3a8a",
+          fontWeight: 700, fontSize: "0.72rem", border: "none",
+          borderRadius: "8px", cursor: "pointer",
+          boxShadow: "3px 3px 8px rgba(15,23,42,0.05), -3px -3px 8px rgba(255,255,255,1)",
+          transition: "all 0.2s"
+        }}
+      >
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+        Edit
+      </button>
+    </div>
+  ) : (
+    <div style={{ fontSize: "0.9rem", fontWeight: 800, color: "#1e3a8a", borderBottom: "2px solid #f1f5f9", paddingBottom: "8px", width: "100%" }}>
+      Personal Details
+    </div>
+  )}
+</div>
 
         <form onSubmit={saveProfile} className="form-grid">
           

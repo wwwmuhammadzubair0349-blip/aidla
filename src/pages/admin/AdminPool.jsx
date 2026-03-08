@@ -396,7 +396,9 @@ export default function AdminPool() {
                           <div style={{ fontWeight: 700, color: "#1e3a8a" }}>{tx.target_user_name || "Unknown"}</div>
                           <div style={{ fontSize: "0.75rem", color: "#64748b" }}>{tx.target_user_email}</div>
                         </td>
-                        <td className="amount-text">{Number(tx.amount).toLocaleString()}</td>
+                        <td className="amount-text" style={{ color: isSend ? "#b91c1c" : "#15803d", fontWeight: 800 }}>
+  {isSend ? "-" : "+"}{Number(tx.amount).toLocaleString()} AIDLA
+</td>
                         <td>{Number(tx.pool_balance_after).toLocaleString()}</td>
                         <td>{tx.user_balance_after !== null ? Number(tx.user_balance_after).toLocaleString() : "-"}</td>
                         <td style={{ fontStyle: tx.note ? "normal" : "italic", color: tx.note ? "inherit" : "#94a3b8" }}>

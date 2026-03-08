@@ -617,10 +617,9 @@ export default function WalletOverview() {
                     <span className="txn-card-value">{Number(txn.balance_after).toLocaleString()}</span>
                   </div>
 
-                  <div className={`txn-card-amount ${txn.direction === "receive" ? "amount-positive" : "amount-negative"}`}>
-                    {txn.direction === "receive" ? "+" : "-"}{Number(txn.amount).toLocaleString()} AIDLA
-                  </div>
-
+<div className={`txn-card-amount ${txn.direction?.toLowerCase() === "in" ? "amount-positive" : "amount-negative"}`}>
+  {txn.direction?.toLowerCase() === "in" ? "+" : "-"}{Number(txn.amount).toLocaleString()} AIDLA
+</div>
                   <div className="txn-card-date">
                     {new Date(txn.created_at).toLocaleString()}
                   </div>

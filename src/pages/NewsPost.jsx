@@ -291,9 +291,13 @@ export default function NewsPost(){
       setLoading(false);
 
       if(!viewedRef.current){
-        viewedRef.current=true;
-        supabase.rpc("news_increment_view",{p_post_id:data.id});
-      }
+  viewedRef.current=true;
+  supabase.rpc("news_increment_view",{p_post_id:data.id})
+    .then(({error})=>{
+      if(error) console.error("❌ News view error:",error.message);
+      else setPost(prev=>prev?{...prev,view_count:(prev.view_count||0)+1}:prev);
+    });
+}
     };
     load();
   },[slug]);

@@ -65,7 +65,7 @@ const AdminPool = lazy(() => import("./pages/admin/AdminPool.jsx"));
 const AdminTests = lazy(() => import("./pages/admin/AdminTests.jsx"));
 const AdminLuckyWheel = lazy(() => import("./pages/admin/AdminLuckyWheel.jsx"));
 const AdminLuckyDraw = lazy(() => import("./pages/admin/AdminLuckyDraw.jsx"));
-const AdminShop = lazy(() => import("./pages/admin/Shop.jsx"));
+const AdminShop = lazy(() => import("./pages/admin/AdminShop.jsx"));
 const AdminBlogs = lazy(() => import("./pages/admin/AdminBlogs.jsx"));
 const AdminNews = lazy(() => import("./pages/admin/AdminNews.jsx"));
 const AdminMining = lazy(() => import("./pages/admin/AdminMining.jsx"));
