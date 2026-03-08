@@ -1,302 +1,530 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase.js";
 
+// ── Constants ──────────────────────────────────────────────
+const OTP_EXPIRY_SECONDS = 180;   // 3 min
+const RESEND_COOLDOWN    = 60;    // 60 s
+const MAX_REQUESTS       = 3;
+const WINDOW_HOURS       = 12;
+const STORAGE_PREFIX     = "aidla_otp_v3__";
+
+// ── Rate-limit helpers (per email) ────────────────────────
+const eKey  = (e) => STORAGE_PREFIX + e.trim().toLowerCase();
+const lMeta = (e) => { try { const r = localStorage.getItem(eKey(e)); return r ? JSON.parse(r) : { count:0, windowStart:null }; } catch { return { count:0, windowStart:null }; } };
+const sMeta = (e, m) => { try { localStorage.setItem(eKey(e), JSON.stringify(m)); } catch {} };
+const cMeta = (e) => { try { localStorage.removeItem(eKey(e)); } catch {} };
+
+function getStatus(email) {
+  if (!email) return { remaining: MAX_REQUESTS, resetMs: 0 };
+  const meta = lMeta(email);
+  const now  = Date.now();
+  const win  = WINDOW_HOURS * 3600_000;
+  if (!meta.windowStart || now - meta.windowStart > win) {
+    sMeta(email, { count: 0, windowStart: now });
+    return { remaining: MAX_REQUESTS, resetMs: 0 };
+  }
+  return {
+    remaining: Math.max(0, MAX_REQUESTS - meta.count),
+    resetMs:   Math.max(0, win - (now - meta.windowStart)),
+  };
+}
+
+function recordReq(email) {
+  const meta = lMeta(email);
+  const now  = Date.now();
+  const win  = WINDOW_HOURS * 3600_000;
+  if (!meta.windowStart || now - meta.windowStart > win)
+    sMeta(email, { count: 1, windowStart: now });
+  else
+    sMeta(email, { count: meta.count + 1, windowStart: meta.windowStart });
+}
+
+// ── Email regex ────────────────────────────────────────────
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function fmtSec(s) { return `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`; }
+function fmtMs(ms) {
+  const m = Math.ceil(ms / 60_000);
+  return m >= 60 ? `${Math.ceil(m/60)}h ${m%60 ? m%60+"m" : ""}`.trim() : `${m}m`;
+}
+
+// ── Component ──────────────────────────────────────────────
 export default function ForgotPassword() {
   const navigate = useNavigate();
 
-  // Step 1: Request OTP | Step 2: Verify OTP & Reset
-  const [step, setStep] = useState(1);
+  const [step,           setStep]           = useState(1);
+  const [email,          setEmail]          = useState("");
+  const [emailTouched,   setEmailTouched]   = useState(false);
+  const [emailChecking,  setEmailChecking]  = useState(false);
+  const [emailValid,     setEmailValid]     = useState(null); // null | true | false
+  const [emailStatus,    setEmailStatus]    = useState(""); // "found" | "notfound" | ""
 
-  // Form State
-  const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [otp,            setOtp]            = useState("");
+  const [newPwd,         setNewPwd]         = useState("");
+  const [confirmPwd,     setConfirmPwd]     = useState("");
+  const [showPwd,        setShowPwd]        = useState(false);
 
-  // UI State
-  const [loading, setLoading] = useState(false);
-  const [msg, setMsg] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  const [loading,        setLoading]        = useState(false);
+  const [msg,            setMsg]            = useState({ text:"", type:"" });
 
-  // --- STEP 1: Send OTP to Email ---
+  const [resendCD,       setResendCD]       = useState(0);
+  const [otpExpiry,      setOtpExpiry]      = useState(0);
+  const [otpSentAt,      setOtpSentAt]      = useState(null);
+
+  const [remaining,      setRemaining]      = useState(MAX_REQUESTS);
+  const [resetMs,        setResetMs]        = useState(0);
+
+  const resendRef  = useRef(null);
+  const expiryRef  = useRef(null);
+  const resetRef   = useRef(null);
+  const debounceRef = useRef(null);
+
+  // ── Refresh rate-limit whenever email changes ──
+  useEffect(() => {
+    if (!email) { setRemaining(MAX_REQUESTS); setResetMs(0); return; }
+    const { remaining: r, resetMs: ms } = getStatus(email);
+    setRemaining(r); setResetMs(ms);
+  }, [email]);
+
+  useEffect(() => {
+    clearInterval(resetRef.current);
+    if (resetMs > 0) {
+      resetRef.current = setInterval(() => {
+        const { remaining: r, resetMs: ms } = getStatus(email);
+        setRemaining(r); setResetMs(ms);
+      }, 60_000);
+    }
+    return () => clearInterval(resetRef.current);
+  }, [resetMs, email]);
+
+  useEffect(() => () => {
+    clearInterval(resendRef.current);
+    clearInterval(expiryRef.current);
+    clearInterval(resetRef.current);
+    clearTimeout(debounceRef.current);
+  }, []);
+
+  // ── Check email in DB (debounced 600ms after user stops typing) ──
+  useEffect(() => {
+    clearTimeout(debounceRef.current);
+    setEmailValid(null);
+    setEmailStatus("");
+
+    if (!EMAIL_RE.test(email)) return; // not a complete email yet
+
+    debounceRef.current = setTimeout(async () => {
+      setEmailChecking(true);
+      try {
+        // Same table & column as Signup.jsx
+        const { data, error } = await supabase
+          .from("users_profiles")
+          .select("email")
+          .eq("email", email.trim().toLowerCase())
+          .maybeSingle();
+
+        if (error) throw error;
+        if (data) { setEmailValid(true);  setEmailStatus("found"); }
+        else      { setEmailValid(false); setEmailStatus("notfound"); }
+      } catch {
+        // If profiles table doesn't exist or query fails, allow proceed
+        setEmailValid(false); setEmailStatus("error");
+      } finally {
+        setEmailChecking(false);
+      }
+    }, 500); // match Signup debounce
+  }, [email]);
+
+  // ── Timers ──
+  function startResendTimer() {
+    setResendCD(RESEND_COOLDOWN);
+    clearInterval(resendRef.current);
+    resendRef.current = setInterval(() => setResendCD(p => { if (p<=1){clearInterval(resendRef.current);return 0;} return p-1; }), 1000);
+  }
+
+  function startExpiryTimer() {
+    clearInterval(expiryRef.current);
+    setOtpExpiry(OTP_EXPIRY_SECONDS);
+    expiryRef.current = setInterval(() => setOtpExpiry(p => {
+      if (p<=1) { clearInterval(expiryRef.current); setMsg({ text:"OTP expired. Request a new code.", type:"error" }); return 0; }
+      return p-1;
+    }), 1000);
+  }
+
+  // ── Send OTP ──
   async function handleSendOtp(e) {
     e.preventDefault();
-    setMsg("");
+    setMsg({ text:"", type:"" });
+    if (!emailValid) return;
+    const { remaining: r } = getStatus(email);
+    if (r <= 0) { setMsg({ text:`Limit reached. Try again in ${fmtMs(resetMs)}.`, type:"error" }); return; }
+
     setLoading(true);
-
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: undefined });
       if (error) throw error;
-
-      setMsg("OTP sent! Please check your email for the 6-digit code.");
-      setStep(2); // Move to OTP Verification Step
+      recordReq(email);
+      const s = getStatus(email); setRemaining(s.remaining); setResetMs(s.resetMs);
+      setOtpSentAt(Date.now()); startResendTimer(); startExpiryTimer();
+      setStep(2);
+      setMsg({ text:"6-digit OTP sent! Check your email. Expires in 3 minutes.", type:"success" });
     } catch (err) {
-      setMsg(err.message || "Failed to send OTP.");
-    } finally {
-      setLoading(false);
-    }
+      setMsg({ text: err.message || "Failed to send OTP.", type:"error" });
+    } finally { setLoading(false); }
   }
 
-  // --- STEP 2: Verify OTP and Update Password ---
-  async function handleVerifyAndReset(e) {
-    e.preventDefault();
-    setMsg("");
+  // ── Resend ──
+  async function handleResend() {
+    if (resendCD > 0) return;
+    const { remaining: r, resetMs: ms } = getStatus(email);
+    if (r <= 0) { setMsg({ text:`Limit reached. Try again in ${fmtMs(ms)}.`, type:"error" }); return; }
+    setMsg({ text:"", type:"" }); setOtp(""); setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: undefined });
+      if (error) throw error;
+      recordReq(email);
+      const s = getStatus(email); setRemaining(s.remaining); setResetMs(s.resetMs);
+      setOtpSentAt(Date.now()); startResendTimer(); startExpiryTimer();
+      setMsg({ text:"New OTP sent! Previous code is now invalid.", type:"success" });
+    } catch (err) {
+      setMsg({ text: err.message || "Failed to resend.", type:"error" });
+    } finally { setLoading(false); }
+  }
 
-    if (newPassword !== confirmPassword) {
-      setMsg("Passwords do not match.");
-      return;
-    }
-    if (newPassword.length < 6) {
-      setMsg("Password must be at least 6 characters.");
-      return;
-    }
+  // ── Verify + Reset ──
+  async function handleVerifyAndReset(e) {
+    e.preventDefault(); setMsg({ text:"", type:"" });
+    if (otpExpiry === 0) { setMsg({ text:"OTP expired. Request a new code.", type:"error" }); return; }
+    if (otp.length !== 6) { setMsg({ text:"Please enter the full 6-digit OTP.", type:"error" }); return; }
+    if (newPwd !== confirmPwd) { setMsg({ text:"Passwords do not match.", type:"error" }); return; }
+    if (newPwd.length < 6) { setMsg({ text:"Password must be at least 6 characters.", type:"error" }); return; }
 
     setLoading(true);
-
     try {
-      // 1) Verify the OTP (Type 'recovery' is specific to password resets)
-      const { error: verifyError } = await supabase.auth.verifyOtp({
-        email,
-        token: otp,
-        type: "recovery",
-      });
-      if (verifyError) throw verifyError;
-
-      // 2) OTP valid -> User session created. Now update password.
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: newPassword,
-      });
-      if (updateError) throw updateError;
-
-      setMsg("Password updated successfully! Redirecting to login...");
+      const { error: ve } = await supabase.auth.verifyOtp({ email, token: otp, type:"recovery" });
+      if (ve) throw ve;
+      const { error: ue } = await supabase.auth.updateUser({ password: newPwd });
+      if (ue) throw ue;
+      cMeta(email);
+      clearInterval(resendRef.current); clearInterval(expiryRef.current);
+      setMsg({ text:"Password updated! Redirecting to login…", type:"success" });
       setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
-      setMsg(err.message || "Failed to reset password. Invalid OTP or expired.");
-    } finally {
-      setLoading(false);
-    }
+      setMsg({ text: err.message || "Invalid or expired OTP.", type:"error" });
+    } finally { setLoading(false); }
   }
 
-  // --- 2060 3D NEXT-GEN CSS ---
-  const css = `
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+  function goBack() {
+    setStep(1); setMsg({ text:"",type:"" }); setOtp("");
+    clearInterval(expiryRef.current); clearInterval(resendRef.current);
+  }
 
-    .fullscreen-wrapper {
-      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background: #f0f4f8; overflow-y: auto; overflow-x: hidden;
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      z-index: 99999; padding: 50px 20px; 
-    }
+  // ── Derived ──
+  const emailComplete = EMAIL_RE.test(email);
+  const otpExpired    = step === 2 && otpSentAt && otpExpiry === 0;
+  const expiryUrgent  = otpExpiry > 0 && otpExpiry <= 60;
+  const limitReached  = remaining <= 0;
 
-    .bg-orb {
-      position: fixed; border-radius: 50%; filter: blur(80px);
-      z-index: -1; animation: float 20s infinite alternate ease-in-out;
-    }
-    .orb-1 { width: 400px; height: 400px; background: rgba(30, 58, 138, 0.15); top: -100px; left: -100px; }
-    .orb-2 { width: 300px; height: 300px; background: rgba(59, 130, 246, 0.15); bottom: -50px; right: -50px; animation-duration: 25s; }
+  // Email field border color
+  const emailBorder = !emailComplete
+    ? "transparent"
+    : emailChecking
+      ? "rgba(251,191,36,.6)"
+      : emailValid === true
+        ? "rgba(16,185,129,.5)"
+        : emailValid === false
+          ? "rgba(239,68,68,.5)"
+          : "transparent";
 
-    @keyframes float {
-      0% { transform: translate(0, 0) scale(1); }
-      100% { transform: translate(50px, 50px) scale(1.1); }
-    }
+  // ── Inline styles (no CSS classname conflicts with app layout) ──
+  const S = {
+    overlay: {
+      position: "fixed", inset: 0, zIndex: 99999,
+      background: "linear-gradient(135deg,#e8eef8 0%,#f0f4f8 50%,#e8f0fb 100%)",
+      overflowY: "auto", overflowX: "hidden",
+      display: "flex", alignItems: "flex-start", justifyContent: "center",
+      padding: "60px 20px 40px", fontFamily: "'Inter',system-ui,sans-serif",
+    },
+    orb1: { position:"fixed", width:420, height:420, borderRadius:"50%", filter:"blur(80px)", background:"rgba(30,58,138,0.14)", top:-120, left:-120, zIndex:-1, pointerEvents:"none" },
+    orb2: { position:"fixed", width:320, height:320, borderRadius:"50%", filter:"blur(80px)", background:"rgba(59,130,246,0.13)", bottom:-80, right:-80, zIndex:-1, pointerEvents:"none" },
+    card: {
+      width:"100%", maxWidth:460,
+      background:"rgba(255,255,255,0.9)",
+      backdropFilter:"blur(24px)", WebkitBackdropFilter:"blur(24px)",
+      border:"1px solid rgba(255,255,255,0.95)",
+      borderRadius:28, padding:"36px 36px 32px",
+      boxShadow:"20px 20px 60px rgba(15,23,42,0.09),-20px -20px 60px rgba(255,255,255,0.95),inset 0 0 0 1.5px rgba(255,255,255,0.6)",
+    },
+    backBtn: {
+      display:"inline-flex", alignItems:"center", gap:6,
+      padding:"7px 14px", marginBottom:14,
+      background:"#fff", color:"#1e3a8a", border:"none", borderRadius:12,
+      fontWeight:700, fontSize:"0.84rem", textDecoration:"none", cursor:"pointer",
+      boxShadow:"4px 4px 10px rgba(15,23,42,0.05),-4px -4px 10px rgba(255,255,255,1)",
+      transition:"all .2s",
+    },
+    brandWrap: { textAlign:"center", marginBottom:20 },
+    brandTitle: {
+      fontSize:"2.8rem", fontWeight:900, letterSpacing:-1, marginBottom:4,
+      background:"linear-gradient(135deg,#1e3a8a 0%,#3b82f6 100%)",
+      WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent",
+      filter:"drop-shadow(2px 4px 6px rgba(30,58,138,0.2))", display:"block",
+    },
+    brandSub: { fontSize:"0.88rem", color:"#64748b", fontWeight:600 },
 
-    .card-2060 {
-      width: 100%; max-width: 480px; margin: 0 auto; 
-      background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 1);
-      border-radius: 28px; padding: 40px;
-      box-shadow: 20px 20px 60px rgba(15, 23, 42, 0.08), -20px -20px 60px rgba(255, 255, 255, 0.9), inset 0 0 0 2px rgba(255, 255, 255, 0.5);
-      animation: popIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-      opacity: 0; transform: translateY(30px) scale(0.95); position: relative;
-    }
+    // Rate dots row
+    rateBar: { display:"flex", alignItems:"center", justifyContent:"center", gap:7, marginBottom:18, flexWrap:"wrap" },
+    rateDotUsed:  { width:11, height:11, borderRadius:"50%", background:"#fca5a5", transition:"background .3s" },
+    rateDotAvail: { width:11, height:11, borderRadius:"50%", background:"#6ee7b7", transition:"background .3s" },
+    rateLabel: { fontSize:"0.72rem", color:"#64748b", fontWeight:600 },
+    rateReset: { fontSize:"0.68rem", color:"#b45309", fontWeight:700, background:"#fef3c7", padding:"2px 9px", borderRadius:10 },
 
-    @keyframes popIn { to { opacity: 1; transform: translateY(0) scale(1); } }
+    fieldWrap: { marginBottom:16 },
+    label: { display:"block", marginBottom:7, fontWeight:700, color:"#334155", fontSize:"0.8rem", textTransform:"uppercase", letterSpacing:"0.5px" },
+    inputWrap: { position:"relative" },
+    inp: (extra={}) => ({
+      width:"100%", padding:"14px 17px", borderRadius:13, border:"2px solid transparent",
+      background:"#f8fafc", color:"#0f172a", fontSize:"0.98rem", fontWeight:600,
+      boxShadow:"inset 4px 4px 8px rgba(15,23,42,.06),inset -4px -4px 8px rgba(255,255,255,1)",
+      outline:"none", transition:"all .25s", fontFamily:"inherit", ...extra,
+    }),
+    inpOtp: { textAlign:"center", letterSpacing:10, fontSize:"1.55rem", fontWeight:900, paddingLeft:22 },
+    eyeBtn: { position:"absolute", right:13, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", color:"#94a3b8", display:"flex", alignItems:"center" },
 
-    .back-btn {
-      display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; margin-bottom: 10px;
-      background: #ffffff; color: #1e3a8a; text-decoration: none; font-weight: 700; font-size: 0.85rem; border-radius: 12px;
-      box-shadow: 4px 4px 10px rgba(15, 23, 42, 0.05), -4px -4px 10px rgba(255, 255, 255, 1);
-      transition: all 0.2s ease; cursor: pointer; border: none;
-    }
-    .back-btn:hover { color: #3b82f6; transform: translateY(-2px); }
-    .back-btn:active { transform: translateY(1px); box-shadow: inset 2px 2px 5px rgba(15,23,42,0.05), inset -2px -2px 5px rgba(255,255,255,1); }
-    .back-btn svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 3; fill: none; }
+    // Email status badge
+    emailStatusBadge: (type) => ({
+      display:"inline-flex", alignItems:"center", gap:5,
+      marginTop:6, padding:"4px 11px", borderRadius:20,
+      fontSize:"0.75rem", fontWeight:700,
+      ...(type==="found"    ? { background:"#d1fae5", color:"#047857" } :
+          type==="notfound" ? { background:"#fee2e2", color:"#b91c1c" } :
+          type==="checking" ? { background:"#fef3c7", color:"#92400e" } :
+          type==="error"    ? { background:"#fee2e2", color:"#b91c1c" } :
+                              { background:"#f1f5f9", color:"#64748b" }),
+    }),
 
-    .brand-header { text-align: center; margin-bottom: 30px; margin-top: 10px; }
-    .brand-title {
-      font-size: 3rem; font-weight: 900; letter-spacing: -1px; margin-bottom: 5px;
-      background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(2px 4px 6px rgba(30, 58, 138, 0.2));
-    }
-    .brand-subtitle { font-size: 0.95rem; color: #64748b; font-weight: 600; letter-spacing: 0.5px; }
+    // Rate limit warning (shown before clicking send)
+    rateLimitWarn: {
+      display:"flex", alignItems:"flex-start", gap:10,
+      background:"#fff7ed", border:"1.5px solid #fed7aa",
+      borderRadius:12, padding:"11px 14px", marginBottom:16,
+      fontSize:"0.8rem", color:"#9a3412", fontWeight:600, lineHeight:1.5,
+    },
 
-    .input-group { margin-bottom: 24px; position: relative; }
-    .label-3d { display: block; margin-bottom: 8px; font-weight: 700; color: #334155; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
-    
-    .input-wrapper { position: relative; width: 100%; }
-    
-    .input-3d {
-      width: 100%; padding: 16px 20px; border-radius: 16px; border: 2px solid transparent;
-      background: #f8fafc; color: #0f172a; font-size: 1rem; font-weight: 600;
-      box-shadow: inset 5px 5px 10px rgba(15, 23, 42, 0.06), inset -5px -5px 10px rgba(255, 255, 255, 1);
-      transition: all 0.3s ease;
-    }
-    .input-3d::placeholder { color: #cbd5e1; font-weight: 500; }
-    .input-3d:focus { outline: none; background: #ffffff; border-color: rgba(59, 130, 246, 0.4); box-shadow: inset 2px 2px 5px rgba(15, 23, 42, 0.03), inset -2px -2px 5px rgba(255, 255, 255, 1), 0 0 15px rgba(59, 130, 246, 0.2); }
-    
-    .input-otp { text-align: center; letter-spacing: 4px; font-size: 1.2rem; font-weight: 800; }
+    btn: (disabled) => ({
+      width:"100%", padding:"16px", borderRadius:13, border:"none",
+      background: disabled ? "#94a3b8" : "linear-gradient(135deg,#1e3a8a,#3b82f6)",
+      color:"#fff", fontSize:"1.05rem", fontWeight:800, letterSpacing:"1px",
+      cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.8 : 1,
+      boxShadow: disabled ? "0 10px 0 #64748b" : "0 10px 0 #1e3a8a,0 18px 22px rgba(30,58,138,.28),inset 0 2px 0 rgba(255,255,255,.2)",
+      transition:"all .15s",
+    }),
 
-    .eye-btn {
-      position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #94a3b8;
-      display: flex; align-items: center; justify-content: center; transition: color 0.2s;
-    }
-    .eye-btn:hover { color: #1e3a8a; }
+    otpMeta: { display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginBottom:11, flexWrap:"wrap" },
+    expiryBadge: (type) => ({
+      display:"inline-flex", alignItems:"center", gap:4,
+      padding:"4px 11px", borderRadius:18, fontSize:"0.76rem", fontWeight:700,
+      ...(type==="ok"     ? { background:"#d1fae5", color:"#047857" } :
+          type==="urgent" ? { background:"#fee2e2", color:"#b91c1c" } :
+                            { background:"#f1f5f9", color:"#94a3b8" }),
+    }),
+    resendBtn: (disabled) => ({
+      background:"none", border:"none", cursor: disabled?"not-allowed":"pointer",
+      fontSize:"0.8rem", fontWeight:700, color: disabled?"#94a3b8":"#3b82f6",
+      padding:"4px 10px", borderRadius:8, textDecoration: disabled?"none":"underline",
+      textUnderlineOffset:3,
+    }),
+    resendHint: { fontSize:"0.7rem", color:"#64748b", textAlign:"center", marginBottom:13 },
 
-    .btn-2060 {
-      width: 100%; padding: 18px; border-radius: 16px; border: none; background: linear-gradient(135deg, #1e3a8a, #3b82f6);
-      color: #ffffff; font-size: 1.15rem; font-weight: 800; letter-spacing: 1px; cursor: pointer;
-      box-shadow: 0 10px 0 #1e3a8a, 0 20px 25px rgba(30, 58, 138, 0.3), inset 0 2px 0 rgba(255, 255, 255, 0.2);
-      transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1); position: relative;
-    }
-    .btn-2060:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 12px 0 #1e3a8a, 0 25px 30px rgba(30, 58, 138, 0.4), inset 0 2px 0 rgba(255,255,255,0.2); }
-    .btn-2060:active:not(:disabled) { transform: translateY(10px); box-shadow: 0 0px 0 #1e3a8a, 0 5px 10px rgba(30, 58, 138, 0.3), inset 0 2px 0 rgba(255,255,255,0.2); }
-    .btn-2060:disabled { background: #94a3b8; box-shadow: 0 10px 0 #64748b; cursor: not-allowed; opacity: 0.8; }
+    msg: (type) => ({
+      marginTop:15, padding:"12px 15px", borderRadius:12,
+      textAlign:"center", fontWeight:700, fontSize:"0.86rem", lineHeight:1.5,
+      ...(type==="success" ? { color:"#047857", background:"#d1fae5", boxShadow:"inset 0 0 0 2px #34d399" } :
+          type==="error"   ? { color:"#b91c1c", background:"#fee2e2", boxShadow:"inset 0 0 0 2px #f87171" } :
+                             { color:"#1e40af", background:"#dbeafe", boxShadow:"inset 0 0 0 2px #93c5fd" }),
+    }),
 
-    .msg-box { margin-top: 20px; padding: 16px; border-radius: 14px; text-align: center; font-weight: 700; font-size: 0.95rem; animation: fadeIn 0.4s ease; line-height: 1.4;}
-    
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    blockedBox: { textAlign:"center", padding:"6px 0 2px" },
+    blockedIcon: { fontSize:"2.6rem", display:"block", marginBottom:6 },
+    blockedHint: { color:"#64748b", fontSize:"0.8rem", marginTop:10, lineHeight:1.55 },
+  };
 
-    @media (max-width: 500px) {
-      .fullscreen-wrapper { padding: 30px 15px; }
-      .card-2060 { padding: 30px 20px; border-radius: 20px; }
-      .brand-title { font-size: 2.4rem; }
-      .input-3d { padding: 14px 16px; font-size: 0.95rem; }
-      .btn-2060 { padding: 16px; font-size: 1.05rem; }
-    }
-  `;
+  // ── Render via portal to escape app layout completely ──
+  return createPortal(
+    <div style={S.overlay}>
+      {/* background orbs */}
+      <div style={S.orb1} />
+      <div style={S.orb2} />
 
-  return (
-    <div className="fullscreen-wrapper">
-      <style>{css}</style>
-      
-      {/* Background Orbs */}
-      <div className="bg-orb orb-1"></div>
-      <div className="bg-orb orb-2"></div>
-
-      <div className="card-2060">
-        
-        {/* Back Button Handling based on Step */}
+      <div style={S.card}>
+        {/* Back button */}
         {step === 1 ? (
-          <Link to="/login" className="back-btn">
-            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          <Link to="/login" style={S.backBtn}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
             Back to Login
           </Link>
         ) : (
-          <button onClick={() => { setStep(1); setMsg(""); }} className="back-btn">
-            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          <button onClick={goBack} style={S.backBtn}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
             Change Email
           </button>
         )}
-        
-        <div className="brand-header">
-          <h1 className="brand-title">AIDLA</h1>
-          <p className="brand-subtitle">Secure Account Recovery</p>
+
+        {/* Brand */}
+        <div style={S.brandWrap}>
+          <span style={S.brandTitle}>AIDLA</span>
+          <p style={S.brandSub}>{step===1 ? "Secure Account Recovery" : "Enter OTP & Set New Password"}</p>
         </div>
 
-        {/* --- STEP 1 FORM: EMAIL --- */}
-        {step === 1 && (
-          <form onSubmit={handleSendOtp}>
-            <div className="input-group">
-              <label className="label-3d">Registered Email</label>
-              <input
-                className="input-3d"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                type="email"
-                required
-                placeholder="Enter your email"
-              />
-            </div>
-
-            <button disabled={loading} className="btn-2060">
-              {loading ? "PROCESSING..." : "SEND OTP CODE"}
-            </button>
-          </form>
+        {/* Rate-limit dots — only after valid email */}
+        {emailComplete && emailValid === true && (
+          <div style={S.rateBar}>
+            {Array.from({ length: MAX_REQUESTS }).map((_, i) => (
+              <div key={i} style={i < MAX_REQUESTS - remaining ? S.rateDotUsed : S.rateDotAvail} />
+            ))}
+            <span style={S.rateLabel}>{remaining}/{MAX_REQUESTS} OTP requests left</span>
+            {limitReached && resetMs > 0 && (
+              <span style={S.rateReset}>⏳ resets in {fmtMs(resetMs)}</span>
+            )}
+          </div>
         )}
 
-        {/* --- STEP 2 FORM: OTP & NEW PASSWORD --- */}
+        {/* ═══ STEP 1 ═══ */}
+        {step === 1 && (
+          <>
+            {/* Show rate-limit block BEFORE send if limit already reached */}
+            {emailComplete && emailValid === true && limitReached ? (
+              <div style={S.blockedBox}>
+                <span style={S.blockedIcon}>🔒</span>
+                <div style={S.msg("error")}>
+                  Too many OTP requests for <b>{email}</b>.<br/>
+                  {resetMs > 0 ? `Please wait ${fmtMs(resetMs)} before trying again.` : "Please try again later."}
+                </div>
+                <p style={S.blockedHint}>Each email address has its own independent limit. You can try a different email.</p>
+              </div>
+            ) : (
+              <form onSubmit={handleSendOtp}>
+                <div style={S.fieldWrap}>
+                  <label style={S.label}>Registered Email</label>
+                  <div style={S.inputWrap}>
+                    <input
+                      style={{ ...S.inp(), borderColor: emailBorder }}
+                      value={email}
+                      onChange={e => { setEmail(e.target.value); setEmailTouched(true); }}
+                      onBlur={() => setEmailTouched(true)}
+                      type="email"
+                      required
+                      placeholder="Enter your email"
+                      autoComplete="email"
+                    />
+                  </div>
+
+                  {/* Email validation feedback */}
+                  {emailTouched && !emailComplete && email.length > 0 && (
+                    <div style={S.emailStatusBadge("error")}>⚠ Enter a valid email address</div>
+                  )}
+                  {emailComplete && emailChecking && (
+                    <div style={S.emailStatusBadge("checking")}>⏳ Checking email…</div>
+                  )}
+                  {emailComplete && !emailChecking && emailStatus === "found" && (
+                    <div style={S.emailStatusBadge("found")}>✓ Email found — {remaining}/{MAX_REQUESTS} requests available</div>
+                  )}
+                  {emailComplete && !emailChecking && emailStatus === "notfound" && (
+                    <div style={S.emailStatusBadge("notfound")}>✗ No account found with this email</div>
+                  )}
+                  {emailComplete && !emailChecking && emailStatus === "error" && (
+                    <div style={S.emailStatusBadge("error")}>⚠ Could not verify email. Check connection.</div>
+                  )}
+                </div>
+
+                {/* Show rate limit warning inline before they click */}
+                {emailComplete && emailValid === true && remaining > 0 && remaining < MAX_REQUESTS && (
+                  <div style={S.rateLimitWarn}>
+                    ⚠️ You have used {MAX_REQUESTS - remaining} of {MAX_REQUESTS} attempts for this email.
+                    {" "}{remaining} attempt{remaining!==1?"s":""} remaining.
+                    {resetMs > 0 && ` Resets in ${fmtMs(resetMs)}.`}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  style={S.btn(loading || !emailValid || emailChecking || limitReached || emailStatus === "error")}
+                  disabled={loading || !emailValid || emailChecking || limitReached || emailStatus === "error"}
+                >
+                  {loading ? "SENDING…" : "SEND 6-DIGIT OTP"}
+                </button>
+              </form>
+            )}
+          </>
+        )}
+
+        {/* ═══ STEP 2 ═══ */}
         {step === 2 && (
           <form onSubmit={handleVerifyAndReset}>
-            <div className="input-group">
-              <label className="label-3d">6-Digit OTP Code</label>
+            {/* Expiry + resend */}
+            <div style={S.otpMeta}>
+              <span style={S.expiryBadge(otpExpired?"dead":expiryUrgent?"urgent":"ok")}>
+                ⏱ {otpExpired ? "Expired" : `Expires ${fmtSec(otpExpiry)}`}
+              </span>
+              <button type="button" style={S.resendBtn(resendCD>0||loading||limitReached)}
+                onClick={handleResend} disabled={resendCD>0||loading||limitReached}>
+                {limitReached ? "Limit reached" : resendCD>0 ? `Resend in ${resendCD}s` : "Resend OTP"}
+              </button>
+            </div>
+            <div style={S.resendHint}>
+              New OTP <b>invalidates</b> previous · <b>{remaining}/{MAX_REQUESTS}</b> requests left
+            </div>
+
+            <div style={S.fieldWrap}>
+              <label style={S.label}>6-Digit OTP Code</label>
               <input
-                className="input-3d input-otp"
+                style={{ ...S.inp(), ...S.inpOtp }}
                 value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                type="text"
-                required
-                maxLength={6}
-                placeholder="• • • • • •"
+                onChange={e => setOtp(e.target.value.replace(/\D/g,"").slice(0,6))}
+                type="text" inputMode="numeric" pattern="[0-9]*"
+                required maxLength={6} placeholder="••••••"
+                disabled={otpExpired} autoComplete="one-time-code"
               />
             </div>
 
-            <div className="input-group">
-              <label className="label-3d">New Password</label>
-              <div className="input-wrapper">
+            <div style={S.fieldWrap}>
+              <label style={S.label}>New Password</label>
+              <div style={S.inputWrap}>
                 <input
-                  className="input-3d"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  type={showPassword ? "text" : "password"}
-                  required
-                  placeholder="Enter new password"
-                  style={{ paddingRight: "45px" }}
+                  style={{ ...S.inp({ paddingRight:44 }) }}
+                  value={newPwd} onChange={e=>setNewPwd(e.target.value)}
+                  type={showPwd?"text":"password"} required placeholder="Enter new password"
                 />
-                <button type="button" className="eye-btn" onClick={() => setShowPassword(!showPassword)} tabIndex="-1">
-                  {showPassword ? (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-                  ) : (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                  )}
+                <button type="button" style={S.eyeBtn} onClick={()=>setShowPwd(p=>!p)} tabIndex="-1">
+                  {showPwd
+                    ? <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    : <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  }
                 </button>
               </div>
             </div>
 
-            <div className="input-group">
-              <label className="label-3d">Confirm New Password</label>
+            <div style={S.fieldWrap}>
+              <label style={S.label}>Confirm New Password</label>
               <input
-                className="input-3d"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                type={showPassword ? "text" : "password"}
-                required
-                placeholder="Confirm new password"
+                style={S.inp()}
+                value={confirmPwd} onChange={e=>setConfirmPwd(e.target.value)}
+                type={showPwd?"text":"password"} required placeholder="Confirm new password"
               />
             </div>
 
-            <button disabled={loading} className="btn-2060">
-              {loading ? "VERIFYING..." : "RESET PASSWORD"}
+            <button type="submit"
+              style={S.btn(loading||otpExpired||otp.length!==6)}
+              disabled={loading||otpExpired||otp.length!==6}>
+              {loading?"VERIFYING…":"RESET PASSWORD"}
             </button>
           </form>
         )}
 
-        {/* Global Message Display */}
-        {msg && (
-          <div
-            className="msg-box"
-            style={{
-              color: msg.includes("sent") || msg.includes("successfully") ? "#047857" : "#b91c1c",
-              background: msg.includes("sent") || msg.includes("successfully") ? "#d1fae5" : "#fee2e2",
-              boxShadow: msg.includes("sent") || msg.includes("successfully") ? "inset 0 0 0 2px #34d399" : "inset 0 0 0 2px #f87171"
-            }}
-          >
-            {msg}
-          </div>
-        )}
-
+        {msg.text && <div style={S.msg(msg.type)}>{msg.text}</div>}
       </div>
-    </div>
+    </div>,
+    document.body  // ← portal renders directly into body, escaping ALL app layouts
   );
 }

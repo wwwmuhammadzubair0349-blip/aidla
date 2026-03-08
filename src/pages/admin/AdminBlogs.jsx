@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { supabase } from "../../lib/supabase";
+import "./adminblogs.css"; // <-- CSS imported
 
 function slugify(str) {
   const latin = String(str || "")
@@ -18,17 +19,15 @@ const statusColors = {
 };
 
 /* ══════════════════════════════════════════════════════════════
-   PASTE CLEANER
-   Keeps: bold, italic, headings, lists, paragraphs, links
-   Strips: colors, fonts, background-colors, inline styles (except
-           structural ones), Word/Google-Docs junk spans
+   PASTE CLEANER (unchanged)
    ══════════════════════════════════════════════════════════════ */
 function cleanPastedHtml(html) {
   const tmp = document.createElement("div");
   tmp.innerHTML = html;
 
   // Remove script/style/meta/
-  link["script","style","meta","link","head","o:p","w:sdt","xml"].forEach(tag =>
+  const removeTags = ["script","style","meta","link","head","o:p","w:sdt","xml"];
+  removeTags.forEach(tag =>
     tmp.querySelectorAll(tag).forEach(el => el.remove())
   );
 
@@ -107,9 +106,7 @@ function cleanPastedHtml(html) {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   AUTO-STRUCTURE
-   - Fixes double blank lines → single paragraphs
-   - Normalises spacing
+   AUTO-STRUCTURE (unchanged)
    ══════════════════════════════════════════════════════════════ */
 function autoStructureHtml(html) {
   const tmp = document.createElement("div");
@@ -157,11 +154,11 @@ function autoStructureHtml(html) {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   RICH EDITOR
+   RICH EDITOR (unchanged)
    ══════════════════════════════════════════════════════════════ */
 function RichEditor({ value, onChange }) {
   const editorRef = useRef(null);
-  const wrapperRef = useRef(null); // Added to track popup boundaries
+  const wrapperRef = useRef(null);
   const [showLinkModal, setShowLinkModal]       = useState(false);
   const [linkUrl, setLinkUrl]                   = useState("");
   const [linkText, setLinkText]                 = useState("");
@@ -205,7 +202,7 @@ function RichEditor({ value, onChange }) {
     if (el.innerHTML !== value) el.innerHTML = value || "";
   }, [value]);
 
-  // Floating Selection Popup Logic - FIXED mathematically
+  // Floating Selection Popup Logic
   const handleSelection = useCallback(() => {
     const sel = window.getSelection();
     if (!sel || sel.isCollapsed || !sel.rangeCount) {
@@ -427,7 +424,7 @@ function RichEditor({ value, onChange }) {
       {quickEditPos && (
         <div style={{
           position: "absolute",
-          top: Math.max(8, quickEditPos.top - 8), // Padding from selection
+          top: Math.max(8, quickEditPos.top - 8),
           left: quickEditPos.left,
           transform: "translate(-50%, -100%)",
           background: "#0f172a",
@@ -575,7 +572,7 @@ function RichEditor({ value, onChange }) {
         onInput={handleInput}
         onBlur={handleInput}
         onPaste={handlePaste}
-        onScroll={handleSelection} // Moves popup smoothly when you scroll inside the editor!
+        onScroll={handleSelection}
         style={{ minHeight:320, padding:"18px 20px", outline:"none", fontSize:15, lineHeight:1.8, color:"#1e293b", fontFamily:"'DM Sans',sans-serif", overflowY:"auto", maxHeight:540 }}
       />
 
@@ -634,7 +631,7 @@ export default function Blogs() {
   const [excerpt, setExcerpt]           = useState("");
   const [contentHtml, setContentHtml]   = useState("");
   const[status, setStatus]             = useState("draft");
-  const [scheduledAt, setScheduledAt]   = useState(""); // ISO datetime-local string
+  const [scheduledAt, setScheduledAt]   = useState("");
   const [metaTitle, setMetaTitle]       = useState("");
   const [metaDescription, setMetaDescription] = useState("");
   const [canonicalUrl, setCanonicalUrl] = useState("");
@@ -843,7 +840,7 @@ export default function Blogs() {
 
   return (
     <div style={{ padding:16, maxWidth:1400, margin:"0 auto" }}>
-      <style>{css}</style>
+      {/* CSS is imported from adminblogs.css */}
 
       <div className="ab-header">
         <div className="ab-header-icon">✍️</div>
@@ -1128,81 +1125,3 @@ export default function Blogs() {
     </div>
   );
 }
-
-/* ══ CSS ══ */
-const css = `
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;600;700;800;900&display=swap');
-  .ab-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding:8px 0 4px;animation:abIn 0.5s cubic-bezier(0.16,1,0.3,1) forwards}
-  @keyframes abIn{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
-  .ab-header-icon{font-size:clamp(24px,4vw,34px)}
-  .ab-title{font-size:clamp(1.2rem,3vw,1.7rem);font-weight:900;letter-spacing:-0.5px;margin:0;background:linear-gradient(135deg,#0b1437,#1a3a8f);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-  .ab-sub{color:#64748b;font-size:0.72rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase}
-  .ab-msg{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-radius:12px;font-size:0.85rem;font-weight:600;margin-bottom:12px;animation:abMsgIn 0.3s ease}
-  @keyframes abMsgIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
-  .ab-msg-info{background:rgba(26,58,143,0.07);border:1px solid rgba(26,58,143,0.2);color:#1a3a8f}
-  .ab-msg-success{background:rgba(22,163,74,0.08);border:1px solid rgba(22,163,74,0.25);color:#15803d}
-  .ab-msg-error{background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2);color:#dc2626}
-  .ab-msg-close{background:none;border:none;font-size:18px;cursor:pointer;color:#64748b;padding:0 0 0 8px;font-weight:700;line-height:1}
-  .ab-grid{display:grid;grid-template-columns:300px 1fr;gap:14px;align-items:start}
-  @media(max-width:860px){.ab-grid{grid-template-columns:1fr}}
-  .ab-card{background:rgba(255,255,255,0.95);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.9);border-radius:16px;padding:16px;box-shadow:0 4px 24px rgba(11,20,55,0.08);animation:abCardIn 0.5s cubic-bezier(0.16,1,0.3,1) forwards;opacity:0}
-  @keyframes abCardIn{to{opacity:1}}
-  .ab-list-card{position:sticky;top:12px}
-  .ab-editor-card{min-width:0}
-  .ab-card-title{font-weight:800;font-size:0.85rem;letter-spacing:0.5px;color:#334155;display:flex;align-items:center;gap:6px}
-  .ab-count{display:inline-flex;padding:1px 7px;border-radius:100px;font-size:10px;font-weight:700;background:rgba(26,58,143,0.1);color:#1a3a8f;border:1px solid rgba(26,58,143,0.2)}
-  .ab-id-badge{font-size:10px;color:#64748b;margin-top:3px;font-family:monospace}
-  .ab-list-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-  .ab-list-scroll{display:flex;flex-direction:column;gap:8px;max-height:74vh;overflow-y:auto;padding-right:2px}
-  .ab-list-scroll::-webkit-scrollbar{width:4px}
-  .ab-list-scroll::-webkit-scrollbar-thumb{background:rgba(26,58,143,0.3);border-radius:100px}
-  .ab-post-item{border-radius:12px;border:1px solid rgba(26,58,143,0.1);background:#fff;overflow:hidden;cursor:pointer;transition:all 0.15s;box-shadow:2px 2px 6px rgba(15,23,42,0.04)}
-  .ab-post-item:hover{border-color:rgba(26,58,143,0.3);transform:translateX(2px)}
-  .ab-post-item-active{background:linear-gradient(135deg,rgba(26,58,143,0.05),rgba(59,130,246,0.08))!important;border-color:rgba(26,58,143,0.35)!important;box-shadow:0 0 14px rgba(26,58,143,0.12)!important}
-  .ab-post-thumb{height:72px;overflow:hidden}
-  .ab-post-thumb img{width:100%;height:100%;object-fit:cover;display:block}
-  .ab-post-body{padding:10px 12px}
-  .ab-post-top{display:flex;justify-content:space-between;align-items:flex-start;gap:6px;margin-bottom:3px}
-  .ab-post-name{font-weight:800;font-size:0.84rem;color:#0f172a;word-break:break-word;line-height:1.3}
-  .ab-post-slug{font-size:10px;color:#64748b;font-weight:600;margin-bottom:3px;font-family:monospace}
-  .ab-post-excerpt{font-size:11px;color:#94a3b8;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-top:3px}
-  .ab-status-pill{padding:2px 8px;border-radius:100px;font-size:10px;font-weight:700;white-space:nowrap}
-  .ab-editor-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;gap:10px;flex-wrap:wrap}
-  .ab-section-title{font-size:0.72rem;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:#64748b;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(26,58,143,0.07);display:flex;align-items:center;gap:8px}
-  .ab-grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
-  .ab-col-2{grid-column:1 / -1}
-  .ab-field{display:flex;flex-direction:column}
-  .ab-label{font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;letter-spacing:0.3px}
-  .ab-label-opt{font-weight:400;opacity:0.7}
-  .ab-hint{font-size:11px;color:#64748b;margin-top:4px}
-  .ab-hint strong{color:#1a3a8f}
-  .ab-input{padding:9px 12px;border-radius:10px;border:1px solid rgba(26,58,143,0.15);background:#fff;font-size:0.85rem;color:#0f172a;width:100%;box-sizing:border-box;transition:border-color 0.15s,box-shadow 0.15s;outline:none;font-family:inherit}
-  .ab-input:focus{border-color:rgba(26,58,143,0.45);box-shadow:0 0 0 3px rgba(26,58,143,0.08)}
-  .ab-textarea{resize:vertical;min-height:60px;line-height:1.6}
-  .ab-btn{padding:9px 16px;border-radius:10px;border:none;font-size:0.83rem;font-weight:700;cursor:pointer;transition:all 0.15s;white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
-  .ab-btn-primary{background:linear-gradient(135deg,#1a3a8f,#3b82f6);color:#fff;box-shadow:0 3px 0 #1e3a8a}
-  .ab-btn-primary:hover:not(:disabled){filter:brightness(1.08);transform:translateY(-1px)}
-  .ab-btn-save{background:linear-gradient(135deg,#0f766e,#14b8a6);color:#fff;box-shadow:0 3px 0 #0f766e}
-  .ab-btn-save:hover:not(:disabled){filter:brightness(1.08);transform:translateY(-1px)}
-  .ab-btn-save:disabled{background:#e2e8f0;color:#94a3b8;box-shadow:none;cursor:not-allowed}
-  .ab-btn-danger{background:rgba(239,68,68,0.08);color:#dc2626;border:1px solid rgba(239,68,68,0.2)}
-  .ab-btn-danger:hover{background:rgba(239,68,68,0.14)}
-  .ab-btn-ghost{background:rgba(100,116,139,0.08);color:#475569;border:1px solid rgba(100,116,139,0.2)}
-  .ab-btn-ghost:hover{background:rgba(100,116,139,0.14)}
-  .ab-cover-zone{margin-top:4px}
-  .ab-upload-area{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:32px 20px;border:2px dashed rgba(26,58,143,0.25);border-radius:14px;cursor:pointer;transition:all 0.2s;background:rgba(26,58,143,0.02);width:100%;box-sizing:border-box}
-  .ab-upload-area:hover{border-color:rgba(26,58,143,0.5);background:rgba(26,58,143,0.05)}
-  .ab-upload-area-busy{opacity:0.6;cursor:wait}
-  .ab-upload-icon{font-size:28px}
-  .ab-upload-text{font-weight:700;font-size:0.85rem;color:#334155}
-  .ab-upload-hint{font-size:11px;color:#94a3b8}
-  .ab-cover-preview{border-radius:14px;overflow:hidden;border:1px solid rgba(26,58,143,0.15)}
-  .ab-cover-preview img{width:100%;max-height:280px;object-fit:cover;display:block}
-  .ab-cover-actions{display:flex;gap:8px;padding:10px 12px;background:rgba(248,250,252,0.9)}
-  .ab-loading{display:flex;align-items:center;gap:8px;padding:20px;color:#64748b;font-size:0.85rem;font-weight:600;justify-content:center}
-  .ab-spinner{width:18px;height:18px;border:2px solid rgba(26,58,143,0.2);border-top-color:#1a3a8f;border-radius:50%;animation:abSpin 0.7s linear infinite;flex-shrink:0}
-  @keyframes abSpin{to{transform:rotate(360deg)}}
-  .ab-empty{color:#64748b;font-size:0.83rem;padding:20px 0;font-weight:600;text-align:center;line-height:1.8}
-  .ab-form{animation:abFadeIn 0.3s ease}
-  @keyframes abFadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-`;

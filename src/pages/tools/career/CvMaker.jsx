@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { Helmet } from "react-helmet"; // or "react-helmet-async"
+import Footer from "../../components/Footer"; // adjust path if needed
+import "./cv-maker.css";
 
 // ─── Utilities ────────────────────────────────────────────────────
 function safeText(v) { return String(v ?? "").trim(); }
@@ -45,522 +48,7 @@ const EMPTY_DATA = {
   certifications:[], hobbies:"",
 };
 
-// ─── Global Styles (matches AIDLA design system) ─────────────────
-const G = `
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap');
-
-  :root {
-    --navy:   #0b1437;
-    --royal:  #1a3a8f;
-    --sky:    #3b82f6;
-    --gold:   #f59e0b;
-    --gold-l: #fcd34d;
-    --slate:  #64748b;
-    --ok:     #059669;
-    --red:    #dc2626;
-    --bg: linear-gradient(160deg,#f0f4ff 0%,#fffbf0 60%,#e8f4fd 100%);
-  }
-
-  *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-
-  .cvm-root {
-    min-height: 100vh;
-    background: var(--bg);
-    font-family: 'DM Sans', sans-serif;
-    color: var(--navy);
-    position: relative;
-    overflow-x: hidden;
-    display: flex;
-    flex-direction: column;
-  }
-
-  /* ── Orbs ── */
-  .cvm-orbs { position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden; }
-  .cvm-orb  { position:absolute;border-radius:50%;filter:blur(80px); }
-  .cvm-orb1 { width:420px;height:420px;background:rgba(59,130,246,0.07);top:-120px;left:-120px; }
-  .cvm-orb2 { width:360px;height:360px;background:rgba(245,158,11,0.06);top:40%;right:-140px; }
-  .cvm-orb3 { width:300px;height:300px;background:rgba(5,150,105,0.05);bottom:-60px;left:30%; }
-
-  .cvm-wrap {
-    flex: 1;
-    max-width: 1120px;
-    width: 100%;
-    margin: 0 auto;
-    padding: clamp(14px,4vw,52px) clamp(12px,4vw,28px) clamp(24px,6vw,60px);
-    position: relative;
-    z-index: 2;
-  }
-
-  /* ── Hero ── */
-  .cvm-hero { margin-bottom: 14px; }
-  .cvm-badge {
-    display: inline-block;
-    background: linear-gradient(135deg,var(--gold),var(--gold-l));
-    color: var(--navy);
-    padding: 4px 12px;
-    border-radius: 30px;
-    font-size: clamp(0.6rem,2vw,0.68rem);
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    margin-bottom: 8px;
-    box-shadow: 0 4px 12px rgba(245,158,11,0.28);
-  }
-  .cvm-title {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(1.5rem,6vw,2.6rem);
-    font-weight: 900;
-    line-height: 1.12;
-    margin-bottom: 6px;
-  }
-  .cvm-title-acc {
-    background: linear-gradient(135deg,var(--royal),var(--sky));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  .cvm-sub { color:var(--slate); font-size:clamp(0.82rem,3vw,0.95rem); line-height:1.5; }
-
-  /* ── Pills ── */
-  .cvm-pills { display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px; }
-  .cvm-pill {
-    background: rgba(59,130,246,0.06);
-    border: 1px solid rgba(59,130,246,0.15);
-    border-radius: 30px;
-    padding: 3px 9px;
-    font-size: clamp(0.6rem,2.2vw,0.7rem);
-    font-weight: 600;
-    color: var(--royal);
-    white-space: nowrap;
-  }
-
-  /* ── Toast ── */
-  .cvm-toast {
-    border-radius: 12px;
-    padding: 10px 12px;
-    font-weight: 700;
-    font-size: clamp(0.78rem,3vw,0.84rem);
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    animation: cvm-slide 0.2s ease;
-  }
-  .cvm-toast.success { background:rgba(5,150,105,0.08);border:1px solid rgba(5,150,105,0.25);color:#065f46; }
-  .cvm-toast.error   { background:rgba(220,38,38,0.07); border:1px solid rgba(220,38,38,0.2); color:#991b1b; }
-  .cvm-toast.info    { background:rgba(59,130,246,0.07);border:1px solid rgba(59,130,246,0.2);color:#1e40af; }
-  .cvm-toast-close { background:none;border:none;cursor:pointer;font-weight:900;color:inherit;font-size:1rem;line-height:1;padding:2px 4px;flex-shrink:0; }
-  @keyframes cvm-slide { from{opacity:0;transform:translateY(-5px)} to{opacity:1;transform:translateY(0)} }
-
-  /* ── Card ── */
-  .cvm-card {
-    background: rgba(255,255,255,0.9);
-    backdrop-filter: blur(6px);
-    border-radius: 20px;
-    border: 1px solid rgba(59,130,246,0.11);
-    box-shadow: 0 6px 24px rgba(11,20,55,0.07);
-    padding: clamp(14px,3.5vw,24px);
-    margin-bottom: 12px;
-  }
-  .cvm-card-title {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(0.9rem,3.5vw,1rem);
-    font-weight: 700;
-    color: var(--navy);
-    margin-bottom: 14px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  /* ── Layout: form + preview ── */
-  .cvm-layout {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 12px;
-    align-items: start;
-  }
-  @media(min-width:960px) {
-    .cvm-layout { grid-template-columns: 420px 1fr; }
-  }
-
-  /* ── Mobile tabs ── */
-  .cvm-tab-bar {
-    display: flex;
-    gap: 7px;
-    margin-bottom: 12px;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-  @media(min-width:960px) { .cvm-tab-bar { display:none; } }
-
-  /* ── Tab visibility — hidden on mobile, always visible on desktop ── */
-  .cvm-col-hidden {
-    display: none !important;
-  }
-  @media(min-width:960px) {
-    .cvm-col-form,
-    .cvm-col-hidden {
-      display: block !important;
-    }
-  }
-
-  /* ── Form grid ── */
-  .cvm-form-grid {
-    display: grid;
-    grid-template-columns: repeat(2,1fr);
-    gap: 9px;
-    margin-top: 10px;
-  }
-  @media(min-width:480px) {
-    .cvm-form-grid { grid-template-columns: repeat(auto-fit,minmax(140px,1fr)); }
-  }
-  .cvm-field { display:flex;flex-direction:column;gap:4px; }
-  .cvm-field label {
-    font-size: clamp(0.6rem,2vw,0.68rem);
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--slate);
-  }
-  .cvm-input {
-    width: 100%;
-    padding: 8px 10px;
-    border-radius: 10px;
-    border: 1.5px solid rgba(59,130,246,0.18);
-    background: #fff;
-    font-family: 'DM Sans', sans-serif;
-    font-size: clamp(0.78rem,3vw,0.84rem);
-    font-weight: 600;
-    outline: none;
-    transition: border-color 0.15s, box-shadow 0.15s;
-    -webkit-appearance: none;
-    color: var(--navy);
-  }
-  .cvm-input:focus { border-color:var(--gold); box-shadow:0 0 0 3px rgba(245,158,11,0.1); }
-  .cvm-textarea { resize:vertical; line-height:1.55; min-height:72px; }
-
-  /* Section subheader inside card */
-  .cvm-section-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-weight: 800;
-    font-size: clamp(0.8rem,3vw,0.88rem);
-    color: var(--navy);
-    margin-bottom: 4px;
-  }
-
-  /* ── Item box (exp, edu, etc.) ── */
-  .cvm-item-box {
-    margin-top: 10px;
-    padding: 12px;
-    background: rgba(248,250,252,0.8);
-    border-radius: 12px;
-    border: 1px solid rgba(59,130,246,0.1);
-  }
-  .cvm-item-box-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-    font-weight: 700;
-    font-size: clamp(0.72rem,2.5vw,0.78rem);
-    color: var(--slate);
-  }
-
-  /* ── Preview panel ── */
-  .cvm-preview-panel {
-    border-radius: 20px;
-    border: 1px solid rgba(59,130,246,0.11);
-    background: rgba(255,255,255,0.9);
-    backdrop-filter: blur(6px);
-    box-shadow: 0 6px 24px rgba(11,20,55,0.07);
-    overflow: hidden;
-  }
-  @media(min-width:960px) { .cvm-preview-panel { position:sticky;top:12px; } }
-
-  .cvm-preview-header {
-    padding: 10px 14px;
-    border-bottom: 1px solid rgba(59,130,246,0.1);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .cvm-preview-header-title {
-    font-family: 'Playfair Display', serif;
-    font-weight: 700;
-    font-size: clamp(0.88rem,3vw,1rem);
-  }
-
-  .cvm-controls {
-    padding: 10px 12px;
-    border-bottom: 1px solid rgba(59,130,246,0.08);
-  }
-
-  /* Region tabs */
-  .cvm-region-tabs { display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px; }
-  .cvm-region-tab {
-    padding: 5px 10px;
-    border-radius: 20px;
-    border: 1.5px solid rgba(59,130,246,0.2);
-    background: #fff;
-    font-family: 'DM Sans', sans-serif;
-    font-size: clamp(0.62rem,2.2vw,0.72rem);
-    font-weight: 700;
-    cursor: pointer;
-    transition: 0.12s;
-    color: var(--navy);
-    -webkit-tap-highlight-color: transparent;
-  }
-  .cvm-region-tab:active, .cvm-region-tab:hover { border-color:var(--gold); }
-  .cvm-region-tab.active {
-    background: linear-gradient(135deg,var(--gold),var(--gold-l));
-    border-color: transparent;
-    color: var(--navy);
-    box-shadow: 0 2px 8px rgba(245,158,11,0.3);
-  }
-
-  /* Style grid */
-  .cvm-style-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:8px; }
-  @media(max-width:440px) { .cvm-style-grid { grid-template-columns:repeat(2,1fr); } }
-  .cvm-style-card {
-    padding: 7px 4px;
-    border-radius: 9px;
-    border: 1.5px solid rgba(59,130,246,0.14);
-    text-align: center;
-    cursor: pointer;
-    transition: 0.12s;
-    background: #fff;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .cvm-style-card:hover { border-color:var(--gold); }
-  .cvm-style-card.active { border-color:var(--gold);background:rgba(245,158,11,0.07);box-shadow:0 0 0 2px rgba(245,158,11,0.2); }
-
-  /* Accent dots */
-  .cvm-dot {
-    width:22px;height:22px;border-radius:50%;cursor:pointer;
-    transition:transform 0.1s;flex-shrink:0;
-    border:2px solid transparent;
-    -webkit-tap-highlight-color:transparent;
-  }
-  .cvm-dot:hover { transform:scale(1.15); }
-  .cvm-dot.selected { outline:3px solid var(--navy);outline-offset:2px; }
-
-  /* Preview scroll area */
-  .cvm-preview-scroll {
-    overflow-y: auto;
-    overflow-x: hidden;
-    max-height: 72vh;
-    background: #dde3ef;
-    padding: 14px 10px;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-  }
-
-  /* Stats strip */
-  .cvm-stats {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-    margin-top: 12px;
-    padding: 10px 14px;
-    background: rgba(245,158,11,0.06);
-    border-radius: 12px;
-    border-left: 4px solid var(--gold);
-  }
-  .cvm-stat     { font-size:clamp(0.68rem,2.5vw,0.76rem);font-weight:700;color:var(--navy);display:flex;align-items:center;gap:4px; }
-  .cvm-stat.g   { color:var(--ok); }
-  .cvm-stat-div { width:1px;height:13px;background:rgba(0,0,0,0.1); }
-
-  /* ── Action bar (dark, matches j2p) ── */
-  .cvm-action {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin-top: 14px;
-    padding: 12px 14px;
-    background: linear-gradient(135deg, var(--navy), var(--royal));
-    border-radius: 16px;
-    flex-wrap: nowrap;
-  }
-  .cvm-action-info { flex:1;min-width:0;display:none; }
-  @media(min-width:520px) { .cvm-action-info { display:block; } }
-  .cvm-action-label { font-size:0.62rem;font-weight:700;color:rgba(255,255,255,0.45);letter-spacing:0.06em;text-transform:uppercase;display:block;white-space:nowrap; }
-  .cvm-action-value { font-size:clamp(0.75rem,2.5vw,0.85rem);font-weight:700;color:rgba(255,255,255,0.9);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
-  .cvm-action-btns  { display:flex;gap:7px;align-items:center;flex-shrink:0;flex-wrap:nowrap; }
-
-  /* ── Buttons ── */
-  .cvm-btn {
-    padding: clamp(8px,2.5vw,10px) clamp(12px,3.5vw,18px);
-    border-radius: 30px;
-    border: none;
-    font-family: 'DM Sans', sans-serif;
-    font-size: clamp(0.76rem,3vw,0.86rem);
-    font-weight: 800;
-    cursor: pointer;
-    transition: 0.15s;
-    white-space: nowrap;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
-  }
-  .cvm-btn:disabled { opacity:0.4;cursor:not-allowed;transform:none!important; }
-
-  .cvm-btn-primary {
-    background: linear-gradient(135deg,var(--gold),var(--gold-l));
-    color: var(--navy);
-    box-shadow: 0 4px 14px rgba(245,158,11,0.35);
-  }
-  .cvm-btn-primary:hover:not(:disabled),.cvm-btn-primary:active:not(:disabled) {
-    transform:scale(1.03);
-    box-shadow:0 6px 18px rgba(245,158,11,0.5);
-  }
-  .cvm-btn-ghost {
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.18);
-    color: rgba(255,255,255,0.85);
-  }
-  .cvm-btn-ghost:hover:not(:disabled),.cvm-btn-ghost:active:not(:disabled) { background:rgba(255,255,255,0.15);color:#fff; }
-
-  .cvm-btn-danger {
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.12);
-    color: rgba(255,255,255,0.55);
-  }
-  .cvm-btn-danger:hover:not(:disabled),.cvm-btn-danger:active:not(:disabled) { background:rgba(220,38,38,0.2);color:#fff;border-color:rgba(220,38,38,0.4); }
-
-  .cvm-btn-sm {
-    flex: 1;
-    padding: 7px 8px;
-    border-radius: 10px;
-    border: none;
-    font-family: 'DM Sans', sans-serif;
-    font-size: clamp(0.65rem,2.5vw,0.72rem);
-    font-weight: 800;
-    cursor: pointer;
-    transition: 0.15s;
-    -webkit-tap-highlight-color: transparent;
-    text-align: center;
-  }
-  .cvm-btn-sm:disabled { opacity:0.4;cursor:not-allowed; }
-  .cvm-btn-add {
-    background: linear-gradient(135deg,var(--gold),var(--gold-l));
-    color: var(--navy);
-    box-shadow: 0 2px 8px rgba(245,158,11,0.25);
-    padding: 4px 12px;
-    font-size: 0.72rem;
-    border-radius: 20px;
-  }
-  .cvm-btn-rm {
-    flex: 0 0 auto;
-    padding: 5px 9px;
-    border-radius: 8px;
-    border: 1px solid rgba(15,23,42,0.1);
-    background: #fff;
-    color: var(--navy);
-    font-size: 0.75rem;
-    font-weight: 900;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .cvm-btn-rm:hover:not(:disabled) { border-color:var(--red);color:var(--red); }
-
-  /* ── Toggle pills (for font/paper) ── */
-  .cvm-toggle { display:flex;gap:4px;flex-wrap:wrap; }
-  .cvm-tog-btn {
-    padding: 5px 9px;
-    border-radius: 20px;
-    border: 1.5px solid rgba(59,130,246,0.2);
-    background: #fff;
-    font-family: 'DM Sans', sans-serif;
-    font-size: clamp(0.62rem,2vw,0.7rem);
-    font-weight: 700;
-    color: var(--slate);
-    cursor: pointer;
-    transition: 0.12s;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .cvm-tog-btn:hover { border-color:var(--gold);color:var(--navy); }
-  .cvm-tog-btn.active {
-    background: linear-gradient(135deg,var(--gold),var(--gold-l));
-    border-color: transparent;
-    color: var(--navy);
-    box-shadow: 0 2px 8px rgba(245,158,11,0.25);
-  }
-
-  /* ── Suggest / CTA ── */
-  .cvm-suggest { display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px; }
-  @media(min-width:480px) { .cvm-suggest { grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); } }
-  .cvm-suggest a {
-    display:flex;align-items:center;gap:7px;padding:9px 12px;
-    background:rgba(255,255,255,0.6);border-radius:30px;
-    border:1px solid rgba(59,130,246,0.1);
-    color:var(--navy);text-decoration:none;font-weight:600;transition:0.1s;
-    font-size:clamp(0.75rem,3vw,0.86rem);
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-    -webkit-tap-highlight-color:transparent;
-  }
-  .cvm-suggest a:active,.cvm-suggest a:hover { background:#fff;border-color:var(--gold); }
-
-  .cvm-cta {
-    margin-top:14px;
-    background:linear-gradient(135deg,var(--navy),var(--royal));
-    border-radius:18px;padding:clamp(14px,4vw,22px) clamp(14px,4vw,26px);color:#fff;
-    display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;
-  }
-  .cvm-cta h3 { font-family:'Playfair Display',serif;font-size:clamp(0.92rem,4vw,1.1rem);margin-bottom:2px; }
-  .cvm-cta p  { opacity:0.82;font-size:clamp(0.76rem,3vw,0.86rem); }
-  .cvm-cta-link {
-    background:linear-gradient(135deg,var(--gold),var(--gold-l));
-    color:var(--navy);padding:9px 18px;border-radius:40px;
-    font-weight:800;text-decoration:none;white-space:nowrap;
-    font-family:'DM Sans',sans-serif;font-size:clamp(0.8rem,3vw,0.9rem);
-    -webkit-tap-highlight-color:transparent;flex-shrink:0;
-  }
-
-  /* ── Footer ── */
-  .cvm-footer {
-    background: var(--navy);
-    color: rgba(255,255,255,0.55);
-    padding: clamp(16px,4vw,28px) 20px;
-    text-align: center;
-    font-size: clamp(0.75rem,2.5vw,0.82rem);
-    position: relative; z-index: 2;
-  }
-  .cvm-footer strong { color:var(--gold-l); }
-  .cvm-footer a { color:rgba(255,255,255,0.4);text-decoration:none;margin:0 8px; }
-  .cvm-footer a:active,.cvm-footer a:hover { color:#fff; }
-
-  /* ── PRINT — isolate only #cvm-print-root ── */
-  @media print {
-    html, body {
-      margin: 0 !important; padding: 0 !important; background: #fff !important;
-      -webkit-print-color-adjust: exact !important;
-      print-color-adjust: exact !important;
-    }
-    .cvm-root { display: none !important; }
-    #cvm-print-root { display: block !important; }
-    #cvm-print-root .cv-paper {
-      box-shadow: none !important; border: none !important;
-      border-radius: 0 !important; margin: 0 !important;
-      width: 100% !important; min-height: auto !important;
-      transform: none !important;
-    }
-    @page { margin: 0; size: auto; }
-  }
-  #cvm-print-root { display: none; }
-`;
-
-// ─── CV Paper / Document CSS ──────────────────────────────────────
+// ─── CV Paper / Document CSS (kept for dynamic injection) ─────────
 const CV_DOC_CSS = `
   .cv-paper {
     background: #fff; border-radius: 12px; overflow: hidden;
@@ -822,243 +310,272 @@ export default function CvMaker() {
   const currentRegion = REGIONS.find(r => r.key === region);
   const fieldCount = [data.fullName, data.title, data.email, data.phone].filter(Boolean).length;
 
+  // Canonical URL – adjust as needed
+  const canonicalUrl = "https://aidla.online/tools/cv-maker";
+
   return (
-    <div className="cvm-root">
-      <style>{G + CV_DOC_CSS}</style>
+    <>
+      <Helmet>
+        <title>CV Maker – Create Professional CVs | AIDLA</title>
+        <meta
+          name="description"
+          content="Free online CV maker. Choose from 20+ templates across 5 regions, add your details, and print to PDF. No sign-up required."
+        />
+        <meta
+          name="keywords"
+          content="CV maker, resume builder, professional CV, curriculum vitae, career tools, AIDLA"
+        />
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href={canonicalUrl} />
 
-      {/* Orbs */}
-      <div className="cvm-orbs">
-        <div className="cvm-orb cvm-orb1"/>
-        <div className="cvm-orb cvm-orb2"/>
-        <div className="cvm-orb cvm-orb3"/>
-      </div>
+        {/* Open Graph */}
+        <meta property="og:title" content="CV Maker – AIDLA" />
+        <meta property="og:description" content="Build a professional CV in minutes with our free tool." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:image" content="https://aidla.online/og-cv-maker.jpg" />
+        <meta property="og:site_name" content="AIDLA" />
 
-      <div className="cvm-wrap">
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="CV Maker by AIDLA" />
+        <meta name="twitter:description" content="Create a standout CV with our easy-to-use tool." />
+        <meta name="twitter:image" content="https://aidla.online/twitter-cv-maker.jpg" />
 
-        {/* ── Hero ── */}
-        <motion.div className="cvm-hero" initial={{opacity:0,y:14}} animate={{opacity:1,y:0}} transition={{duration:0.4}}>
-          <span className="cvm-badge">🧑‍💼 Career Tool</span>
-          <h1 className="cvm-title">
-            CV <span className="cvm-title-acc">Maker</span>
-          </h1>
-          <p className="cvm-sub">Build a professional CV in minutes. Fill your details, choose a style, and print to PDF — no account needed.</p>
-        </motion.div>
+        {/* Font preconnect */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
+      </Helmet>
 
-        <motion.div className="cvm-pills" initial={{opacity:0}} animate={{opacity:1}} transition={{delay:0.1}}>
-          {["✓ 20+ Templates","✓ 5 Regions","✓ Live Preview","✓ Print to PDF","✓ 100% Free","✓ Auto-saved"].map(p => (
-            <span className="cvm-pill" key={p}>{p}</span>
-          ))}
-        </motion.div>
-
-        {/* ── Toast ── */}
-        <AnimatePresence>
-          {msg && (
-            <motion.div className={`cvm-toast ${msgType}`}
-              initial={{opacity:0,y:-6}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-6}}>
-              <span>{msg}</span>
-              <button className="cvm-toast-close" onClick={()=>setMsg("")}>×</button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* ── Mobile tab bar ── */}
-        <div className="cvm-tab-bar">
-          <button className={`cvm-tog-btn${mobileTab==="form"?" active":""}`} onClick={()=>setMobileTab("form")}>✍️ Edit</button>
-          <button className={`cvm-tog-btn${mobileTab==="preview"?" active":""}`} onClick={()=>setMobileTab("preview")}>👁 Preview</button>
-          <button className="cvm-btn cvm-btn-primary" style={{marginLeft:"auto",padding:"7px 14px",fontSize:"0.78rem"}} onClick={onPrint}>🖨️ Print PDF</button>
+      <div className="cvm-root">
+        {/* Orbs */}
+        <div className="cvm-orbs">
+          <div className="cvm-orb cvm-orb1"/>
+          <div className="cvm-orb cvm-orb2"/>
+          <div className="cvm-orb cvm-orb3"/>
         </div>
 
-        {/* ── Stats (if fields filled) ── */}
-        {fieldCount > 0 && (
-          <div className="cvm-stats" style={{marginBottom:12}}>
-            <div className="cvm-stat g">✅ {fieldCount} field{fieldCount!==1?"s":""} filled</div>
-            {(data.experience||[]).length > 0 && <><div className="cvm-stat-div"/><div className="cvm-stat">💼 {data.experience.length} exp</div></>}
-            {(data.education||[]).length  > 0 && <><div className="cvm-stat-div"/><div className="cvm-stat">🎓 {data.education.length} edu</div></>}
-            {computed.skills.length       > 0 && <><div className="cvm-stat-div"/><div className="cvm-stat">🛠 {computed.skills.length} skills</div></>}
-          </div>
-        )}
+        <div className="cvm-wrap">
 
-        <div className="cvm-layout">
+          {/* ── Hero ── */}
+          <motion.div className="cvm-hero" initial={{opacity:0,y:14}} animate={{opacity:1,y:0}} transition={{duration:0.4}}>
+            <span className="cvm-badge">🧑‍💼 Career Tool</span>
+            <h1 className="cvm-title">
+              CV <span className="cvm-title-acc">Maker</span>
+            </h1>
+            <p className="cvm-sub">Build a professional CV in minutes. Fill your details, choose a style, and print to PDF — no account needed.</p>
+          </motion.div>
 
-          {/* ══ LEFT: FORM ══ */}
-          <div className={`cvm-col-form${mobileTab==="preview" ? " cvm-col-hidden" : ""}`}>
-
-            {/* Personal details */}
-            <motion.div className="cvm-card" initial={{opacity:0,y:18}} animate={{opacity:1,y:0}} transition={{delay:0.12}}>
-              <div className="cvm-card-title">✍️ Personal Details</div>
-              <div className="cvm-form-grid">
-                <Field label="Full Name *"><input className="cvm-input" value={data.fullName||""} onChange={e=>update({fullName:e.target.value})} placeholder="e.g. John Smith"/></Field>
-                <Field label="Job Title"><input className="cvm-input" value={data.title||""} onChange={e=>update({title:e.target.value})} placeholder="e.g. Engineer"/></Field>
-                <Field label="Email"><input className="cvm-input" value={data.email||""} onChange={e=>update({email:e.target.value})} placeholder="you@email.com"/></Field>
-                <Field label="Phone"><input className="cvm-input" value={data.phone||""} onChange={e=>update({phone:e.target.value})} placeholder="+971..."/></Field>
-                <Field label="Location"><input className="cvm-input" value={data.location||""} onChange={e=>update({location:e.target.value})} placeholder="Dubai, UAE"/></Field>
-                <Field label="LinkedIn"><input className="cvm-input" value={data.linkedin||""} onChange={e=>update({linkedin:e.target.value})} placeholder="linkedin.com/in/..."/></Field>
-                <Field label="Photo" style={{gridColumn:"1 / -1"}}>
-                  <input type="file" accept="image/*" className="cvm-input" style={{padding:6}} onChange={e=>onPickPhoto(e.target.files?.[0])}/>
-                </Field>
-              </div>
-              <div style={{marginTop:12}}>
-                <Field label="Professional Summary">
-                  <textarea className="cvm-input cvm-textarea" value={data.summary||""} onChange={e=>update({summary:e.target.value})} placeholder="Brief overview of your experience and expertise..."/>
-                </Field>
-              </div>
-              <div style={{marginTop:10}}>
-                <Field label="Skills (one per line)">
-                  <textarea className="cvm-input cvm-textarea" value={data.skills||""} onChange={e=>update({skills:e.target.value})} placeholder="AutoCAD&#10;HVAC&#10;Project Management"/>
-                </Field>
-              </div>
-              <div className="cvm-form-grid" style={{marginTop:10}}>
-                <Field label="Languages (one per line)">
-                  <textarea className="cvm-input cvm-textarea" value={data.languages||""} onChange={e=>update({languages:e.target.value})} style={{minHeight:60}} placeholder="English&#10;Arabic&#10;Urdu"/>
-                </Field>
-                <Field label="Hobbies (one per line)">
-                  <textarea className="cvm-input cvm-textarea" value={data.hobbies||""} onChange={e=>update({hobbies:e.target.value})} style={{minHeight:60}} placeholder="Reading&#10;Cricket"/>
-                </Field>
-              </div>
-            </motion.div>
-
-            {/* Dynamic sections */}
-            {[
-              { key:"experience",     label:"🏢 Experience",     Item:ExpFormItem },
-              { key:"education",      label:"🎓 Education",      Item:EduFormItem },
-              { key:"projects",       label:"🛠 Projects",       Item:ProjFormItem },
-              { key:"certifications", label:"✅ Certifications", Item:CertFormItem },
-            ].map(({key,label,Item},i) => (
-              <motion.div key={key} className="cvm-card" initial={{opacity:0,y:18}} animate={{opacity:1,y:0}} transition={{delay:0.14+i*0.04}}>
-                <div className="cvm-section-head">
-                  {label}
-                  <button className="cvm-btn cvm-btn-add" onClick={()=>addItem(key,{id:undefined})}>+ Add</button>
-                </div>
-                {(data[key]||[]).map(x => <Item key={x.id} x={x} onUpdate={updateItem} onRemove={removeItem}/>)}
-                {(data[key]||[]).length === 0 && (
-                  <p style={{fontSize:"0.72rem",color:"var(--slate)",marginTop:8,fontWeight:600}}>No {label.split(" ")[1].toLowerCase()} added yet.</p>
-                )}
-              </motion.div>
+          <motion.div className="cvm-pills" initial={{opacity:0}} animate={{opacity:1}} transition={{delay:0.1}}>
+            {["✓ 20+ Templates","✓ 5 Regions","✓ Live Preview","✓ Print to PDF","✓ 100% Free","✓ Auto-saved"].map(p => (
+              <span className="cvm-pill" key={p}>{p}</span>
             ))}
+          </motion.div>
 
-            {/* Action bar */}
-            <div className="cvm-action">
-              <div className="cvm-action-info">
-                <span className="cvm-action-label">Ready to export</span>
-                <span className="cvm-action-value">{safeText(data.fullName)||"Your Name"} · {templateKey} · {paper.toUpperCase()}</span>
+          {/* ── Toast ── */}
+          <AnimatePresence>
+            {msg && (
+              <motion.div className={`cvm-toast ${msgType}`}
+                initial={{opacity:0,y:-6}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-6}}>
+                <span>{msg}</span>
+                <button className="cvm-toast-close" onClick={()=>setMsg("")}>×</button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* ── Mobile tab bar ── */}
+          <div className="cvm-tab-bar">
+            <button className={`cvm-tog-btn${mobileTab==="form"?" active":""}`} onClick={()=>setMobileTab("form")}>✍️ Edit</button>
+            <button className={`cvm-tog-btn${mobileTab==="preview"?" active":""}`} onClick={()=>setMobileTab("preview")}>👁 Preview</button>
+            <button className="cvm-btn cvm-btn-primary" style={{marginLeft:"auto",padding:"7px 14px",fontSize:"0.78rem"}} onClick={onPrint}>🖨️ Print PDF</button>
+          </div>
+
+          {/* ── Stats (if fields filled) ── */}
+          {fieldCount > 0 && (
+            <div className="cvm-stats" style={{marginBottom:12}}>
+              <div className="cvm-stat g">✅ {fieldCount} field{fieldCount!==1?"s":""} filled</div>
+              {(data.experience||[]).length > 0 && <><div className="cvm-stat-div"/><div className="cvm-stat">💼 {data.experience.length} exp</div></>}
+              {(data.education||[]).length  > 0 && <><div className="cvm-stat-div"/><div className="cvm-stat">🎓 {data.education.length} edu</div></>}
+              {computed.skills.length       > 0 && <><div className="cvm-stat-div"/><div className="cvm-stat">🛠 {computed.skills.length} skills</div></>}
+            </div>
+          )}
+
+          <div className="cvm-layout">
+
+            {/* ══ LEFT: FORM ══ */}
+            <div className={`cvm-col-form${mobileTab==="preview" ? " cvm-col-hidden" : ""}`}>
+
+              {/* Personal details */}
+              <motion.div className="cvm-card" initial={{opacity:0,y:18}} animate={{opacity:1,y:0}} transition={{delay:0.12}}>
+                <div className="cvm-card-title">✍️ Personal Details</div>
+                <div className="cvm-form-grid">
+                  <Field label="Full Name *"><input className="cvm-input" value={data.fullName||""} onChange={e=>update({fullName:e.target.value})} placeholder="e.g. John Smith"/></Field>
+                  <Field label="Job Title"><input className="cvm-input" value={data.title||""} onChange={e=>update({title:e.target.value})} placeholder="e.g. Engineer"/></Field>
+                  <Field label="Email"><input className="cvm-input" value={data.email||""} onChange={e=>update({email:e.target.value})} placeholder="you@email.com"/></Field>
+                  <Field label="Phone"><input className="cvm-input" value={data.phone||""} onChange={e=>update({phone:e.target.value})} placeholder="+971..."/></Field>
+                  <Field label="Location"><input className="cvm-input" value={data.location||""} onChange={e=>update({location:e.target.value})} placeholder="Dubai, UAE"/></Field>
+                  <Field label="LinkedIn"><input className="cvm-input" value={data.linkedin||""} onChange={e=>update({linkedin:e.target.value})} placeholder="linkedin.com/in/..."/></Field>
+                  <Field label="Photo" style={{gridColumn:"1 / -1"}}>
+                    <input type="file" accept="image/*" className="cvm-input" style={{padding:6}} onChange={e=>onPickPhoto(e.target.files?.[0])}/>
+                  </Field>
+                </div>
+                <div style={{marginTop:12}}>
+                  <Field label="Professional Summary">
+                    <textarea className="cvm-input cvm-textarea" value={data.summary||""} onChange={e=>update({summary:e.target.value})} placeholder="Brief overview of your experience and expertise..."/>
+                  </Field>
+                </div>
+                <div style={{marginTop:10}}>
+                  <Field label="Skills (one per line)">
+                    <textarea className="cvm-input cvm-textarea" value={data.skills||""} onChange={e=>update({skills:e.target.value})} placeholder="AutoCAD&#10;HVAC&#10;Project Management"/>
+                  </Field>
+                </div>
+                <div className="cvm-form-grid" style={{marginTop:10}}>
+                  <Field label="Languages (one per line)">
+                    <textarea className="cvm-input cvm-textarea" value={data.languages||""} onChange={e=>update({languages:e.target.value})} style={{minHeight:60}} placeholder="English&#10;Arabic&#10;Urdu"/>
+                  </Field>
+                  <Field label="Hobbies (one per line)">
+                    <textarea className="cvm-input cvm-textarea" value={data.hobbies||""} onChange={e=>update({hobbies:e.target.value})} style={{minHeight:60}} placeholder="Reading&#10;Cricket"/>
+                  </Field>
+                </div>
+              </motion.div>
+
+              {/* Dynamic sections */}
+              {[
+                { key:"experience",     label:"🏢 Experience",     Item:ExpFormItem },
+                { key:"education",      label:"🎓 Education",      Item:EduFormItem },
+                { key:"projects",       label:"🛠 Projects",       Item:ProjFormItem },
+                { key:"certifications", label:"✅ Certifications", Item:CertFormItem },
+              ].map(({key,label,Item},i) => (
+                <motion.div key={key} className="cvm-card" initial={{opacity:0,y:18}} animate={{opacity:1,y:0}} transition={{delay:0.14+i*0.04}}>
+                  <div className="cvm-section-head">
+                    {label}
+                    <button className="cvm-btn cvm-btn-add" onClick={()=>addItem(key,{id:undefined})}>+ Add</button>
+                  </div>
+                  {(data[key]||[]).map(x => <Item key={x.id} x={x} onUpdate={updateItem} onRemove={removeItem}/>)}
+                  {(data[key]||[]).length === 0 && (
+                    <p style={{fontSize:"0.72rem",color:"var(--slate)",marginTop:8,fontWeight:600}}>No {label.split(" ")[1].toLowerCase()} added yet.</p>
+                  )}
+                </motion.div>
+              ))}
+
+              {/* Action bar */}
+              <div className="cvm-action">
+                <div className="cvm-action-info">
+                  <span className="cvm-action-label">Ready to export</span>
+                  <span className="cvm-action-value">{safeText(data.fullName)||"Your Name"} · {templateKey} · {paper.toUpperCase()}</span>
+                </div>
+                <div className="cvm-action-btns">
+                  <button className="cvm-btn cvm-btn-danger" onClick={onReset}>Clear</button>
+                  <button className="cvm-btn cvm-btn-primary" onClick={onPrint}>🖨️ Print PDF</button>
+                </div>
               </div>
-              <div className="cvm-action-btns">
-                <button className="cvm-btn cvm-btn-danger" onClick={onReset}>Clear</button>
-                <button className="cvm-btn cvm-btn-primary" onClick={onPrint}>🖨️ Print PDF</button>
+            </div>
+
+            {/* ══ RIGHT: PREVIEW ══ */}
+            <div className={`cvm-preview-panel${mobileTab==="form" ? " cvm-col-hidden" : ""}`}>
+
+              {/* Header */}
+              <div className="cvm-preview-header">
+                <div className="cvm-preview-header-title">Live Preview</div>
+                <div style={{display:"flex",gap:6,flexWrap:"wrap",alignItems:"center"}}>
+                  <button className="cvm-btn" style={{padding:"6px 12px",fontSize:"0.76rem",background:"rgba(59,130,246,0.06)",border:"1.5px solid rgba(59,130,246,0.15)",color:"var(--royal)",fontWeight:700,borderRadius:20}} onClick={onReset}>Reset</button>
+                </div>
+              </div>
+
+              {/* Controls */}
+              <div className="cvm-controls">
+                {/* Region tabs */}
+                <div className="cvm-region-tabs">
+                  {REGIONS.map(r => (
+                    <button key={r.key} className={`cvm-region-tab${region===r.key?" active":""}`} onClick={()=>setRegion(r.key)}>{r.label}</button>
+                  ))}
+                </div>
+
+                {/* Style cards */}
+                <div className="cvm-style-grid">
+                  {(currentRegion?.styles||[]).map(s => (
+                    <div key={s} className={`cvm-style-card${style===s?" active":""}`} onClick={()=>setStyle(s)}>
+                      <div style={{fontSize:"0.72rem",fontWeight:800,color:style===s?"var(--navy)":"var(--slate)"}}>{STYLE_LABELS[s]}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Options row: accent + font + paper */}
+                <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
+                  {/* Accent */}
+                  <div style={{display:"flex",gap:5,alignItems:"center"}}>
+                    {REGION_PALETTES[region].map(p => (
+                      <div key={p} className={`cvm-dot${accent===p?" selected":""}`}
+                        style={{background:p}} onClick={()=>setAccent(p)} title={p}/>
+                    ))}
+                  </div>
+
+                  {/* Font */}
+                  <div className="cvm-toggle">
+                    {Object.keys(FONT_SIZES).map(s => (
+                      <button key={s} className={`cvm-tog-btn${fontSize===s?" active":""}`} onClick={()=>setFontSize(s)}>
+                        {s[0].toUpperCase()+s.slice(1)}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Paper */}
+                  <div className="cvm-toggle">
+                    {["a4","letter"].map(p => (
+                      <button key={p} className={`cvm-tog-btn${paper===p?" active":""}`} onClick={()=>setPaper(p)}>
+                        {p.toUpperCase()}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Scaled CV preview */}
+              <div className="cvm-preview-scroll" ref={previewScrollRef}>
+                <div style={{width:`${paperW*scale}px`,height:`${paperH*scale}px`,position:"relative",flexShrink:0}}>
+                  <div style={{
+                    transform:`scale(${scale})`,
+                    transformOrigin:"top left",
+                    position:"absolute",left:0,top:0,
+                    width:`${paperW}px`,minHeight:`${paperH}px`,
+                  }}>
+                    <div className={`cv-paper ${templateKey}`} style={{"--daccent":accent,width:`${paperW}px`,minHeight:`${paperH}px`}}>
+                      <CvDoc templateKey={templateKey} data={data} computed={computed} fontSize={FONT_SIZES[fontSize]}/>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* ══ RIGHT: PREVIEW ══ */}
-          <div className={`cvm-preview-panel${mobileTab==="form" ? " cvm-col-hidden" : ""}`}>
-
-            {/* Header */}
-            <div className="cvm-preview-header">
-              <div className="cvm-preview-header-title">Live Preview</div>
-              <div style={{display:"flex",gap:6,flexWrap:"wrap",alignItems:"center"}}>
-                <button className="cvm-btn" style={{padding:"6px 12px",fontSize:"0.76rem",background:"rgba(59,130,246,0.06)",border:"1.5px solid rgba(59,130,246,0.15)",color:"var(--royal)",fontWeight:700,borderRadius:20}} onClick={onReset}>Reset</button>
-
-              </div>
+          {/* ── Other tools ── */}
+          <motion.div className="cvm-card" initial={{opacity:0}} animate={{opacity:1}} transition={{delay:0.3}}>
+            <p style={{fontSize:"clamp(0.72rem,2.5vw,0.78rem)",color:"#64748b",marginBottom:10,fontWeight:600}}>Need something else?</p>
+            <div className="cvm-suggest">
+              <Link to="/tools/career/cover-letter-maker"><span>✉️</span> Cover Letter</Link>
+              <Link to="/tools/pdf/image-to-pdf"><span>📄</span> Image → PDF</Link>
+              <Link to="/tools/pdf/word-to-pdf"><span>📝</span> Word → PDF</Link>
+              <Link to="/tools/image/jpg-to-png"><span>🖼️</span> JPG → PNG</Link>
             </div>
 
-            {/* Controls */}
-            <div className="cvm-controls">
-              {/* Region tabs */}
-              <div className="cvm-region-tabs">
-                {REGIONS.map(r => (
-                  <button key={r.key} className={`cvm-region-tab${region===r.key?" active":""}`} onClick={()=>setRegion(r.key)}>{r.label}</button>
-                ))}
+            <div className="cvm-cta">
+              <div>
+                <h3>Earn while you learn 🚀</h3>
+                <p>Join AIDLA today and start earning rewards as you build your skills.</p>
               </div>
-
-              {/* Style cards */}
-              <div className="cvm-style-grid">
-                {(currentRegion?.styles||[]).map(s => (
-                  <div key={s} className={`cvm-style-card${style===s?" active":""}`} onClick={()=>setStyle(s)}>
-                    <div style={{fontSize:"0.72rem",fontWeight:800,color:style===s?"var(--navy)":"var(--slate)"}}>{STYLE_LABELS[s]}</div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Options row: accent + font + paper */}
-              <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
-                {/* Accent */}
-                <div style={{display:"flex",gap:5,alignItems:"center"}}>
-                  {REGION_PALETTES[region].map(p => (
-                    <div key={p} className={`cvm-dot${accent===p?" selected":""}`}
-                      style={{background:p}} onClick={()=>setAccent(p)} title={p}/>
-                  ))}
-                </div>
-
-                {/* Font */}
-                <div className="cvm-toggle">
-                  {Object.keys(FONT_SIZES).map(s => (
-                    <button key={s} className={`cvm-tog-btn${fontSize===s?" active":""}`} onClick={()=>setFontSize(s)}>
-                      {s[0].toUpperCase()+s.slice(1)}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Paper */}
-                <div className="cvm-toggle">
-                  {["a4","letter"].map(p => (
-                    <button key={p} className={`cvm-tog-btn${paper===p?" active":""}`} onClick={()=>setPaper(p)}>
-                      {p.toUpperCase()}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <Link to="/signup" className="cvm-cta-link">Join now ✨</Link>
             </div>
+          </motion.div>
 
-            {/* Scaled CV preview */}
-            <div className="cvm-preview-scroll" ref={previewScrollRef}>
-              <div style={{width:`${paperW*scale}px`,height:`${paperH*scale}px`,position:"relative",flexShrink:0}}>
-                <div style={{
-                  transform:`scale(${scale})`,
-                  transformOrigin:"top left",
-                  position:"absolute",left:0,top:0,
-                  width:`${paperW}px`,minHeight:`${paperH}px`,
-                }}>
-                  <div className={`cv-paper ${templateKey}`} style={{"--daccent":accent,width:`${paperW}px`,minHeight:`${paperH}px`}}>
-                    <CvDoc templateKey={templateKey} data={data} computed={computed} fontSize={FONT_SIZES[fontSize]}/>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
 
-        {/* ── Other tools ── */}
-        <motion.div className="cvm-card" initial={{opacity:0}} animate={{opacity:1}} transition={{delay:0.3}}>
-          <p style={{fontSize:"clamp(0.72rem,2.5vw,0.78rem)",color:"#64748b",marginBottom:10,fontWeight:600}}>Need something else?</p>
-          <div className="cvm-suggest">
-            <Link to="/tools/career/cover-letter-maker"><span>✉️</span> Cover Letter</Link>
-            <Link to="/tools/pdf/image-to-pdf"><span>📄</span> Image → PDF</Link>
-            <Link to="/tools/pdf/word-to-pdf"><span>📝</span> Word → PDF</Link>
-            <Link to="/tools/image/jpg-to-png"><span>🖼️</span> JPG → PNG</Link>
-          </div>
-
-          <div className="cvm-cta">
-            <div>
-              <h3>Earn while you learn 🚀</h3>
-              <p>Join AIDLA today and start earning rewards as you build your skills.</p>
-            </div>
-            <Link to="/signup" className="cvm-cta-link">Join now ✨</Link>
-          </div>
-        </motion.div>
-
+        <Footer />
       </div>
-
-      {/* Footer */}
-      <footer className="cvm-footer">
-        <div style={{marginBottom:8,fontSize:"1.1rem"}}>🕌</div>
-        <p>&copy; 2025 <strong>AIDLA</strong>. All rights reserved. Designed with ❤️ for learners everywhere.</p>
-        <p style={{marginTop:8}}>
-          <Link to="/privacy-policy">Privacy Policy</Link>
-          <Link to="/terms">Terms</Link>
-          <Link to="/contact">Contact</Link>
-        </p>
-      </footer>
-    </div>
+    </>
   );
 }
 

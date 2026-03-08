@@ -47,51 +47,26 @@ function dubaiNowPlusMinutesLocalInput(mins) {
 
 const defaultPrize = () => ({ type: "coins", coins: 1000, name: "" });
 
-// Animation CSS
-const animationStyles = `
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+// Simplified styles – only essential scrollbar and subtle transitions
+const baseStyles = `
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
 }
 
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
-  50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.6); }
+::-webkit-scrollbar-track {
+  background: var(--gray-100);
+  border-radius: 10px;
 }
 
-@keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, var(--primary-900), var(--primary-500));
+  border-radius: 10px;
 }
 
-@keyframes slideIn {
-  from { opacity: 0; transform: translateX(-20px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes glow {
-  0%, 100% { filter: brightness(1); }
-  50% { filter: brightness(1.2); }
-}
-
-.floating-element {
-  animation: float 3s ease-in-out infinite;
-}
-
-.pulse-element {
-  animation: pulse-glow 2s infinite;
-}
-
-.spinner-slow {
-  animation: spin-slow 3s linear infinite;
-}
-
-.glow-text {
-  animation: glow 2s ease-in-out infinite;
-}
-
-.slide-in {
-  animation: slideIn 0.3s ease-out forwards;
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, var(--primary-700), var(--primary-300));
 }
 
 /* 2060 Design System */
@@ -111,26 +86,6 @@ const animationStyles = `
   --error: #ef4444;
   --glass-bg: rgba(255, 255, 255, 0.85);
   --glass-border: rgba(255, 255, 255, 0.5);
-}
-
-/* Scrollbar Styling */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--gray-100);
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, var(--primary-900), var(--primary-500));
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, var(--primary-700), var(--primary-300));
 }
 `;
 
@@ -440,7 +395,7 @@ export default function AdminLuckyDraw() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: 0.3 }}
       style={{ 
         padding: 24, 
         maxWidth: 1200, 
@@ -451,9 +406,9 @@ export default function AdminLuckyDraw() {
         overflow: "hidden"
       }}
     >
-      <style>{animationStyles}</style>
+      <style>{baseStyles}</style>
 
-      {/* Background Orbs */}
+      {/* Background Orbs – static, no animation */}
       <div style={{
         position: "fixed",
         width: "400px",
@@ -463,8 +418,7 @@ export default function AdminLuckyDraw() {
         filter: "blur(80px)",
         top: "-200px",
         left: "-200px",
-        zIndex: 0,
-        animation: "float 20s infinite alternate"
+        zIndex: 0
       }} />
       <div style={{
         position: "fixed",
@@ -475,17 +429,16 @@ export default function AdminLuckyDraw() {
         filter: "blur(80px)",
         bottom: "-150px",
         right: "-150px",
-        zIndex: 0,
-        animation: "float 25s infinite alternate-reverse"
+        zIndex: 0
       }} />
 
       {/* Main Content */}
       <div style={{ position: "relative", zIndex: 1 }}>
         {/* Header */}
         <motion.div
-          initial={{ y: -20, opacity: 0 }}
+          initial={{ y: -10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
+          transition={{ delay: 0.1 }}
           style={{ marginBottom: 30 }}
         >
           <h1 style={{ 
@@ -505,9 +458,9 @@ export default function AdminLuckyDraw() {
 
         {/* Stats Cards */}
         <motion.div
-          initial={{ y: 20, opacity: 0 }}
+          initial={{ y: 10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: 0.2 }}
           style={{ 
             display: "grid", 
             gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", 
@@ -523,7 +476,8 @@ export default function AdminLuckyDraw() {
           ].map((stat, index) => (
             <motion.div
               key={index}
-              whileHover={{ y: -5, scale: 1.02 }}
+              whileHover={{ y: -2, scale: 1.01 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
               style={{
                 background: "rgba(255,255,255,0.85)",
                 backdropFilter: "blur(10px)",
@@ -546,9 +500,9 @@ export default function AdminLuckyDraw() {
 
         {/* Tabs */}
         <motion.div
-          initial={{ y: 20, opacity: 0 }}
+          initial={{ y: 10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.4 }}
+          transition={{ delay: 0.3 }}
           style={{ 
             display: "flex", 
             gap: 10, 
@@ -564,8 +518,9 @@ export default function AdminLuckyDraw() {
           ].map(tab => (
             <motion.button
               key={tab.id}
-              whileHover={{ y: -2 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ y: -1 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ type: "spring", stiffness: 400, damping: 30 }}
               onClick={() => setActiveTab(tab.id)}
               style={{
                 padding: "12px 24px",
@@ -593,23 +548,20 @@ export default function AdminLuckyDraw() {
         </motion.div>
 
         {loading ? (
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            style={{
-              width: 60,
-              height: 60,
-              border: "4px solid var(--gray-300)",
-              borderTop: "4px solid var(--primary-500)",
-              borderRadius: "50%",
-              margin: "100px auto"
-            }}
-          />
+          <div style={{
+            width: 60,
+            height: 60,
+            border: "4px solid var(--gray-300)",
+            borderTop: "4px solid var(--primary-500)",
+            borderRadius: "50%",
+            margin: "100px auto",
+            animation: "spin 1s linear infinite"
+          }} />
         ) : (
           <motion.div
-            initial={{ y: 20, opacity: 0 }}
+            initial={{ y: 10, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.5 }}
+            transition={{ delay: 0.4 }}
             style={{ 
               background: "rgba(255,255,255,0.9)",
               backdropFilter: "blur(20px)",
@@ -624,9 +576,10 @@ export default function AdminLuckyDraw() {
               {activeTab === "basic" && (
                 <motion.div
                   key="basic"
-                  initial={{ opacity: 0, x: -20 }}
+                  initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
+                  exit={{ opacity: 0, x: 10 }}
+                  transition={{ duration: 0.2 }}
                   style={{ display: "grid", gap: 20 }}
                 >
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 20 }}>
@@ -635,7 +588,8 @@ export default function AdminLuckyDraw() {
                         Draw Title
                       </label>
                       <motion.input
-                        whileFocus={{ scale: 1.02 }}
+                        whileFocus={{ scale: 1.01 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
                         style={{
                           width: "100%",
                           padding: "14px 18px",
@@ -680,7 +634,8 @@ export default function AdminLuckyDraw() {
                         Entry Cost (Coins)
                       </label>
                       <motion.input
-                        whileFocus={{ scale: 1.02 }}
+                        whileFocus={{ scale: 1.01 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
                         style={{
                           width: "100%",
                           padding: "14px 18px",
@@ -706,7 +661,8 @@ export default function AdminLuckyDraw() {
                         Number of Draws
                       </label>
                       <motion.input
-                        whileFocus={{ scale: 1.02 }}
+                        whileFocus={{ scale: 1.01 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
                         style={{
                           width: "100%",
                           padding: "14px 18px",
@@ -727,7 +683,8 @@ export default function AdminLuckyDraw() {
                         Seconds Between Draws
                       </label>
                       <motion.input
-                        whileFocus={{ scale: 1.02 }}
+                        whileFocus={{ scale: 1.01 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
                         style={{
                           width: "100%",
                           padding: "14px 18px",
@@ -749,9 +706,10 @@ export default function AdminLuckyDraw() {
               {activeTab === "schedule" && (
                 <motion.div
                   key="schedule"
-                  initial={{ opacity: 0, x: -20 }}
+                  initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
+                  exit={{ opacity: 0, x: 10 }}
+                  transition={{ duration: 0.2 }}
                   style={{ display: "grid", gap: 20 }}
                 >
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 20 }}>
@@ -760,7 +718,8 @@ export default function AdminLuckyDraw() {
                         Registration Opens (UAE)
                       </label>
                       <motion.input
-                        whileFocus={{ scale: 1.02 }}
+                        whileFocus={{ scale: 1.01 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
                         style={{
                           width: "100%",
                           padding: "14px 18px",
@@ -779,7 +738,8 @@ export default function AdminLuckyDraw() {
                         Registration Closes (UAE)
                       </label>
                       <motion.input
-                        whileFocus={{ scale: 1.02 }}
+                        whileFocus={{ scale: 1.01 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
                         style={{
                           width: "100%",
                           padding: "14px 18px",
@@ -798,7 +758,8 @@ export default function AdminLuckyDraw() {
                         Draw Time (UAE)
                       </label>
                       <motion.input
-                        whileFocus={{ scale: 1.02 }}
+                        whileFocus={{ scale: 1.01 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
                         style={{
                           width: "100%",
                           padding: "14px 18px",
@@ -815,7 +776,7 @@ export default function AdminLuckyDraw() {
                   
                   {validationErrors.schedule && (
                     <motion.div
-                      initial={{ opacity: 0, y: -10 }}
+                      initial={{ opacity: 0, y: -5 }}
                       animate={{ opacity: 1, y: 0 }}
                       style={{
                         padding: 12,
@@ -830,7 +791,7 @@ export default function AdminLuckyDraw() {
                   )}
 
                   <div style={{ marginTop: 10, fontSize: "0.9rem", color: "#64748b", display: "flex", alignItems: "center", gap: 8 }}>
-                    <span className="spinner-slow" style={{ fontSize: "1.2rem" }}>⏰</span>
+                    <span style={{ fontSize: "1.2rem" }}>⏰</span>
                     All times are in Dubai (UAE) timezone
                   </div>
                 </motion.div>
@@ -840,18 +801,19 @@ export default function AdminLuckyDraw() {
               {activeTab === "prizes" && (
                 <motion.div
                   key="prizes"
-                  initial={{ opacity: 0, x: -20 }}
+                  initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
+                  exit={{ opacity: 0, x: 10 }}
+                  transition={{ duration: 0.2 }}
                   style={{ display: "grid", gap: 20 }}
                 >
                   {prizes.slice(0, Number(drawsCount || 1)).map((prize, index) => (
                     <motion.div
                       key={index}
-                      initial={{ opacity: 0, y: 20 }}
+                      initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      whileHover={{ scale: 1.02, boxShadow: "0 10px 30px rgba(0,0,0,0.1)" }}
+                      transition={{ delay: index * 0.05 }}
+                      whileHover={{ scale: 1.01, boxShadow: "0 5px 15px rgba(0,0,0,0.1)" }}
                       onHoverStart={() => setHoveredPrize(index)}
                       onHoverEnd={() => setHoveredPrize(null)}
                       style={{
@@ -863,7 +825,7 @@ export default function AdminLuckyDraw() {
                         borderRadius: 16,
                         padding: 20,
                         background: hoveredPrize === index ? "rgba(59, 130, 246, 0.02)" : "#ffffff",
-                        transition: "all 0.3s ease"
+                        transition: "all 0.2s ease"
                       }}
                     >
                       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 15 }}>
@@ -910,7 +872,8 @@ export default function AdminLuckyDraw() {
                               Coins Amount
                             </label>
                             <motion.input
-                              whileFocus={{ scale: 1.02 }}
+                              whileFocus={{ scale: 1.01 }}
+                              transition={{ type: "spring", stiffness: 400, damping: 30 }}
                               style={{
                                 width: "100%",
                                 padding: "12px",
@@ -930,7 +893,8 @@ export default function AdminLuckyDraw() {
                               Item Description
                             </label>
                             <motion.input
-                              whileFocus={{ scale: 1.02 }}
+                              whileFocus={{ scale: 1.01 }}
+                              transition={{ type: "spring", stiffness: 400, damping: 30 }}
                               style={{
                                 width: "100%",
                                 padding: "12px",
@@ -963,9 +927,10 @@ export default function AdminLuckyDraw() {
         <AnimatePresence>
           {msg && (
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
               style={{
                 ...getMessageStyles(),
                 marginTop: 20,
@@ -986,9 +951,9 @@ export default function AdminLuckyDraw() {
 
         {/* Action Buttons */}
         <motion.div
-          initial={{ y: 20, opacity: 0 }}
+          initial={{ y: 10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.6 }}
+          transition={{ delay: 0.5 }}
           style={{ 
             display: "flex", 
             gap: 15, 
@@ -998,11 +963,11 @@ export default function AdminLuckyDraw() {
         >
           <motion.button
             ref={saveButtonRef}
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.02, y: -1 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
             onClick={onSave}
             disabled={saving}
-            className="pulse-element"
             style={{
               padding: "16px 32px",
               borderRadius: 50,
@@ -1021,12 +986,7 @@ export default function AdminLuckyDraw() {
           >
             {saving ? (
               <>
-                <motion.span
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                >
-                  ⚙️
-                </motion.span>
+                <span>⚙️</span>
                 Saving...
               </>
             ) : (
@@ -1037,8 +997,9 @@ export default function AdminLuckyDraw() {
           </motion.button>
 
           <motion.button
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.02, y: -1 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
             onClick={onRunDrawNow}
             style={{
               padding: "16px 32px",
@@ -1063,7 +1024,7 @@ export default function AdminLuckyDraw() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
+          transition={{ delay: 0.6 }}
           style={{
             marginTop: 40,
             textAlign: "center",

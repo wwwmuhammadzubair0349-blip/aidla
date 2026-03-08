@@ -133,21 +133,18 @@ export default function AdminLayout() {
     .btn-logout { color: #ef4444; }
     .btn-logout:hover { color: #dc2626; }
 
-    /* Scrollable Tabs for Desktop */
+    /* Tabs Container – now wrapping into two rows on desktop */
     .tabs-wrapper {
       max-width: 1400px;
       margin: 0 auto;
-      overflow-x: auto;
       padding: 5px 0 15px 0;
-      scrollbar-width: none; /* Firefox */
-      -ms-overflow-style: none;  /* IE and Edge */
     }
-    .tabs-wrapper::-webkit-scrollbar { display: none; /* Chrome, Safari and Opera */ }
     
     .tabs-container {
       display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
       gap: 10px;
-      min-width: max-content;
     }
 
     .tab-3d {
@@ -206,7 +203,6 @@ export default function AdminLayout() {
       .header-top { justify-content: center; text-align: center; gap: 12px; }
       .header-actions { justify-content: center; width: 100%; gap: 8px; }
       
-      /* Shrink action buttons */
       .action-btn-3d {
         padding: 8px 12px;
         font-size: 0.75rem;
@@ -216,15 +212,8 @@ export default function AdminLayout() {
         height: 12px;
       }
 
-      /* Force Tabs to Wrap over multiple lines */
-      .tabs-wrapper {
-        overflow-x: visible;
-        padding-bottom: 15px;
-      }
+      /* Tabs already wrap, but we can tighten spacing */
       .tabs-container {
-        min-width: auto;
-        flex-wrap: wrap;
-        justify-content: center;
         gap: 8px;
       }
       .tab-3d {
@@ -232,7 +221,6 @@ export default function AdminLayout() {
         font-size: 0.8rem;
       }
 
-      /* Reduce main margins/paddings */
       .admin-main { padding: 20px 10px; }
       .outlet-card-2060 { padding: 15px; border-radius: 18px; }
     }
@@ -287,7 +275,10 @@ export default function AdminLayout() {
             <Tab to="/admin/withdraws" label="Withdraws" />
             <Tab to="/admin/users" label="Users" />
             <Tab to="/admin/leaderboard" label="Leaderboard" />
-            <Tab to="/admin/homepage" label="Home Page" />
+            <Tab to="/admin/homepage" label=" Post Generator" />
+            <Tab to="/admin/AdminHome" label="AdminHome" />
+            <Tab to="/admin/adminfaqs" label="FAQs" />
+            <Tab to="/admin/feedadmin" label="Feed Admin" />
           </nav>
         </div>
       </header>

@@ -15,7 +15,12 @@ const Leaderboard = lazy(() => import("./pages/Leaderboard.jsx"));
 const Contact = lazy(() => import("./pages/contact.jsx"));
 const PrivacyPolicy = lazy(() => import("./pages/privacy-policy.jsx"));
 const Terms = lazy(() => import("./pages/terms.jsx"));
+const FAQs = lazy(() => import("./pages/faqs.jsx"));
+const FAQPage = lazy(() => import("./pages/FAQPage.jsx"));
 import EmailConfirmed from "./pages/EmailConfirmed";
+
+// components pages
+import Footer from "./pages/components/Footer";
 
 const ToolsHome = lazy(() => import("./pages/tools/toolshome.jsx"));
 const WordToPdf = lazy(() => import("./pages/tools/pdf/WordToPdf"));
@@ -71,6 +76,11 @@ const AdminWithdraws = lazy(() => import("./pages/admin/Withdraws.jsx"));
 const AdminUsers = lazy(() => import("./pages/admin/Users.jsx"));
 const AdminLeaderboard = lazy(() => import("./pages/admin/Leaderboard.jsx"));
 const AdminHomepage = lazy(() => import("./pages/admin/Homepage.jsx"));
+const AdminHome = lazy(() => import("./pages/admin/Adminhome.jsx"));
+const AdminFAQs = lazy(() => import("./pages/admin/adminfaqs.jsx"));
+const FeedAdmin = lazy(() => import("./pages/admin/FeedAdmin.jsx"));
+
+
 
 // ─────────────────────────────────────────
 // Animated SVG White Cat (shared)
@@ -173,6 +183,7 @@ const NAV_LINKS = [
   { to: "/about",       label: "About",       icon: "💡" },
   { to: "/blogs",       label: "Blogs",       icon: "📝" },
   { to: "/news",        label: "News",        icon: "📰" },
+  { to: "/faqs",        label: "FAQs",        icon: "❓" },
   { to: "/tools",       label: "Tools",       icon: "🧰" },
   { to: "/leaderboard", label: "Leaderboard", icon: "🏆" },
 ];
@@ -534,10 +545,16 @@ const AppRoutes = (
 <Route path="/tools/career/cv-maker" element={<CvMaker />} />
 <Route path="/tools/career/cover-letter-maker" element={<CoverLetterMaker />} />
 <Route path="/email-confirmed" element={<EmailConfirmed />} />
+<Route path="/faqs" element={<FAQs />} />
+<Route path="/faqs/:slug" element={<FAQPage />} />
+
+
       <Route path="/signup"     element={<Signup />} />
       <Route path="/login"      element={<Login />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password"  element={<ResetPassword />} />
+
+      <Route path="/footer" element={<Footer />} />
 
       {/* USER AREA */}
       <Route path="/user" element={<ProtectedRoute><UserLayout /></ProtectedRoute>}>
@@ -579,6 +596,9 @@ const AppRoutes = (
         <Route path="users"       element={<AdminUsers />} />
         <Route path="leaderboard" element={<AdminLeaderboard />} />
         <Route path="homepage"    element={<AdminHomepage />} />
+        <Route path="AdminHome"        element={<AdminHome />} />
+        <Route path="AdminFAQs"             element={<AdminFAQs />} />
+        <Route path="feedadmin"             element={<FeedAdmin />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
