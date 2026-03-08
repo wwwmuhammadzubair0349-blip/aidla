@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Helmet } from "react-helmet"; // or "react-helmet-async"
 import { supabase } from "../lib/supabase";
 import Footer from "../components/footer"; // adjust path if needed
-import "./newsPost.css";
+import "./newspost.css";
 
 /* ── helpers (unchanged) ── */
 const CAT_COLORS = {general:"#3b82f6",politics:"#8b5cf6",education:"#0891b2",technology:"#0f766e",community:"#16a34a",events:"#d97706",announcements:"#dc2626"};
