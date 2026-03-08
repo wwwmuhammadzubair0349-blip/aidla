@@ -3,7 +3,7 @@ import { Helmet } from "react-helmet";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import Footer from "./components/footer";
-import "./Faqs.css";
+import "./faqs.css";
 
 /* ─────────────────────── Constants ─────────────────────── */
 const SITE_URL = "https://aidla.online";

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Helmet } from "react-helmet"; // or "react-helmet-async"
 import { supabase } from "../lib/supabase";
 import Footer from "../pages/components/footer"; // adjust path if needed
-import "./blogs.css";
+import "./Blogs.css";
 
 const fadeUp = {
   initial:{opacity:0,y:20}, whileInView:{opacity:1,y:0},

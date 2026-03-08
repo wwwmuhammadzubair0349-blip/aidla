@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Helmet } from "react-helmet"; // or "react-helmet-async"
 import { supabase } from "../lib/supabase";
 import Footer from "../pages/components/footer"; // adjust path if needed
-import "./blogPost.css";
+import "./BlogPost.css";
 
 /* ─── Helpers (unchanged) ─── */
 function isUrdu(t) { return t ? /[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/.test(t) : false; }
