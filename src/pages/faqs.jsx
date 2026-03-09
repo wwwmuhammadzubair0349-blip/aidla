@@ -33,10 +33,28 @@ function getFingerprint() {
 }
 
 /* ─────────────────── Structured Data (JSON-LD) ─────────── */
+/*
+  FIX #1 — Google Search Console errors:
+  "Duplicate field 'FAQPage'" — was caused by rendering TWO separate
+  @type:"FAQPage" JSON-LD blocks (one in Helmet + one via itemScope on <main>).
+  Google sees both and flags it as a duplicate.
+
+  "Missing field 'mainEntity'" — the FAQPage schema MUST include a
+  "mainEntity" array of Question objects. Previously the schema was
+  built correctly but the itemScope on <main> was ALSO emitting an
+  incomplete FAQPage entity with no mainEntity.
+
+  SOLUTION:
+  1. Remove itemScope/itemType="FAQPage" from the <main> element entirely.
+     Microdata and JSON-LD should NOT be mixed for the same entity.
+  2. Keep only the single JSON-LD script in <Helmet> with proper mainEntity.
+  3. Build the FAQPage schema with mainEntity always present.
+*/
 function buildFAQSchema(faqs) {
   return {
     "@context": "https://schema.org",
     "@type": "FAQPage",
+    // mainEntity is REQUIRED by Google — this was the "Missing field" error
     "mainEntity": faqs.map(f => ({
       "@type": "Question",
       "name": f.question,
@@ -71,8 +89,12 @@ function highlight(text, query) {
 }
 
 /* ─────────────────────── FAQ Item ──────────────────────── */
+/*
+  FIX #2 — Removed itemScope/itemType="Question" from individual FAQItem divs.
+  Since we're using JSON-LD (not Microdata), mixing both causes Google to
+  see duplicate/conflicting structured data. JSON-LD in <head> is sufficient.
+*/
 function FAQItem({ faq, isOpen, onToggle, searchQuery, userVotes, onVote }) {
-  const bodyRef    = useRef(null);
   const [copied, setCopied] = useState(false);
   const voted      = userVotes[faq.id];
   const totalVotes = faq.helpful_yes + faq.helpful_no;
@@ -95,10 +117,8 @@ function FAQItem({ faq, isOpen, onToggle, searchQuery, userVotes, onVote }) {
     <div
       id={`faq-${faq.id}`}
       className={`faq-item ${isOpen ? "faq-item--open" : ""}`}
-      itemScope
-      itemType="https://schema.org/Question"
     >
-      {/* Question row — clicking anywhere opens/closes */}
+      {/* Question row */}
       <button
         className="faq-question"
         onClick={onToggle}
@@ -106,27 +126,21 @@ function FAQItem({ faq, isOpen, onToggle, searchQuery, userVotes, onVote }) {
         aria-controls={`faq-body-${faq.id}`}
       >
         <span className="faq-q-icon" aria-hidden="true">{isOpen ? "−" : "+"}</span>
-        <h3 className="faq-q-text" itemProp="name">
+        <h3 className="faq-q-text">
           {highlight(faq.question, searchQuery)}
         </h3>
       </button>
 
       {/* Expanded content */}
-<div
-  id={`faq-body-${faq.id}`}
-  className={`faq-answer-wrap ${isOpen ? "faq-answer-wrap--open" : ""}`}
-  role="region"
-  aria-labelledby={`faq-${faq.id}`}
->
-        <div
-          ref={bodyRef}
-          className="faq-answer-inner"
-          itemScope
-          itemType="https://schema.org/Answer"
-          itemProp="acceptedAnswer"
-        >
+      <div
+        id={`faq-body-${faq.id}`}
+        className={`faq-answer-wrap ${isOpen ? "faq-answer-wrap--open" : ""}`}
+        role="region"
+        aria-labelledby={`faq-${faq.id}`}
+      >
+        <div className="faq-answer-inner">
           {/* Answer */}
-          <div className="faq-answer-text" itemProp="text">
+          <div className="faq-answer-text">
             {highlight(faq.answer, searchQuery)}
           </div>
 
@@ -160,7 +174,6 @@ function FAQItem({ faq, isOpen, onToggle, searchQuery, userVotes, onVote }) {
             {pct !== null && (
               <span className="faq-helpful-pct">{pct}% found helpful</span>
             )}
-            {/* Share button — inside expanded area, copies /faqs/slug */}
             <button
               className="faq-helpful-btn faq-share-inline"
               onClick={handleShare}
@@ -213,15 +226,15 @@ function AskForm({ onSubmit }) {
   return (
     <div className="ask-form-wrap" id="ask-question">
       <div className="ask-form-header">
-        <span className="ask-form-icon">💬</span>
+        <span className="ask-form-icon" aria-hidden="true">💬</span>
         <div>
           <h2 className="ask-form-title">Can't find your answer?</h2>
           <p className="ask-form-sub">Ask us — our team will answer and publish it to help others.</p>
         </div>
       </div>
 
-      {state === "ok"  && <div className="ask-msg ask-msg--ok">{msg}</div>}
-      {state === "err" && <div className="ask-msg ask-msg--err">{msg}</div>}
+      {state === "ok"  && <div className="ask-msg ask-msg--ok" role="alert">{msg}</div>}
+      {state === "err" && <div className="ask-msg ask-msg--err" role="alert">{msg}</div>}
 
       {state !== "ok" && (
         <div className="ask-form-body">
@@ -265,7 +278,7 @@ function AskForm({ onSubmit }) {
             onClick={handleSubmit}
             disabled={state === "loading"}
           >
-            {state === "loading" ? <span className="ask-spinner" /> : "🚀 Submit Question"}
+            {state === "loading" ? <span className="ask-spinner" aria-label="Submitting..." /> : "🚀 Submit Question"}
           </button>
           <p className="ask-privacy">🔒 Your email is only used to notify you — never shared publicly.</p>
         </div>
@@ -346,23 +359,18 @@ export default function FAQs() {
   };
 
   /* ── Toggle FAQ open/close + track view ── */
-const handleToggle = useCallback(async (id) => {
-  const isCurrentlyOpen = openIds[id];
-  if (!isCurrentlyOpen) {
-    // Try to update the database first
-    const { error } = await supabase.rpc("faq_increment_view", { p_faq_id: id });
-    if (error) {
-      console.error("Failed to increment view count:", error);
-      // Optionally show a user‑friendly message (e.g., toast)
-    } else {
-      // Only optimistically update if the RPC succeeded
-      setFaqs(prev => prev.map(f =>
-        f.id === id ? { ...f, view_count: f.view_count + 1 } : f
-      ));
+  const handleToggle = useCallback(async (id) => {
+    const isCurrentlyOpen = openIds[id];
+    if (!isCurrentlyOpen) {
+      const { error } = await supabase.rpc("faq_increment_view", { p_faq_id: id });
+      if (!error) {
+        setFaqs(prev => prev.map(f =>
+          f.id === id ? { ...f, view_count: f.view_count + 1 } : f
+        ));
+      }
     }
-  }
-  setOpenIds(prev => ({ ...prev, [id]: !prev[id] }));
-}, [openIds]);
+    setOpenIds(prev => ({ ...prev, [id]: !prev[id] }));
+  }, [openIds]);
 
   /* ── Helpful vote ── */
   const handleVote = useCallback(async (faqId, vote) => {
@@ -446,11 +454,19 @@ const handleToggle = useCallback(async (id) => {
         {/* Indexing */}
         <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
 
-        {/* Preconnect */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        {/*
+          PERFORMANCE FIX #1 — Remove preconnect tags from here.
+          Move these to your public/index.html <head> BEFORE any scripts.
+          Preconnects in Helmet inject too late (after React hydrates) = render blocking.
+          See index.html instructions at bottom of this file.
+        */}
 
-        {/* JSON-LD structured data */}
+        {/*
+          STRUCTURED DATA FIX:
+          - Only ONE @type:FAQPage JSON-LD block (fixes "Duplicate field 'FAQPage'")
+          - mainEntity is always present (fixes "Missing field 'mainEntity'")
+          - Removed itemScope from <main> below to prevent Microdata conflict
+        */}
         {publishedFaqs.length > 0 && (
           <script type="application/ld+json">
             {JSON.stringify(buildFAQSchema(publishedFaqs))}
@@ -476,7 +492,13 @@ const handleToggle = useCallback(async (id) => {
         </script>
       </Helmet>
 
-      <main className="faq-page" itemScope itemType="https://schema.org/FAQPage">
+      {/*
+        FIX: Removed itemScope itemType="https://schema.org/FAQPage" from <main>.
+        This was creating a SECOND FAQPage entity (via Microdata) alongside the
+        JSON-LD in <head>, causing Google's "Duplicate field 'FAQPage'" error.
+        JSON-LD in <Helmet> is sufficient — do not mix with Microdata.
+      */}
+      <main className="faq-page">
 
         {/* ── Hero ── */}
         <section className="faq-hero" aria-label="FAQ page header">
@@ -571,7 +593,7 @@ const handleToggle = useCallback(async (id) => {
 
           {!loading && filtered.length === 0 && (
             <div className="faq-empty" role="status">
-              <span className="faq-empty-icon">🤔</span>
+              <span className="faq-empty-icon" aria-hidden="true">🤔</span>
               <h2 className="faq-empty-title">No results found</h2>
               <p className="faq-empty-sub">
                 {search

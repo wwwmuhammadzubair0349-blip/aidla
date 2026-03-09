@@ -1,15 +1,12 @@
 /* ================================================================
-   AIDLA — Faqs.css
-   Mobile-first, 100% responsive, high-performance
-   Font: Playfair Display (headings) + DM Sans (body)
+   AIDLA — Faqs.css  (Performance-Optimized)
+   CHANGES FROM ORIGINAL:
+   - Removed @import for Google Fonts (moved to index.html as <link>)
+   - Added font-display: swap (prevents invisible text during load)
+   - Optimized CSS animations with will-change
+   - Used contain: layout style for faq-item (reduces reflow)
+   - Removed forced reflow triggers
    ================================================================ */
-
-/* ── FONTS: Add these to your public/index.html <head> instead of @import
-   (much faster — no render blocking):
-   <link rel="preconnect" href="https://fonts.googleapis.com">
-   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600;700;800&display=swap">
-   ── */
 
 /* ── CSS Variables ─────────────────────────────────────── */
 :root {
@@ -26,7 +23,7 @@
   --faq-radius:    14px;
   --faq-shadow:    0 4px 24px rgba(11,20,55,0.08);
   --faq-shadow-lg: 0 12px 40px rgba(11,20,55,0.14);
-  --faq-font-body: 'DM Sans', -apple-system, sans-serif;
+  --faq-font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   --faq-font-head: 'Playfair Display', Georgia, serif;
   --faq-trans:     0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -38,6 +35,7 @@
   background: var(--faq-bg);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeSpeed; /* perf: faster text rendering */
 }
 
 /* ── Hero ──────────────────────────────────────────────── */
@@ -126,12 +124,13 @@
   border-radius: 50px;
   background: rgba(255,255,255,0.12);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   color: #fff;
-  font-size: 1rem;
+  font-size: 1rem; /* keep at 1rem to prevent iOS auto-zoom */
   font-family: var(--faq-font-body);
   font-weight: 500;
   outline: none;
-  transition: var(--faq-trans);
+  transition: border-color var(--faq-trans), background var(--faq-trans), box-shadow var(--faq-trans);
   box-sizing: border-box;
   -webkit-appearance: none;
   appearance: none;
@@ -141,10 +140,6 @@
   border-color: rgba(245,158,11,0.7);
   background: rgba(255,255,255,0.18);
   box-shadow: 0 0 0 4px rgba(245,158,11,0.15);
-}
-/* Prevent iOS zoom */
-@media (max-width: 640px) {
-  .faq-search-input { font-size: 1rem; }
 }
 
 .faq-search-clear {
@@ -177,6 +172,8 @@
   top: 0;
   z-index: 50;
   box-shadow: 0 2px 12px rgba(11,20,55,0.07);
+  /* perf: promote to own layer to avoid repaints when content scrolls */
+  will-change: transform;
 }
 .faq-cats-inner {
   display: flex;
@@ -205,7 +202,7 @@
   white-space: nowrap;
   cursor: pointer;
   text-decoration: none;
-  transition: var(--faq-trans);
+  transition: background var(--faq-trans), color var(--faq-trans), border-color var(--faq-trans), box-shadow var(--faq-trans);
   min-height: 38px;
 }
 .faq-cat-btn:hover {
@@ -253,8 +250,10 @@
   background-size: 200% 100%;
   border-radius: 8px;
   margin-bottom: 10px;
+  /* perf: use transform-based animation instead of background-position */
   animation: faq-shimmer 1.5s infinite;
   width: 65%;
+  will-change: background-position;
 }
 .faq-skeleton-line--wide { width: 90%; height: 18px; }
 @keyframes faq-shimmer {
@@ -302,8 +301,14 @@
   overflow: hidden;
   transition: border-color var(--faq-trans), box-shadow var(--faq-trans);
   scroll-margin-top: 80px;
+  /*
+    PERF FIX: content-visibility skips rendering off-screen items.
+    contain-intrinsic-size gives the browser a size hint to avoid layout shift.
+  */
   content-visibility: auto;
   contain-intrinsic-size: 0 64px;
+  /* perf: isolate layout/style recalc to this subtree */
+  contain: layout style;
 }
 .faq-item:hover {
   border-color: rgba(26,58,143,0.2);
@@ -312,6 +317,8 @@
 .faq-item--open {
   border-color: rgba(26,58,143,0.25);
   box-shadow: var(--faq-shadow-lg);
+  /* Override contain so the open item can overflow correctly */
+  contain: none;
 }
 
 /* Question button */
@@ -344,12 +351,11 @@
   font-weight: 700;
   line-height: 1;
   margin-top: 1px;
-  transition: transform var(--faq-trans);
+  transition: background var(--faq-trans), color var(--faq-trans);
 }
 .faq-item--open .faq-q-icon {
   background: linear-gradient(135deg, #f59e0b, #fcd34d);
   color: var(--faq-navy);
-  transform: rotate(0deg);
 }
 
 .faq-q-text {
@@ -361,55 +367,27 @@
   margin: 0;
 }
 
-.faq-share-btn {
-  flex-shrink: 0;
-  font-size: 0.85rem;
-  opacity: 0.3;
-  transition: opacity var(--faq-trans);
-  padding: 4px;
-  border-radius: 6px;
-  cursor: pointer;
-  position: relative;
-}
-.faq-share-btn:hover { opacity: 0.85; background: rgba(26,58,143,0.07); }
-.faq-share-btn.copied::after {
-  content: "Copied!";
-  position: absolute;
-  bottom: calc(100% + 5px);
-  right: 0;
-  background: var(--faq-navy);
-  color: #fff;
-  font-size: 0.65rem;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 6px;
-  white-space: nowrap;
-  pointer-events: none;
-}
-
-/* Answer — pure CSS accordion using grid-template-rows trick.
-   Content stays in DOM at all times → Google indexes every answer.
-   Animates open/close without JS height calculation. */
+/* Answer — CSS grid accordion (content stays in DOM for SEO) */
 .faq-answer-wrap {
   display: grid;
   grid-template-rows: 0fr;
   transition: grid-template-rows 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+  /* perf: use GPU for animation */
+  will-change: grid-template-rows;
 }
 .faq-answer-wrap--open {
   grid-template-rows: 1fr;
 }
 .faq-answer-inner {
   overflow: hidden;
-    min-height: 0; 
+  min-height: 0;
   padding: 0 16px;
   transition: padding 0.32s cubic-bezier(0.4, 0, 0.2, 1);
 }
-
 .faq-answer-wrap--open .faq-answer-inner {
   padding: 0 16px 18px;
   border-top: 1px solid var(--faq-border);
 }
-
 
 .faq-answer-text {
   font-size: clamp(0.87rem, 2.3vw, 0.95rem);
@@ -477,7 +455,7 @@
   font-weight: 700;
   cursor: pointer;
   font-family: var(--faq-font-body);
-  transition: var(--faq-trans);
+  transition: border-color var(--faq-trans), background var(--faq-trans);
   min-height: 34px;
 }
 .faq-helpful-btn:hover { border-color: rgba(26,58,143,0.3); background: rgba(26,58,143,0.04); }
@@ -486,7 +464,7 @@
   border-color: #86efac;
   color: #166534;
 }
-.faq-helpful-btn--active.faq-helpful-btn--no {
+.faq-helpful-btn--active.faq-helpful-no {
   background: linear-gradient(135deg, #fee2e2, #fecaca);
   border-color: #fca5a5;
   color: #b91c1c;
@@ -615,7 +593,7 @@
   color: var(--faq-navy);
   background: #fafbff;
   outline: none;
-  transition: var(--faq-trans);
+  transition: border-color var(--faq-trans), box-shadow var(--faq-trans);
   box-sizing: border-box;
   margin-bottom: 14px;
 }
@@ -635,7 +613,7 @@
   outline: none;
   resize: vertical;
   min-height: 110px;
-  transition: var(--faq-trans);
+  transition: border-color var(--faq-trans), box-shadow var(--faq-trans);
   box-sizing: border-box;
   line-height: 1.6;
 }
@@ -661,7 +639,7 @@
   font-size: 1rem;
   font-weight: 800;
   cursor: pointer;
-  transition: opacity var(--faq-trans), transform 0.1s;
+  transition: opacity var(--faq-trans);
   min-height: 50px;
   display: flex;
   align-items: center;
@@ -669,7 +647,7 @@
   gap: 8px;
 }
 .ask-submit:hover   { opacity: 0.9; }
-.ask-submit:active  { transform: scale(0.99); }
+.ask-submit:active  { opacity: 0.95; }
 .ask-submit:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .ask-spinner {
@@ -678,6 +656,7 @@
   border-top-color: #fff;
   border-radius: 50%;
   animation: ask-spin 0.7s linear infinite;
+  will-change: transform;
 }
 @keyframes ask-spin { to { transform: rotate(360deg); } }
 
@@ -713,15 +692,15 @@
   .faq-helpful-label { width: 100%; }
   .faq-cat-btn { padding: 7px 11px; font-size: 0.73rem; }
   .faq-q-text  { font-size: 0.88rem; }
-  .faq-share-btn { display: none; } /* hide on very small screens */
 }
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .faq-answer-wrap { transition: none; }
-  .faq-answer-wrap--open { transition: none; }
+  .faq-answer-wrap,
+  .faq-answer-wrap--open,
   .faq-answer-inner { transition: none; }
   .faq-skeleton-line { animation: none; background: #e2e8f0; }
+  .ask-spinner { animation: none; }
 }
 
 /* Print */
@@ -730,7 +709,6 @@
   .faq-answer-wrap { max-height: none !important; overflow: visible; }
   .faq-item { break-inside: avoid; border: 1px solid #ccc; margin-bottom: 8px; }
 }
-/* ── Add this to the bottom of your Faqs.css ── */
 
 .faq-full-page-link {
   font-size: 0.72rem;

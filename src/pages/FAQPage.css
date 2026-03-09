@@ -1,9 +1,9 @@
 /* ════════════════════════════════════════════════════════════
    AIDLA — FAQPage.css  (individual /faqs/:slug page)
-   Mobile-first, matches existing Faqs.css design system
+   Performance-optimized version
    ════════════════════════════════════════════════════════════ */
 
-/* ── Variables (same as Faqs.css) ─────────────────────────── */
+/* ── Variables (same as faqs.css) ─────────────────────────── */
 :root {
   --faqp-navy:      #0b1437;
   --faqp-blue:      #1a3a8f;
@@ -18,7 +18,7 @@
   --faqp-radius:    16px;
   --faqp-shadow:    0 4px 24px rgba(11,20,55,0.08);
   --faqp-shadow-lg: 0 12px 48px rgba(11,20,55,0.14);
-  --faqp-font-body: 'DM Sans', -apple-system, sans-serif;
+  --faqp-font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   --faqp-font-head: 'Playfair Display', Georgia, serif;
   --faqp-trans:     0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -30,6 +30,7 @@
   background: var(--faqp-bg);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeSpeed;
 }
 
 /* ── Hero ─────────────────────────────────────────────────── */
@@ -243,7 +244,7 @@
   font-weight: 700;
   font-family: var(--faqp-font-body);
   cursor: pointer;
-  transition: var(--faqp-trans);
+  transition: border-color var(--faqp-trans), background var(--faqp-trans);
   min-height: 36px;
 }
 .faqp-vote-btn:hover {
@@ -281,7 +282,7 @@
   font-weight: 700;
   font-family: var(--faqp-font-body);
   cursor: pointer;
-  transition: var(--faqp-trans);
+  transition: background var(--faqp-trans), color var(--faqp-trans), border-color var(--faqp-trans);
   color: var(--faqp-navy);
   white-space: nowrap;
   min-height: 36px;
@@ -327,7 +328,9 @@
   border: 1.5px solid var(--faqp-border);
   border-radius: 10px;
   text-decoration: none;
-  transition: var(--faqp-trans);
+  /* perf: use transform instead of margin/position for hover effect */
+  transition: border-color var(--faqp-trans), background var(--faqp-trans), transform var(--faqp-trans);
+  will-change: transform;
 }
 .faqp-related-card:hover {
   border-color: rgba(26,58,143,0.3);
@@ -444,7 +447,7 @@
   color: var(--faqp-navy);
   background: #fafbff;
   outline: none;
-  transition: var(--faqp-trans);
+  transition: border-color var(--faqp-trans), box-shadow var(--faqp-trans);
   box-sizing: border-box;
   margin-bottom: 14px;
 }
@@ -464,7 +467,7 @@
   outline: none;
   resize: vertical;
   min-height: 100px;
-  transition: var(--faqp-trans);
+  transition: border-color var(--faqp-trans), box-shadow var(--faqp-trans);
   box-sizing: border-box;
   line-height: 1.6;
 }
@@ -505,6 +508,7 @@
   border-top-color: #fff;
   border-radius: 50%;
   animation: faqp-spin 0.7s linear infinite;
+  will-change: transform;
 }
 @keyframes faqp-spin { to { transform: rotate(360deg); } }
 .faqp-msg {
@@ -596,6 +600,6 @@
 @media (prefers-reduced-motion: reduce) {
   .faqp-related-card:hover { transform: none; }
   .faqp-skeleton-hero,
-  .faqp-skeleton-block,
+  .faqp-skeleton-block { animation: none; opacity: 1; }
   .faqp-spinner { animation: none; }
 }

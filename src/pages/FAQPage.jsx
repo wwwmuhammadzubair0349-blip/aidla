@@ -31,6 +31,12 @@ function getFingerprint() {
 }
 
 /* ─────────────────── JSON-LD builders ──────────────────── */
+/*
+  FIX: Use QAPage (not FAQPage) for individual slug pages.
+  FAQPage is only for the listing page (/faqs).
+  Each /faqs/:slug page is a QAPage with a single Question.
+  This prevents "Duplicate field 'FAQPage'" across pages.
+*/
 function buildQASchema(faq) {
   return {
     "@context": "https://schema.org",
@@ -64,7 +70,7 @@ function buildBreadcrumbSchema(faq) {
     "itemListElement": [
       { "@type": "ListItem", "position": 1, "name": "Home",  "item": SITE_URL },
       { "@type": "ListItem", "position": 2, "name": "FAQs",  "item": `${SITE_URL}/faqs` },
-      { "@type": "ListItem", "position": 3, "name": cat ? `${cat.icon} ${cat.label}` : "FAQ", "item": `${SITE_URL}/faqs#${faq.category}` },
+      { "@type": "ListItem", "position": 3, "name": cat ? `${cat.label}` : "FAQ", "item": `${SITE_URL}/faqs#${faq.category}` },
       { "@type": "ListItem", "position": 4, "name": faq.question, "item": `${SITE_URL}/faqs/${faq.slug}` },
     ],
   };
@@ -88,7 +94,7 @@ function RelatedCard({ faq }) {
   return (
     <Link to={`/faqs/${faq.slug}`} className="faqp-related-card">
       <span className="faqp-related-q">{faq.question}</span>
-      <span className="faqp-related-arrow">→</span>
+      <span className="faqp-related-arrow" aria-hidden="true">→</span>
     </Link>
   );
 }
@@ -130,15 +136,15 @@ function AskForm() {
   return (
     <div className="faqp-ask-wrap" id="ask">
       <div className="faqp-ask-header">
-        <span className="faqp-ask-icon">💬</span>
+        <span className="faqp-ask-icon" aria-hidden="true">💬</span>
         <div>
           <h2 className="faqp-ask-title">Still have questions?</h2>
           <p className="faqp-ask-sub">Ask us — we'll answer and publish it to help others.</p>
         </div>
       </div>
 
-      {state === "ok"  && <div className="faqp-msg faqp-msg--ok">{msg}</div>}
-      {state === "err" && <div className="faqp-msg faqp-msg--err">{msg}</div>}
+      {state === "ok"  && <div className="faqp-msg faqp-msg--ok" role="alert">{msg}</div>}
+      {state === "err" && <div className="faqp-msg faqp-msg--err" role="alert">{msg}</div>}
 
       {state !== "ok" && (
         <>
@@ -161,9 +167,9 @@ function AskForm() {
             onChange={e => set("question", e.target.value.slice(0, 500))}
             rows={4}
           />
-          <div className="faqp-char-count">{charLeft} characters left</div>
+          <div className="faqp-char-count" aria-live="polite">{charLeft} characters left</div>
           <button className="faqp-submit" onClick={handleSubmit} disabled={state === "loading"}>
-            {state === "loading" ? <span className="faqp-spinner" /> : "🚀 Submit Question"}
+            {state === "loading" ? <span className="faqp-spinner" aria-label="Submitting..." /> : "🚀 Submit Question"}
           </button>
           <p className="faqp-privacy">🔒 Your email is only used to notify you — never shared publicly.</p>
         </>
@@ -184,7 +190,7 @@ export default function FAQPage() {
   const [related,  setRelated]  = useState([]);
   const [loading,  setLoading]  = useState(true);
   const [notFound, setNotFound] = useState(false);
-  const [userVote, setUserVote] = useState(null); // "yes" | "no" | null
+  const [userVote, setUserVote] = useState(null);
   const [shared,   setShared]   = useState(false);
   const viewTracked = useRef(false);
 
@@ -214,13 +220,11 @@ export default function FAQPage() {
 
     setFaq(data);
 
-    // Track view (once per mount)
     if (!viewTracked.current) {
       viewTracked.current = true;
       supabase.rpc("faq_increment_view", { p_faq_id: data.id });
     }
 
-    // Load related FAQs (same category, exclude current)
     const { data: rel } = await supabase
       .from("faqs")
       .select("id, slug, question")
@@ -233,7 +237,6 @@ export default function FAQPage() {
 
     setRelated(rel || []);
 
-    // Load user's existing vote
     const { data: voteData } = await supabase
       .from("faq_helpful_votes")
       .select("vote")
@@ -251,7 +254,6 @@ export default function FAQPage() {
     const prev = userVote;
     const newVote = prev === vote ? null : vote;
 
-    // Optimistic update
     setUserVote(newVote);
     setFaq(f => {
       if (!f) return f;
@@ -290,11 +292,11 @@ export default function FAQPage() {
   if (loading) {
     return (
       <div className="faqp-page">
-        <div className="faqp-skeleton-hero" />
+        <div className="faqp-skeleton-hero" aria-hidden="true" />
         <div className="faqp-content-wrap">
-          <div className="faqp-skeleton-block faqp-skeleton-block--tall" />
-          <div className="faqp-skeleton-block" />
-          <div className="faqp-skeleton-block faqp-skeleton-block--short" />
+          <div className="faqp-skeleton-block faqp-skeleton-block--tall" aria-hidden="true" />
+          <div className="faqp-skeleton-block" aria-hidden="true" />
+          <div className="faqp-skeleton-block faqp-skeleton-block--short" aria-hidden="true" />
         </div>
       </div>
     );
@@ -306,7 +308,7 @@ export default function FAQPage() {
       <>
         <div className="faqp-page">
           <div className="faqp-notfound">
-            <span className="faqp-notfound-icon">🤔</span>
+            <span className="faqp-notfound-icon" aria-hidden="true">🤔</span>
             <h1 className="faqp-notfound-title">FAQ Not Found</h1>
             <p className="faqp-notfound-sub">This FAQ may have been removed or the link is incorrect.</p>
             <Link to="/faqs" className="faqp-back-btn">← Browse All FAQs</Link>
@@ -346,12 +348,17 @@ export default function FAQPage() {
         <meta name="twitter:description" content={pageDesc} />
         <meta name="twitter:image"       content={`${SITE_URL}/og-image.jpg`} />
 
-        {/* JSON-LD */}
+        {/* JSON-LD — QAPage (NOT FAQPage) for individual FAQ pages */}
         <script type="application/ld+json">{JSON.stringify(buildQASchema(faq))}</script>
         <script type="application/ld+json">{JSON.stringify(buildBreadcrumbSchema(faq))}</script>
       </Helmet>
 
-      <main className="faqp-page" itemScope itemType="https://schema.org/QAPage">
+      {/*
+        FIX: Removed itemScope itemType="https://schema.org/QAPage" from <main>.
+        JSON-LD in <Helmet> handles all structured data.
+        Mixing Microdata + JSON-LD causes duplicate entity errors in Google.
+      */}
+      <main className="faqp-page">
 
         {/* ── Hero / Question Header ── */}
         <header className="faqp-hero">
@@ -382,12 +389,12 @@ export default function FAQPage() {
 
             {/* Category badge */}
             <div className="faqp-cat-badge">
-              <span>{cat?.icon}</span>
+              <span aria-hidden="true">{cat?.icon}</span>
               <span>{cat?.label}</span>
             </div>
 
             {/* The Question — H1 */}
-            <h1 className="faqp-hero-title" itemProp="name">
+            <h1 className="faqp-hero-title">
               {faq.question}
             </h1>
 
@@ -410,23 +417,18 @@ export default function FAQPage() {
         <div className="faqp-content-wrap">
 
           {/* Answer Card */}
-          <article
-            className="faqp-answer-card"
-            itemScope
-            itemType="https://schema.org/Answer"
-            itemProp="acceptedAnswer"
-          >
+          <article className="faqp-answer-card">
             <div className="faqp-answer-label">
               <span className="faqp-answer-label-dot" aria-hidden="true" />
               Official Answer
             </div>
-            <div className="faqp-answer-text" itemProp="text">
+            <div className="faqp-answer-text">
               {faq.answer}
             </div>
 
             {/* Author attribution */}
             <div className="faqp-answer-author">
-              <div className="faqp-author-avatar">A</div>
+              <div className="faqp-author-avatar" aria-hidden="true">A</div>
               <div>
                 <div className="faqp-author-name">AIDLA Support Team</div>
                 <div className="faqp-author-role">Official Answer · {new Date(faq.updated_at || faq.created_at).toLocaleDateString("en-PK", { day: "2-digit", month: "short", year: "numeric" })}</div>
@@ -468,7 +470,7 @@ export default function FAQPage() {
           {related.length > 0 && (
             <section className="faqp-related" aria-labelledby="related-heading">
               <h2 className="faqp-related-title" id="related-heading">
-                <span>{cat?.icon}</span> More {cat?.label} Questions
+                <span aria-hidden="true">{cat?.icon}</span> More {cat?.label} Questions
               </h2>
               <div className="faqp-related-list">
                 {related.map(r => <RelatedCard key={r.id} faq={r} />)}
