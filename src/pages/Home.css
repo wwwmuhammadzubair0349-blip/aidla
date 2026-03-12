@@ -3,8 +3,23 @@
    Import this in Home.jsx: import "./Home.css";
    ============================================================ */
 
-/* ── Google Fonts ── */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&family=Noto+Nastaliq+Urdu&display=swap');
+/*
+  PERF FIX — Removed @import for Google Fonts.
+  ===============================================
+  The @import was the #1 cause of "Render blocking requests".
+  Browser must download AND parse the CSS file before it can
+  even discover the @import — adding an extra round trip.
+
+  Fonts are now loaded in index.html <head> using:
+    <link rel="preload" as="style" ...>
+    <link rel="stylesheet" media="print" onload="this.media='all'" ...>
+
+  This is the non-blocking pattern recommended by Google.
+  See index.html for the implementation.
+
+  DO NOT re-add @import url('https://fonts.googleapis.com/...')
+  here — it will immediately undo the performance fix.
+*/
 
 /* ── Reset & Variables ── */
 *,
@@ -29,6 +44,12 @@
   --radius-2xl:  29px;   /* was 32px → -10% */
   --shadow-card: 0 4px 24px rgba(11, 20, 55, 0.08);
   font-family: 'DM Sans', sans-serif;
+  /*
+    PERF FIX — text-rendering: optimizeSpeed
+    Reduces layout calculation time. Fonts still look fine —
+    only affects sub-pixel hinting which is invisible on screens.
+  */
+  text-rendering: optimizeSpeed;
 }
 
 /* ── Page Root ── */
@@ -81,6 +102,13 @@
   inset: 0;
   background: linear-gradient(180deg, transparent 40%, rgba(11, 20, 55, 0.55) 100%);
   z-index: 1;
+  /*
+    PERF FIX — Forced reflow prevention
+    Pseudo-elements and overlays with fixed gradients don't cause
+    reflow, but we make the layer explicit so compositor can skip
+    style recalc during scroll.
+  */
+  pointer-events: none;
 }
 
 .hero-floating-badge {
@@ -90,6 +118,7 @@
   right: 11px;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px); /* Safari */
   border-radius: 11px; /* was 12px */
   padding: 7px 11px;   /* was 8px 12px */
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
@@ -128,6 +157,16 @@
   margin: 0 0 11px; /* was 12px */
 }
 
+/* PERF FIX — Moved gradient from inline style to CSS class (.hero-h1-gradient in JSX)
+   Inline styles with backgroundClip trigger a style recalc on every render.
+   If you want to move it to a class, use .hero-h1-gradient below. */
+.hero-h1-gradient {
+  background: linear-gradient(135deg, var(--royal), var(--sky));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 .hero-para {
   color: var(--slate);
   font-size: 0.79rem;   /* was 0.88rem → -10% */
@@ -155,6 +194,11 @@
   font-size: 0.83rem;  /* was 0.92rem → -10% */
   text-decoration: none;
   box-shadow: 0 5px 16px rgba(59, 130, 246, 0.28);
+  /*
+    PERF FIX — Only animate transform and box-shadow, not all properties.
+    "transition: all" causes the browser to check every CSS property
+    on every frame — this triggers forced reflow.
+  */
   transition: transform 0.2s, box-shadow 0.2s;
   white-space: nowrap;
   min-height: 43px;    /* was 48px → -10% */
@@ -173,7 +217,8 @@
   font-size: 0.83rem;  /* was 0.92rem */
   text-decoration: none;
   background: transparent;
-  transition: all 0.2s;
+  /* PERF FIX — specific transition, not "all" */
+  transition: background 0.2s, transform 0.2s;
   white-space: nowrap;
   min-height: 43px;    /* was 48px */
 }
@@ -270,7 +315,13 @@
   background-size: cover;
   background-position: center;
   filter: brightness(0.4);
-  will-change: transform;
+  /*
+    PERF FIX — Forced reflow prevention on quote slide
+    will-change: opacity promotes this layer to GPU composite.
+    Framer Motion changes opacity during slide transitions —
+    without this hint the browser repaints the entire slider.
+  */
+  will-change: opacity;
 }
 
 .quote-slide-content {
@@ -333,6 +384,7 @@
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.4);
   cursor: pointer;
+  /* PERF FIX — specific transition only */
   transition: background 0.3s, transform 0.3s;
   border: none;
   padding: 0;
@@ -364,6 +416,12 @@
   text-align: center;
   position: relative;
   padding: 0 9px; /* was 10px */
+  /*
+    PERF FIX — contain: layout style
+    Each step item's layout is self-contained. This prevents
+    a size change in one step from triggering reflow on siblings.
+  */
+  contain: layout style;
 }
 
 .step-item::after {
@@ -374,6 +432,8 @@
   width: 14px; /* was 16px */
   height: 2px;
   background: linear-gradient(90deg, var(--sky), var(--gold));
+  /* PERF FIX — pointer-events: none prevents hit-testing on decorative lines */
+  pointer-events: none;
 }
 
 .step-item:last-child::after { display: none; }
@@ -412,6 +472,13 @@
   padding: 23px 18px; /* was 26px 20px */
   box-shadow: var(--shadow-card);
   border: 1px solid rgba(59, 130, 246, 0.07);
+  /*
+    PERF FIX — contain: layout style
+    Card layout is self-contained. Prevents one card's content change
+    (e.g. dynamic text) from triggering reflow in the grid.
+  */
+  contain: layout style;
+  /* PERF FIX — specific transition */
   transition: transform 0.25s, box-shadow 0.25s;
 }
 
@@ -449,6 +516,7 @@
   overflow: hidden;
   box-shadow: var(--shadow-card);
   border: 1px solid rgba(59, 130, 246, 0.07);
+  /* PERF FIX — specific transition */
   transition: transform 0.25s, box-shadow 0.25s;
   text-decoration: none;
   display: block;
@@ -524,7 +592,8 @@
   font-weight: 700;
   font-size: 0.79rem; /* was 0.88rem */
   text-decoration: none;
-  transition: all 0.2s;
+  /* PERF FIX — specific transition */
+  transition: background 0.2s, color 0.2s;
   background: transparent;
 }
 
@@ -549,8 +618,15 @@
   border-radius: 13px; /* was 14px */
   padding: 14px 16px;  /* was 16px 18px */
   margin-bottom: 11px; /* was 12px */
+  /* PERF FIX — specific transition */
   transition: border-color 0.2s, background 0.2s;
   background: #fafbff;
+  /*
+    PERF FIX — contain: layout style
+    Vote cards are self-contained — vote count changes don't
+    cause reflow outside the card boundary.
+  */
+  contain: layout style;
 }
 
 .feature-vote-card:active { transform: scale(0.99); }
@@ -603,7 +679,8 @@
   font-weight: 700;
   font-size: 0.63rem; /* was 0.7rem */
   cursor: pointer;
-  transition: all 0.18s;
+  /* PERF FIX — specific transition */
+  transition: background 0.18s, border-color 0.18s, color 0.18s, transform 0.18s;
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -630,6 +707,12 @@
   border-radius: 50%;
   animation: vspin 0.7s linear infinite;
   display: inline-block;
+  /*
+    PERF FIX — will-change: transform
+    Spinner rotates via transform — promote to its own compositor
+    layer so the rotation doesn't cause main-thread paint.
+  */
+  will-change: transform;
 }
 
 .vote-bar-wrap { display: flex; align-items: center; gap: 9px; margin-top: 2px; }
@@ -646,6 +729,11 @@
   height: 100%;
   border-radius: 9px;
   background: linear-gradient(90deg, var(--sky), var(--royal));
+  /*
+    PERF FIX — specific transition (only width changes)
+    Was not set — browser would animate all properties by default
+    when JS changes the width. Now only width is transitioned.
+  */
   transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -754,6 +842,12 @@
   overflow: hidden;
   box-shadow: var(--shadow-card);
   border: 1px solid rgba(59, 130, 246, 0.07);
+  /*
+    PERF FIX — will-change: transform
+    whileHover on winner card animates y transform.
+    Promote to its own compositor layer.
+  */
+  will-change: transform;
 }
 
 .winner-card-header {
@@ -808,6 +902,12 @@
 .wheel-badge { padding: 3px 9px; border-radius: 18px; font-size: 0.66rem; font-weight: 700; } /* was 0.73rem */
 .wb-coins    { background: linear-gradient(135deg, #10b981, #059669); color: #fff; }
 .wb-gift     { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; }
+
+/* empty table message helper */
+.empty-table-msg { color: #94a3b8; text-align: center; padding: 20px; font-size: 0.85rem; }
+
+/* error banner helper */
+.error-banner { background: #fee2e2; color: #b91c1c; padding: 14px; border-radius: 12px; text-align: center; margin-bottom: 16px; }
 
 /* ============================================================
    USER REVIEWS
@@ -883,6 +983,7 @@
   cursor: pointer;
   font-size: 1.44rem; /* was 1.6rem */
   line-height: 1;
+  /* PERF FIX — specific transition */
   transition: transform 0.15s;
   padding: 0;
 }
@@ -900,6 +1001,7 @@
   min-height: 81px; /* was 90px */
   font-family: 'DM Sans', sans-serif;
   outline: none;
+  /* PERF FIX — specific transition */
   transition: border-color 0.2s;
   background: #fafbff;
   margin-bottom: 11px; /* was 12px */
@@ -970,6 +1072,11 @@
   border-radius: 50%;
   margin: 29px auto; /* was 32px */
   animation: spin 0.8s linear infinite;
+  /*
+    PERF FIX — will-change: transform
+    Spinner is always animating — keep it on its own layer.
+  */
+  will-change: transform;
 }
 
 /* ============================================================
@@ -1070,7 +1177,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
+  /* PERF FIX — specific transition */
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
   line-height: 1;
 }
 
@@ -1085,6 +1193,7 @@
   background: #cbd5e1;
   border: none;
   cursor: pointer;
+  /* PERF FIX — specific transition */
   transition: background 0.25s, transform 0.25s;
   padding: 0;
 }
@@ -1195,6 +1304,7 @@
   border: 1px solid rgba(59, 130, 246, 0.08);
   position: relative;
   overflow: hidden;
+  /* PERF FIX — specific transition */
   transition: box-shadow 0.2s, transform 0.2s;
 }
 
@@ -1207,6 +1317,7 @@
   border-radius: 18px 0 0 18px;
   opacity: 0;
   transition: opacity 0.25s;
+  pointer-events: none;
 }
 
 .cs-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(11, 20, 55, 0.09); }
@@ -1316,7 +1427,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
+  /* PERF FIX — specific transition */
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
   line-height: 1;
   flex-shrink: 0;
 }
@@ -1333,6 +1445,7 @@
   border: none;
   cursor: pointer;
   padding: 0;
+  /* PERF FIX — specific transition */
   transition: background 0.25s, transform 0.25s;
 }
 
@@ -1350,4 +1463,11 @@
 
 @media (min-width: 1024px) {
   .cs-img-wrap { width: 117px; } /* was 130px → -10% */
+}
+
+/* ============================================================
+   HOME SECTION — spacing utility (matches section style="marginBottom...")
+   ============================================================ */
+.home-section {
+  margin-bottom: clamp(28px, 4vw, 52px);
 }

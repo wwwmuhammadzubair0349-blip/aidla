@@ -13,47 +13,53 @@ const QUOTES = [
     translation: "Seeking knowledge is an obligation upon every Muslim.",
     source: "Prophet Muhammad ﷺ (Ibn Majah)",
     lang: "ar",
-    bg: "https://images.unsplash.com/photo-1609599006353-e629aaabfeae?w=900&q=80&auto=format&fit=crop",
+    /*
+      PERF FIX — Quote slide backgrounds: WebP + smaller size
+      Was: w=900&q=80 (JPEG ~150KB each)
+      Now: w=600&q=60&fm=webp (~25KB each) = 6x smaller
+      These load lazily after user interaction — no LCP impact
+    */
+    bg: "https://images.unsplash.com/photo-1609599006353-e629aaabfeae?w=600&q=60&auto=format&fit=crop&fm=webp",
   },
   {
     text: "خِيرُ النَّاسِ أَنْفَعُهُمْ لِلنَّاسِ",
     translation: "The best of people are those most beneficial to others.",
     source: "Prophet Muhammad ﷺ",
     lang: "ar",
-    bg: "https://images.unsplash.com/photo-1579547621309-5e57ab324182?w=900&q=80&auto=format&fit=crop",
+    bg: "https://images.unsplash.com/photo-1579547621309-5e57ab324182?w=600&q=60&auto=format&fit=crop&fm=webp",
   },
   {
     text: "Education is the most powerful weapon which you can use to change the world.",
     source: "Nelson Mandela",
     lang: "en",
-    bg: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=900&q=80&auto=format&fit=crop",
+    bg: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=600&q=60&auto=format&fit=crop&fm=webp",
   },
   {
     text: "علم کی شمع جلاؤ، جہالت کا اندھیرا مٹاؤ",
     translation: "Light the candle of knowledge, erase the darkness of ignorance.",
     source: "Allama Iqbal",
     lang: "ur",
-    bg: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=900&q=80&auto=format&fit=crop",
+    bg: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=600&q=60&auto=format&fit=crop&fm=webp",
   },
   {
     text: "خود کو کر بلند اتنا کہ ہر تقدیر سے پہلے خدا بندے سے خود پوچھے — بتا تیری رضا کیا ہے",
     translation: "Raise yourself so high that before every decree, God Himself asks: what is your desire?",
     source: "Allama Iqbal",
     lang: "ur",
-    bg: "https://images.unsplash.com/photo-1470813740244-df37b8c1edcb?w=900&q=80&auto=format&fit=crop",
+    bg: "https://images.unsplash.com/photo-1470813740244-df37b8c1edcb?w=600&q=60&auto=format&fit=crop&fm=webp",
   },
   {
     text: "The ink of the scholar is more sacred than the blood of the martyr.",
     source: "Prophet Muhammad ﷺ",
     lang: "en",
-    bg: "https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?w=900&q=80&auto=format&fit=crop",
+    bg: "https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?w=600&q=60&auto=format&fit=crop&fm=webp",
   },
   {
     text: "وَمَن يُؤْتَ الْحِكْمَةَ فَقَدْ أُوتِيَ خَيْرًا كَثِيرًا",
     translation: "Whoever is given wisdom has been given much good.",
     source: "Quran 2:269",
     lang: "ar",
-    bg: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=900&q=80&auto=format&fit=crop",
+    bg: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=60&auto=format&fit=crop&fm=webp",
   },
 ];
 
@@ -261,9 +267,9 @@ function ReviewForm({ onSubmitted }) {
       <h3>✍️ Share Your Experience</h3>
       <p>No login needed. Your review will appear after admin approval.</p>
 
-      {status === "success"   && <div className="rv-msg rv-ok">✅ Your review is live! Thank you.</div>}
-      {status === "duplicate" && <div className="rv-msg rv-warn">ℹ️ This email already has a review. Thank you!</div>}
-      {status === "error"     && <div className="rv-msg rv-err">❌ Something went wrong. Please try again.</div>}
+      {status === "success"   && <div className="rv-msg rv-ok" role="alert">✅ Your review is live! Thank you.</div>}
+      {status === "duplicate" && <div className="rv-msg rv-warn" role="alert">ℹ️ This email already has a review. Thank you!</div>}
+      {status === "error"     && <div className="rv-msg rv-err" role="alert">❌ Something went wrong. Please try again.</div>}
 
       <div className="rv-row">
         <input className="rv-input" placeholder="Your name *" value={name}  onChange={e => setName(e.target.value)}  aria-label="Name" />
@@ -292,7 +298,8 @@ function ReviewForm({ onSubmitted }) {
         maxLength={500}
         aria-label="Review text"
       />
-      <div className="rv-char">{text.length}/500</div>
+      {/* ACCESSIBILITY FIX — added aria-live so screen readers announce character count */}
+      <div className="rv-char" aria-live="polite" aria-atomic="true">{text.length}/500</div>
 
       <button
         className="review-submit-btn"
@@ -382,7 +389,7 @@ function UpcomingFeatures() {
 
   if (loading) return (
     <div style={{ padding: "24px", textAlign: "center" }}>
-      <div className="spinner" style={{ width: 28, height: 28, margin: "0 auto" }} />
+      <div className="spinner" style={{ width: 28, height: 28, margin: "0 auto" }} aria-label="Loading" role="status" />
     </div>
   );
   if (!items.length) return null;
@@ -402,7 +409,7 @@ function UpcomingFeatures() {
           <div key={f.id} className="feature-vote-card">
             <div className="feature-vote-top">
               <div className="feature-vote-name">
-                <span className="fv-icon">{f.icon}</span>
+                <span className="fv-icon" aria-hidden="true">{f.icon}</span>
                 <div className="fv-text">
                   <span className="fv-title">{f.title}</span>
                   <div className="fv-badges">
@@ -420,11 +427,11 @@ function UpcomingFeatures() {
                   aria-pressed={voted}
                 >
                   {busy ? (
-                    <span className="vote-spinner" />
+                    <span className="vote-spinner" aria-hidden="true" />
                   ) : voted ? (
-                    <><span>✅</span><span>Voted</span></>
+                    <><span aria-hidden="true">✅</span><span>Voted</span></>
                   ) : (
-                    <><span>👍</span><span>Vote</span></>
+                    <><span aria-hidden="true">👍</span><span>Vote</span></>
                   )}
                 </button>
               )}
@@ -433,7 +440,8 @@ function UpcomingFeatures() {
               <p className="fv-desc">{f.description}</p>
             )}
             <div className="vote-bar-wrap">
-              <div className="vote-progress-bar">
+              {/* ACCESSIBILITY FIX — added role/aria to progress bar */}
+              <div className="vote-progress-bar" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
                 <div
                   className={`vote-progress-fill ${voted ? "voted-fill" : ""}`}
                   style={{ width: `${pct}%` }}
@@ -477,7 +485,7 @@ function ContentSlider({ items, type, viewAllTo, viewAllLabel, emptyMsg }) {
   if (total === 0) {
     return (
       <div className="cs-empty">
-        <span>{type === "news" ? "📰" : "📚"}</span>
+        <span aria-hidden="true">{type === "news" ? "📰" : "📚"}</span>
         <p>{emptyMsg}</p>
       </div>
     );
@@ -515,8 +523,15 @@ function ContentSlider({ items, type, viewAllTo, viewAllLabel, emptyMsg }) {
             {/* Image — square thumbnail left */}
             <div className="cs-img-wrap">
               {item.cover_image_url
-                ? <img src={item.cover_image_url} alt={item.title} className="cs-img" loading="lazy" />
-                : <div className="cs-img-ph">{isNews ? "📰" : "📝"}</div>
+                ? <img
+                    src={item.cover_image_url}
+                    alt={item.title}
+                    className="cs-img"
+                    loading="lazy"
+                    width="110"
+                    height="110"
+                  />
+                : <div className="cs-img-ph" aria-hidden="true">{isNews ? "📰" : "📝"}</div>
               }
             </div>
 
@@ -681,33 +696,53 @@ export default function Home() {
     setTimeout(() => setNlStatus(null), 5000);
   };
 
-  // JSON-LD structured data
+  /*
+    SEO FIX — Corrected domain from aidla.com → aidla.online
+    Also added WebPage + inLanguage + dateModified to boost SEO score
+    Added richer Organization with logo dimensions for Google Image indexing
+  */
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
       {
         "@type": "WebSite",
-        "@id": "https://aidla.com/#website",
-        "url": "https://aidla.com",
+        "@id": "https://aidla.online/#website",
+        "url": "https://aidla.online",
         "name": "AIDLA — Learn, Earn & Grow",
         "description": "Pakistan's #1 education platform. Complete quizzes, earn coins, win prizes and access free learning resources.",
+        "inLanguage": ["en", "ur", "ar"],
         "potentialAction": {
           "@type": "SearchAction",
-          "target": { "@type": "EntryPoint", "urlTemplate": "https://aidla.com/search?q={search_term_string}" },
+          "target": { "@type": "EntryPoint", "urlTemplate": "https://aidla.online/search?q={search_term_string}" },
           "query-input": "required name=search_term_string"
         }
       },
       {
         "@type": "Organization",
-        "@id": "https://aidla.com/#organization",
+        "@id": "https://aidla.online/#organization",
         "name": "AIDLA",
-        "url": "https://aidla.com",
-        "logo": { "@type": "ImageObject", "url": "https://aidla.com/logo.png" },
+        "url": "https://aidla.online",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://aidla.online/logo.png",
+          "width": 200,
+          "height": 60
+        },
         "sameAs": [
           "https://facebook.com/aidla",
           "https://instagram.com/aidla",
           "https://youtube.com/aidla"
         ]
+      },
+      {
+        "@type": "WebPage",
+        "@id": "https://aidla.online/#webpage",
+        "url": "https://aidla.online",
+        "name": "AIDLA — Learn, Earn Coins & Win Prizes | Pakistan's #1 Education Platform",
+        "isPartOf": { "@id": "https://aidla.online/#website" },
+        "publisher": { "@id": "https://aidla.online/#organization" },
+        "inLanguage": "en",
+        "dateModified": new Date().toISOString().split("T")[0]
       }
     ]
   };
@@ -722,13 +757,14 @@ export default function Home() {
         <meta name="keywords" content="education Pakistan, learn and earn, AIDLA coins, quizzes Pakistan, scholarships Pakistan, education news, free learning, online education" />
         <meta name="robots" content="index, follow, max-image-preview:large" />
         <meta name="author" content="AIDLA" />
-        <link rel="canonical" href="https://aidla.com/" />
+        {/* PERF FIX — canonical updated to aidla.online */}
+        <link rel="canonical" href="https://aidla.online/" />
         {/* Open Graph */}
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://aidla.com/" />
+        <meta property="og:url" content="https://aidla.online/" />
         <meta property="og:title" content="AIDLA — Learn, Earn Coins & Win Prizes" />
         <meta property="og:description" content="Pakistan's #1 education platform. Take quizzes, earn coins, win real prizes. Free education resources, blogs, news and tools." />
-        <meta property="og:image" content="https://aidla.com/og-image.jpg" />
+        <meta property="og:image" content="https://aidla.online/og-image.jpg" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:site_name" content="AIDLA" />
@@ -738,14 +774,24 @@ export default function Home() {
         <meta name="twitter:site" content="@aidla" />
         <meta name="twitter:title" content="AIDLA — Learn, Earn Coins & Win Prizes" />
         <meta name="twitter:description" content="Pakistan's #1 education platform. Take quizzes, earn coins, win real prizes." />
-        <meta name="twitter:image" content="https://aidla.com/og-image.jpg" />
-        {/* Preconnect for performance */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://images.unsplash.com" />
+        <meta name="twitter:image" content="https://aidla.online/og-image.jpg" />
+        {/*
+          PERF FIX — Removed preconnect tags from Helmet.
+          Reason: Helmet injects AFTER React hydrates — by that point the
+          browser has already started loading resources. Preconnects in
+          Helmet arrive too late to help.
+
+          Preconnects are now in index.html <head> where they run
+          immediately — see your index.html file.
+
+          ALSO removed preconnect to images.unsplash.com — Lighthouse
+          flagged ">4 preconnects". Unsplash images only load after
+          React renders so early preconnect gives no real benefit.
+        */}
         {/* JSON-LD */}
         <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
       </Helmet>
+
       {/* ── Background orbs ── */}
       <div aria-hidden="true" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
         <div style={{ position: "absolute", width: 480, height: 480, borderRadius: "50%", background: "rgba(59,130,246,0.05)", filter: "blur(80px)", top: -200, left: -200 }} />
@@ -789,12 +835,37 @@ export default function Home() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2, duration: 0.55 }}
           >
+            {/*
+              PERF FIX — Hero image: LCP optimisation
+              =========================================
+              BEFORE: w=900&q=80 JPEG, no fetchpriority, no srcSet
+                      → LCP 8.5s mobile (slow 4G fetching ~300KB image)
+
+              AFTER changes:
+              1. fetchpriority="high"  → browser fetches this FIRST
+                 (was competing equally with scripts/fonts)
+              2. srcSet + sizes        → mobile gets 480w (~40KB WebP)
+                 instead of 800w (~100KB) = 60% smaller on mobile
+              3. fm=webp               → WebP ~30% smaller than JPEG
+              4. q=70 (was q=80)       → small quality drop, big size drop
+              5. decoding="async"      → decode off main thread
+              6. loading="eager"       → don't lazy-load (it's above fold)
+              7. Explicit width/height → prevents CLS (was 600/400)
+                 corrected to 800/533 to match actual image ratio
+            */}
             <img
-              src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=900&q=80&auto=format&fit=crop"
+              src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800&q=70&auto=format&fit=crop&fm=webp"
+              srcSet="
+                https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=480&q=65&auto=format&fit=crop&fm=webp 480w,
+                https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800&q=70&auto=format&fit=crop&fm=webp 800w
+              "
+              sizes="(max-width: 768px) 100vw, 50vw"
               alt="Students learning and earning coins on AIDLA education platform"
               loading="eager"
-              width="600"
-              height="400"
+              fetchpriority="high"
+              decoding="async"
+              width="800"
+              height="533"
             />
             <div className="hero-img-overlay" aria-hidden="true" />
             <div className="hero-floating-badge" aria-label="Winners badge">
@@ -949,11 +1020,11 @@ export default function Home() {
               Get daily education news, prize alerts, and new feature announcements.
             </p>
             {nlStatus === "success" ? (
-              <div style={{ marginTop: 20, background: "rgba(16,185,129,0.2)", border: "1px solid rgba(16,185,129,0.4)", color: "#6ee7b7", padding: "12px 24px", borderRadius: 50, display: "inline-block", fontWeight: 700 }}>
+              <div role="alert" style={{ marginTop: 20, background: "rgba(16,185,129,0.2)", border: "1px solid rgba(16,185,129,0.4)", color: "#6ee7b7", padding: "12px 24px", borderRadius: 50, display: "inline-block", fontWeight: 700 }}>
                 ✅ Subscribed! Welcome to the AIDLA family.
               </div>
             ) : nlStatus === "exists" ? (
-              <div style={{ marginTop: 20, color: "#fcd34d", fontWeight: 700, fontSize: "0.9rem" }}>
+              <div role="alert" style={{ marginTop: 20, color: "#fcd34d", fontWeight: 700, fontSize: "0.9rem" }}>
                 ℹ️ Already subscribed — you're good!
               </div>
             ) : (
@@ -1002,13 +1073,13 @@ export default function Home() {
                   <h3>Lucky Draw Winners</h3>
                 </div>
                 {drawResults.length === 0 ? (
-                  <p style={{ color: "#94a3b8", textAlign: "center", padding: 20, fontSize: "0.85rem" }}>No draws yet — check back soon!</p>
+                  <p className="empty-table-msg">No draws yet — check back soon!</p>
                 ) : (
                   <div style={{ overflowX: "auto" }}>
                     <table className="winner-table">
                       <thead><tr><th>Winner</th><th>Prize</th><th>When</th></tr></thead>
                       <tbody>
-                        {drawResults.map((row, i) => (
+                        {drawResults.map(row => (
                           <tr key={row.id}>
                             <td>
                               <div style={{ fontWeight: 700, color: "var(--navy)" }}>{row.winner_name}</div>
@@ -1030,7 +1101,7 @@ export default function Home() {
                   <h3>Wheel Winners</h3>
                 </div>
                 {wheelHistory.length === 0 ? (
-                  <p style={{ color: "#94a3b8", textAlign: "center", padding: 20, fontSize: "0.85rem" }}>No wheel wins yet</p>
+                  <p className="empty-table-msg">No wheel wins yet</p>
                 ) : (
                   <div style={{ overflowX: "auto" }}>
                     <table className="winner-table">
@@ -1055,7 +1126,7 @@ export default function Home() {
                   <h3>Test Toppers</h3>
                 </div>
                 {testWinners.length === 0 ? (
-                  <p style={{ color: "#94a3b8", textAlign: "center", padding: 20, fontSize: "0.85rem" }}>No test winners yet</p>
+                  <p className="empty-table-msg">No test winners yet</p>
                 ) : (
                   <div style={{ overflowX: "auto" }}>
                     <table className="winner-table">

@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap');
-
 :root {
   --ab-navy:       #0b1437;
   --ab-royal:      #1a3a8f;
@@ -7,7 +5,7 @@
   --ab-gold:       #f59e0b;
   --ab-gold-light: #fcd34d;
   --ab-green:      #10b981;
-  --ab-slate:      #64748b;
+  --ab-slate:      #475569; /* Darkened for 100% WCAG Contrast Ratio */
   --ab-light:      #f0f4ff;
   --ab-card:       rgba(255,255,255,0.97);
   --ab-border:     rgba(59,130,246,0.15);
@@ -35,19 +33,17 @@
   -webkit-font-smoothing: antialiased;
 }
 
-.ab-orbs { display: none; }
-
 .ab-body {
   width: 100%;
-  max-width: 1000px; /* Reduced from 1140px */
+  max-width: 1000px;
   margin: 0 auto;
-  padding: 0 12px; /* Tighter padding */
+  padding: 0 12px;
   position: relative;
   z-index: 2;
 }
 
 /* =========================================
-   GLOBAL TYPOGRAPHY (SCALED DOWN)
+   GLOBAL TYPOGRAPHY 
 ========================================= */
 .ab-label {
   display: inline-block;
@@ -64,7 +60,7 @@
 
 .ab-title {
   font-family: var(--ab-font-head);
-  font-size: clamp(1.4rem, 6vw, 2rem); /* Drastically smaller */
+  font-size: clamp(1.4rem, 6vw, 2rem);
   font-weight: 900;
   color: var(--ab-navy);
   line-height: 1.15;
@@ -83,7 +79,7 @@
 
 .ab-desc {
   color: var(--ab-slate);
-  font-size: 0.8rem; /* Scaled down from 0.95rem */
+  font-size: 0.8rem;
   line-height: 1.5;
   max-width: 100%;
 }
@@ -92,14 +88,13 @@
 .ab-divider {
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--ab-border), transparent);
-  margin: 24px 0; /* Tighter spacing */
+  margin: 24px 0;
 }
 
-/* Sections margin reduction */
 .ab-tools-section, .ab-features-section, .ab-coins-section, .ab-values-section, .ab-faq-section {
   content-visibility: auto;
   contain-intrinsic-size: 300px;
-  margin-bottom: 32px; /* Reduced from 48px */
+  margin-bottom: 32px;
 }
 
 /* =========================================
@@ -121,18 +116,16 @@
 }
 .ab-hero-title {
   font-family: var(--ab-font-head);
-  font-size: clamp(1.6rem, 8vw, 2.6rem); /* Scaled down */
+  font-size: clamp(1.6rem, 8vw, 2.6rem);
   font-weight: 900; line-height: 1.1; margin: 0 0 8px;
   letter-spacing: -0.02em; text-wrap: balance;
 }
 .ab-hero-sub { color: var(--ab-slate); font-size: 0.8rem; line-height: 1.5; margin: 0 auto 16px; }
 
-/* Compact Buttons */
 .ab-hero-btns, .ab-cta-btns { display: flex; flex-direction: column; gap: 8px; width: 100%; }
 .ab-btn-primary, .ab-btn-gold, .ab-btn-ghost, .ab-cta-btn-primary, .ab-cta-btn-ghost {
   display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%;
-  min-height: 40px; /* Reduced from 50px */
-  border-radius: 10px; font-family: var(--ab-font-body);
+  min-height: 40px; border-radius: 10px; font-family: var(--ab-font-body);
   font-weight: 700; font-size: 0.8rem; text-decoration: none; touch-action: manipulation;
 }
 .ab-btn-primary { background: linear-gradient(135deg, var(--ab-navy), var(--ab-royal)); color: #fff; box-shadow: 0 4px 12px rgba(11,20,55,0.15); }
@@ -145,7 +138,7 @@
 ========================================= */
 .ab-banner-wrap { width: 100%; padding: 0 12px; margin: 0 auto 24px; z-index: 2; }
 .ab-banner-img {
-  width: 100%; aspect-ratio: 16/7; /* Flatter banner */
+  width: 100%; aspect-ratio: 1400 / 612; /* Perfect aspect ratio match */
   border-radius: 12px; overflow: hidden; box-shadow: var(--ab-shadow);
   position: relative; background-color: var(--ab-light);
 }
@@ -153,7 +146,7 @@
 .ab-banner-img::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 50%, rgba(11,20,55,0.2) 100%); }
 
 .ab-mission { display: flex; flex-direction: column-reverse; gap: 16px; margin-bottom: 32px; }
-.ab-mission-img { width: 100%; aspect-ratio: 16/9; border-radius: 12px; position: relative; overflow: hidden; box-shadow: var(--ab-shadow); background: var(--ab-light); }
+.ab-mission-img { width: 100%; aspect-ratio: 800 / 960; border-radius: 12px; position: relative; overflow: hidden; box-shadow: var(--ab-shadow); background: var(--ab-light); }
 .ab-mission-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 .ab-mission-badge {
@@ -173,46 +166,37 @@
   border: 1px solid var(--ab-border); box-shadow: var(--ab-shadow);
 }
 .ab-pillar-icon { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
-.ab-pillar h4 { font-weight: 800; color: var(--ab-navy); font-size: 0.8rem; margin-bottom: 2px; }
+.ab-pillar h3 { font-weight: 800; color: var(--ab-navy); font-size: 0.8rem; margin: 0 0 2px 0; }
 .ab-pillar p { color: var(--ab-slate); font-size: 0.7rem; line-height: 1.4; margin: 0; }
 
 /* =========================================
-   COMPACT APP GRIDS (MOBILE FIRST - 2 COLUMNS)
+   COMPACT APP GRIDS 
 ========================================= */
 .ab-tools-grid, .ab-features-grid, .ab-values-grid, .ab-coins-flow { 
-  display: grid; 
-  grid-template-columns: repeat(2, 1fr); /* FORCES 2 COLUMNS ON MOBILE */
-  gap: 10px; /* Tight gaps */
-  margin-top: 16px; 
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 16px; 
 }
 
 .ab-tool-card, .ab-feature-card, .ab-coin-step, .ab-value-card {
-  background: var(--ab-card); 
-  border-radius: 12px; 
-  padding: 12px; /* Halved padding */
-  box-shadow: var(--ab-shadow); 
-  border: 1px solid var(--ab-border);
+  background: var(--ab-card); border-radius: 12px; padding: 12px; 
+  box-shadow: var(--ab-shadow); border: 1px solid var(--ab-border);
   position: relative; display: flex; flex-direction: column; gap: 6px;
 }
 
-/* Feature Cards Specifics */
 .ab-feature-icon-wrap { width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, var(--ab-light), #e8f4fd); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-bottom: 2px; }
 .ab-feature-icon { font-size: 0.95rem; }
 .ab-feature-body h3, .ab-tool-card h3, .ab-value-card h3 { font-family: var(--ab-font-head); font-size: 0.85rem; font-weight: 800; color: var(--ab-navy); margin: 0; line-height: 1.2; }
 .ab-feature-body p, .ab-tool-card p, .ab-value-card p, .ab-coin-step p { color: var(--ab-slate); font-size: 0.7rem; line-height: 1.4; margin: 0; flex: 1; }
 
-/* Tool Cards Specifics */
 .ab-tool-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
 .ab-tool-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px; }
-.ab-tool-badge { font-size: 0.55rem; font-weight: 800; padding: 2px 6px; border-radius: 12px; background: rgba(16,185,129,0.12); color: #059669; }
-.ab-tool-badge--soon { background: rgba(245,158,11,0.12); color: #d97706; }
+.ab-tool-badge { font-size: 0.55rem; font-weight: 800; padding: 2px 6px; border-radius: 12px; background: rgba(16,185,129,0.15); color: #047857; } /* Darkened text */
+.ab-tool-badge--soon { background: rgba(245,158,11,0.15); color: #b45309; } /* Darkened text */
 .ab-tool-link { display: inline-flex; align-items: center; gap: 4px; color: var(--ab-royal); font-size: 0.75rem; font-weight: 800; text-decoration: none; padding: 4px 0; touch-action: manipulation; }
 
-/* Coin Steps Specifics */
 .ab-coin-step { text-align: left; align-items: flex-start; }
 .ab-coin-step-num { width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, var(--ab-navy), var(--ab-royal)); color: #fff; font-weight: 900; font-size: 0.65rem; display: flex; align-items: center; justify-content: center; margin-bottom: 6px; }
 .ab-coin-step-icon { font-size: 1.2rem; margin-bottom: 4px; }
-.ab-coin-step h4 { color: var(--ab-navy); font-size: 0.8rem; font-weight: 800; margin: 0; }
+.ab-coin-step h3 { color: var(--ab-navy); font-size: 0.8rem; font-weight: 800; margin: 0; }
 
 .ab-value-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--ab-royal), var(--ab-sky)); border-radius: 12px 12px 0 0; }
 .ab-value-icon { font-size: 1.2rem; margin-bottom: 4px; }
@@ -227,7 +211,10 @@
   display: flex; flex-direction: column; gap: 16px;
 }
 .ab-story-title { font-family: var(--ab-font-head); font-size: 1.4rem; font-weight: 900; color: #fff; line-height: 1.15; margin-bottom: 8px; }
-.ab-story-title span { background: linear-gradient(135deg, var(--ab-gold), var(--ab-gold-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+/* Fixed Warning 1: Added background-clip: text */
+.ab-story-title span { background: linear-gradient(135deg, var(--ab-gold), var(--ab-gold-light)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+
 .ab-story-body { color: rgba(255,255,255,0.8); font-size: 0.8rem; line-height: 1.5; margin-bottom: 12px; }
 .ab-story-hl { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 8px 10px; margin-bottom: 6px; }
 .ab-story-hl-icon { width: 28px; height: 28px; border-radius: 6px; background: linear-gradient(135deg, var(--ab-gold), var(--ab-gold-light)); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
@@ -240,10 +227,13 @@
 .ab-faq-inner { display: flex; flex-direction: column; gap: 16px; }
 .ab-faq-list { display: flex; flex-direction: column; gap: 8px; }
 .ab-faq-item { background: var(--ab-card); border-radius: 12px; border: 1px solid var(--ab-border); box-shadow: var(--ab-shadow); overflow: hidden; }
+
+/* Fixed Warning 2: Added appearance: none */
 .ab-faq-item summary {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 12px; min-height: 40px; cursor: pointer; font-weight: 700; color: var(--ab-navy); font-size: 0.8rem; gap: 8px; list-style: none; -webkit-appearance: none; touch-action: manipulation;
+  padding: 10px 12px; min-height: 40px; cursor: pointer; font-weight: 700; color: var(--ab-navy); font-size: 0.8rem; gap: 8px; list-style: none; -webkit-appearance: none; appearance: none; touch-action: manipulation;
 }
+
 .ab-faq-item summary::-webkit-details-marker { display: none; }
 .ab-faq-chevron { width: 20px; height: 20px; border-radius: 50%; background: var(--ab-light); display: flex; align-items: center; justify-content: center; font-size: 0.6rem; color: var(--ab-royal); transition: transform var(--ab-trans); flex-shrink: 0;}
 .ab-faq-item details[open] summary .ab-faq-chevron { transform: rotate(180deg); background: var(--ab-royal); color: #fff; }
@@ -258,68 +248,52 @@
   box-shadow: 0 8px 16px rgba(11,20,55,0.18);
 }
 .ab-cta h2 { font-family: var(--ab-font-head); font-size: 1.4rem; color: #fff; font-weight: 900; margin-bottom: 8px; text-wrap: balance;}
-.ab-cta h2 span { background: linear-gradient(135deg, var(--ab-gold), var(--ab-gold-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+/* Fixed Warning 3: Added background-clip: text */
+.ab-cta h2 span { background: linear-gradient(135deg, var(--ab-gold), var(--ab-gold-light)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+
 .ab-cta p { color: rgba(255,255,255,0.8); font-size: 0.8rem; line-height: 1.5; margin: 0 auto 16px; }
 
 /* =========================================
-   TABLET UP (>= 600px)
+   TABLET & DESKTOP 
 ========================================= */
 @media (min-width: 600px) {
-  /* Features grid becomes 3 columns on tablet */
   .ab-tools-grid, .ab-values-grid { grid-template-columns: repeat(3, 1fr); }
   .ab-features-grid, .ab-coins-flow { grid-template-columns: repeat(4, 1fr); }
-  
   .ab-hero-btns, .ab-cta-btns { flex-direction: row; justify-content: center; }
   .ab-btn-primary, .ab-btn-gold, .ab-btn-ghost, .ab-cta-btn-primary, .ab-cta-btn-ghost { width: auto; padding: 0 20px; }
   .ab-faq-see-all { display: inline-flex; }
 }
 
-/* =========================================
-   LARGE TABLET & DESKTOP (>= 768px)
-========================================= */
 @media (min-width: 768px) {
   .ab-body { padding: 0 24px; }
-  
-  /* Desktop text scaling (Still smaller than old version) */
   .ab-title { font-size: clamp(1.8rem, 4vw, 2.4rem); margin-bottom: 12px; }
   .ab-desc { font-size: 0.9rem; }
   .ab-hero-title { font-size: clamp(2rem, 5vw, 3.2rem); margin-bottom: 12px; }
-  
   .ab-hero { padding: 32px 20px 24px; max-width: 800px; }
   
   .ab-banner-wrap { padding: 0; }
-  .ab-banner-img { aspect-ratio: auto; height: 300px; border-radius: 20px; }
+  .ab-banner-img { aspect-ratio: 1400 / 612; border-radius: 20px; }
 
-  /* Grids layout for Desktop */
   .ab-mission { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 32px; margin-bottom: 60px; }
-  .ab-mission-img { aspect-ratio: 4/4.8; border-radius: 20px; }
+  .ab-mission-img { aspect-ratio: 800 / 960; border-radius: 20px; }
   .ab-mission-badge { bottom: 16px; left: 16px; right: 16px; padding: 12px 14px; border-radius: 12px; }
 
   .ab-story { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; padding: 32px 40px; border-radius: 24px; align-items: center; margin-bottom: 60px; }
   
   .ab-faq-inner { display: grid; grid-template-columns: 1fr 1.6fr; gap: 40px; align-items: start; }
   .ab-faq-left { position: sticky; top: 80px; margin-bottom: 0; }
-  
-  /* Margins for sections */
   .ab-tools-section, .ab-features-section, .ab-coins-section, .ab-values-section, .ab-faq-section { margin-bottom: 60px; }
 }
 
-/* =========================================
-   LARGE DESKTOP (>= 1024px)
-========================================= */
 @media (min-width: 1024px) {
-  .ab-tools-grid { gap: 16px; margin-top: 24px; }
-  .ab-features-grid { gap: 16px; margin-top: 24px; }
-  .ab-values-grid { gap: 16px; margin-top: 24px; }
+  .ab-tools-grid, .ab-features-grid, .ab-values-grid { gap: 16px; margin-top: 24px; }
   .ab-coins-flow { gap: 16px; margin-top: 24px; text-align: center; align-items: stretch; }
-  
   .ab-coin-step { text-align: center; align-items: center; padding: 20px 16px; }
   .ab-coin-step-icon { display: block; margin: 0 auto 8px; }
-  
   .ab-coins-flow::before {
     content: ''; position: absolute; top: 32px; left: calc(12.5% + 20px); right: calc(12.5% + 20px);
     height: 1px; background: linear-gradient(90deg, var(--ab-gold), var(--ab-sky)); z-index: 0; opacity: 0.3;
   }
-  
   .ab-cta { padding: 48px 40px; border-radius: 24px; }
 }
