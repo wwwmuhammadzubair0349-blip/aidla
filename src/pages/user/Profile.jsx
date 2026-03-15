@@ -1,11 +1,13 @@
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "../../lib/supabase.js";
+import MyCertificates from './MyCertificates';
 
 export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [activeTab, setActiveTab] = useState('profile'); // 'profile' or 'certificates'
   const [msg, setMsg] = useState("");
 
   const [userId, setUserId] = useState(null);
@@ -502,11 +504,24 @@ export default function Profile() {
     );
   }
 
-  return (
+return (
     <div className="profile-wrapper">
       <style>{css}</style>
 
       <h2 className="page-title">My Profile</h2>
+
+      <div style={{ display:'flex', gap:8, marginBottom:20, background:'#f1f5f9', padding:5, borderRadius:12, width:'fit-content' }}>
+        <button onClick={() => setActiveTab('profile')} style={{ padding:'9px 22px', borderRadius:9, border:'none', cursor:'pointer', fontWeight:700, fontSize:13, fontFamily:'inherit', background: activeTab==='profile' ? '#1e3a8a' : 'transparent', color: activeTab==='profile' ? 'white' : '#64748b' }}>
+          👤 Profile
+        </button>
+        <button onClick={() => setActiveTab('certificates')} style={{ padding:'9px 22px', borderRadius:9, border:'none', cursor:'pointer', fontWeight:700, fontSize:13, fontFamily:'inherit', background: activeTab==='certificates' ? '#1e3a8a' : 'transparent', color: activeTab==='certificates' ? 'white' : '#64748b' }}>
+          🎓 Certificates
+        </button>
+      </div>
+
+      {activeTab === 'certificates' && <MyCertificates />}
+
+      {activeTab === 'profile' && <>
 
       {msg && (
         <div
@@ -751,6 +766,8 @@ export default function Profile() {
 
         </form>
       </div>
+</>}
+
     </div>
   );
 }

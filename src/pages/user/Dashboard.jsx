@@ -200,8 +200,8 @@ export default function Dashboard() {
           isSoon={false} 
         />
         <CardLink 
-          title="Learning" 
-          subtitle="Guides & learning resources" 
+          title="AI Career Coach" 
+          subtitle="Your Personalized AI Career Advisor" 
           to="/user/learning" 
           icon="📖" 
           isSoon={false} 

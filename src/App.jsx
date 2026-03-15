@@ -23,9 +23,11 @@ const Terms            = lazy(() => import("./pages/terms.jsx"));
 const FAQs             = lazy(() => import("./pages/faqs.jsx"));
 const FAQPage          = lazy(() => import("./pages/FAQPage.jsx"));
 const EmailConfirmed   = lazy(() => import("./pages/EmailConfirmed")); // FIX: was static import
+const VerifyCertificate = lazy(() => import("./pages/VerifyCertificate.jsx"));
 
 // Footer stays static — it's used in UserLayout/AdminLayout too, tiny file
 import Footer from "./pages/components/footer.jsx";
+import CoursePlayer from "./pages/user/CoursePlayer.jsx";
 
 // Tools
 const ToolsHome          = lazy(() => import("./pages/tools/toolshome.jsx"));
@@ -60,6 +62,8 @@ const Shop               = lazy(() => import("./pages/user/Shop.jsx"));
 const Bot                = lazy(() => import("./pages/user/Bot.jsx"));
 const Social             = lazy(() => import("./pages/user/Social.jsx"));
 const Test               = lazy(() => import("./pages/user/test.jsx"));
+const Certificate        = lazy(() => import("./pages/user/Certificate.jsx"));
+const courseplayer       = lazy(() => import("./pages/user/CoursePlayer.jsx"));
 
 // Wallet sub pages
 const WalletOverview     = lazy(() => import("./pages/user/wallet/Overview.jsx"));
@@ -470,6 +474,7 @@ export default function App() {
         <Route path="/tools/career/cv-maker"           element={<CvMaker />} />
         <Route path="/tools/career/cover-letter-maker" element={<CoverLetterMaker />} />
         <Route path="/email-confirmed"                 element={<EmailConfirmed />} />
+        <Route path="/verify/:certId" element={<VerifyCertificate />} />
 
         {/* Auth */}
         <Route path="/signup"                          element={<Signup />} />
@@ -494,6 +499,8 @@ export default function App() {
           <Route path="profile"                        element={<UserProfile />} />
           <Route path="learning"                       element={<Learning />} />
           <Route path="courses"                        element={<Courses />} />
+          <Route path="course/:id"                      element={<CoursePlayer />} />
+          <Route path="certificate/:certId" element={<Certificate />} />
           <Route path="mining"                         element={<Mining />} />
           <Route path="lucky-draw"                     element={<LuckyDraw />} />
           <Route path="lucky-wheel"                    element={<LuckyWheel />} />
