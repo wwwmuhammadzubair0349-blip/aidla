@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState, useRef, useCallback } from "react";
+import { useEffect, useMemo, useState, useRef, useCallback, lazy, Suspense } from "react";
 import { supabase } from "../../lib/supabase";
 import "./adminblogs.css"; // <-- CSS imported
+const SocialAutoPost = lazy(() => import("./SocialAutoPost.jsx"));
 
 function slugify(str) {
   const latin = String(str || "")
@@ -734,7 +735,7 @@ export default function Blogs() {
       p_meta_title: metaTitle.trim(),
       p_meta_description: metaDescription.trim(),
       p_canonical_url: "",
-      p_tags: tags.split(",").map(t=>t.trim().toLowerCase()).filter(Boolean),
+      p_tags: (typeof tags === "string" ? tags : (tags || []).join(", ")).split(",").map(t => t.trim().toLowerCase()).filter(Boolean),
       p_scheduled_at: null,
     };
     const { data, error } = await supabase.rpc("blogs_admin_upsert_post", payload);
@@ -774,7 +775,7 @@ export default function Blogs() {
       p_meta_title: metaTitle.trim(),
       p_meta_description: metaDescription.trim(),
       p_canonical_url: canonicalUrl.trim(),
-      p_tags: tags.split(",").map(t=>t.trim().toLowerCase()).filter(Boolean),
+      p_tags: (typeof tags === "string" ? tags : (tags || []).join(", ")).split(",").map(t => t.trim().toLowerCase()).filter(Boolean),
       p_scheduled_at: scheduledIso,
     };
     const { data, error } = await supabase.rpc("blogs_admin_upsert_post", payload);
@@ -1046,6 +1047,7 @@ export default function Blogs() {
               <TabBtn id="content" label="📝 Content"/>
               <TabBtn id="seo"     label="🔍 SEO"/>
               <TabBtn id="cover"   label="🖼 Cover"/>
+<TabBtn id="social"  label="📣 Social"/>
             </div>
 
             {/* ── Content Tab ── */}
@@ -1117,6 +1119,22 @@ export default function Blogs() {
                     </div>
                   )}
                 </div>
+              </div>
+            )}
+{/* ── Social Tab ── */}
+            {activeTab === "social" && (
+              <div>
+                <Suspense fallback={<div style={{color:"#94a3b8",padding:20}}>Loading…</div>}>
+                  <SocialAutoPost post={{
+                    id:              editing?.id,
+                    title:           title,
+                    slug:            slug,
+                    excerpt:         excerpt,
+                    cover_image_url: coverUrl,
+                    tags:            tags.split(",").map(t => t.trim().toLowerCase()).filter(Boolean),
+                    status:          status,
+                  }}/>
+                </Suspense>
               </div>
             )}
           </div>

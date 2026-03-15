@@ -90,6 +90,7 @@ const AdminHomepage      = lazy(() => import("./pages/admin/Homepage.jsx"));
 const AdminHome          = lazy(() => import("./pages/admin/Adminhome.jsx"));
 const AdminFAQs          = lazy(() => import("./pages/admin/adminfaqs.jsx"));
 const FeedAdmin          = lazy(() => import("./pages/admin/FeedAdmin.jsx"));
+const SocialAutoPost     = lazy(() => import("./pages/admin/SocialAutoPost.jsx"));
 
 
 // ─────────────────────────────────────────
@@ -529,6 +530,7 @@ export default function App() {
           <Route path="AdminHome"                      element={<AdminHome />} />
           <Route path="AdminFAQs"                      element={<AdminFAQs />} />
           <Route path="FeedAdmin"                      element={<FeedAdmin />} />
+          <Route path="SocialAutoPost"                 element={<SocialAutoPost />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
