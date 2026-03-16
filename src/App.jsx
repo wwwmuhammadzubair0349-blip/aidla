@@ -24,6 +24,9 @@ const FAQs             = lazy(() => import("./pages/faqs.jsx"));
 const FAQPage          = lazy(() => import("./pages/FAQPage.jsx"));
 const EmailConfirmed   = lazy(() => import("./pages/EmailConfirmed")); // FIX: was static import
 const VerifyCertificate = lazy(() => import("./pages/VerifyCertificate.jsx"));
+const ResourcesPage = lazy(() => import("./pages/ResourcesPage.jsx"));
+const ResourceDetailPage = lazy(() => import("./pages/ResourceDetailPage.jsx"));
+const AutoTubePublic = lazy(() => import("./pages/AutoTubePublic.jsx"));
 
 // Footer stays static — it's used in UserLayout/AdminLayout too, tiny file
 import Footer from "./pages/components/footer.jsx";
@@ -64,7 +67,8 @@ const Social             = lazy(() => import("./pages/user/Social.jsx"));
 const Test               = lazy(() => import("./pages/user/test.jsx"));
 const Certificate        = lazy(() => import("./pages/user/Certificate.jsx"));
 const courseplayer       = lazy(() => import("./pages/user/CoursePlayer.jsx"));
-
+const UserResources = lazy(() => import("./pages/user/UserResources.jsx"));
+const AutoTubeStudio = lazy(() => import("./pages/user/AutoTubeStudio.jsx"));
 // Wallet sub pages
 const WalletOverview     = lazy(() => import("./pages/user/wallet/Overview.jsx"));
 const WalletTransactions = lazy(() => import("./pages/user/wallet/Transactions.jsx"));
@@ -91,6 +95,7 @@ const AdminHome          = lazy(() => import("./pages/admin/Adminhome.jsx"));
 const AdminFAQs          = lazy(() => import("./pages/admin/adminfaqs.jsx"));
 const FeedAdmin          = lazy(() => import("./pages/admin/FeedAdmin.jsx"));
 const SocialAutoPost     = lazy(() => import("./pages/admin/SocialAutoPost.jsx"));
+const AdminStudyMaterials = lazy(() => import("./pages/admin/AdminStudyMaterials.jsx"));
 
 
 // ─────────────────────────────────────────
@@ -248,6 +253,7 @@ const NAV_LINKS = [
   { to: "/news",        label: "News",        icon: "📰" },
   { to: "/faqs",        label: "FAQs",        icon: "❓" },
   { to: "/tools",       label: "Tools",       icon: "🧰" },
+  { to: "/resources",   label: "Resources",   icon: "📚" },
   { to: "/leaderboard", label: "Leaderboard", icon: "🏆" },
 ];
 
@@ -476,6 +482,9 @@ export default function App() {
         <Route path="/tools/career/cover-letter-maker" element={<CoverLetterMaker />} />
         <Route path="/email-confirmed"                 element={<EmailConfirmed />} />
         <Route path="/verify/:certId" element={<VerifyCertificate />} />
+        <Route path="/resources" element={<ResourcesPage />} />
+        <Route path="/resources/:slug" element={<ResourceDetailPage />} />
+        <Route path="/autotube" element={<AutoTubePublic />} />
 
         {/* Auth */}
         <Route path="/signup"                          element={<Signup />} />
@@ -508,6 +517,8 @@ export default function App() {
           <Route path="shop"                           element={<Shop />} />
           <Route path="bot"                            element={<Bot />} />
           <Route path="social"                         element={<Social />} />
+          <Route path="UserResources" element={<UserResources />} />
+          <Route path="autotubestudio"  element={<AutoTubeStudio />} />
         </Route>
 
         {/* Admin area */}
@@ -531,6 +542,7 @@ export default function App() {
           <Route path="AdminFAQs"                      element={<AdminFAQs />} />
           <Route path="FeedAdmin"                      element={<FeedAdmin />} />
           <Route path="SocialAutoPost"                 element={<SocialAutoPost />} />
+          <Route path="/admin/AdminStudyMaterials" element={<AdminStudyMaterials />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

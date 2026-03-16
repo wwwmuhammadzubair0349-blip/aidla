@@ -241,6 +241,20 @@ export default function Dashboard() {
           icon="🛍️" 
           isSoon={false} 
         />
+        <CardLink
+        title="Resources"
+        subtitle="Access and download all your study materials, notes, past papers and resources"
+        to="/user/UserResources"
+        icon="📚"
+        isSoon={false}
+        />
+        <CardLink
+        title="AutoTube"
+        subtitle="Your Full Youtube automation Assistance"
+        to="/user/AutoTubeStudio"
+        icon="🎬"
+        isSoon={false}
+        />
         <CardLink 
           title="AIDLA Bot" 
           subtitle="Ask anything about AIDLA" 

@@ -19,7 +19,7 @@ function toDate(ts) {
 }
 
 async function fetchTable({ env, table, select, filters = [] }) {
-  const supabaseUrl = env.SUPABASE_URL;
+  const supabaseUrl  = env.SUPABASE_URL;
   const supabaseAnon = env.SUPABASE_ANON_KEY;
 
   const params = new URLSearchParams();
@@ -49,7 +49,7 @@ export async function onRequestGet(context) {
     const { env } = context;
     const base = env.SITE_URL || "https://aidla.online";
 
-    const [blogs, news, faqs] = await Promise.all([
+    const [blogs, news, faqs, studyMaterials] = await Promise.all([
       fetchTable({
         env,
         table: "blogs_posts",
@@ -77,56 +77,79 @@ export async function onRequestGet(context) {
           ["is_visible", "eq.true"],
         ],
       }),
+      fetchTable({
+        env,
+        table: "study_materials",
+        select: "slug,updated_at,created_at",
+        filters: [
+          ["status", "eq.published"],
+          ["deleted_at", "is.null"],
+        ],
+      }),
     ]);
 
     const staticPages = [
-      { loc: `${base}/`, changefreq: "daily", priority: 1.0 },
-      { loc: `${base}/faqs`, changefreq: "daily", priority: 0.95 },
-      { loc: `${base}/blogs`, changefreq: "daily", priority: 0.9 },
-      { loc: `${base}/news`, changefreq: "daily", priority: 0.9 },
-      { loc: `${base}/leaderboard`, changefreq: "daily", priority: 0.7 },
-      { loc: `${base}/tools`, changefreq: "weekly", priority: 0.85 },
-
-      { loc: `${base}/tools/pdf/word-to-pdf`, changefreq: "monthly", priority: 0.75 },
-      { loc: `${base}/tools/pdf/image-to-pdf`, changefreq: "monthly", priority: 0.75 },
-      { loc: `${base}/tools/image/jpg-to-png`, changefreq: "monthly", priority: 0.7 },
-      { loc: `${base}/tools/career/cv-maker`, changefreq: "monthly", priority: 0.8 },
-      { loc: `${base}/tools/career/cover-letter-maker`, changefreq: "monthly", priority: 0.8 },
-
-      { loc: `${base}/contact`, changefreq: "monthly", priority: 0.6 },
-      { loc: `${base}/privacy-policy`, changefreq: "yearly", priority: 0.3 },
-      { loc: `${base}/terms`, changefreq: "yearly", priority: 0.3 },
+      { loc: `${base}/`,                                    changefreq: "daily",   priority: 1.0  },
+      { loc: `${base}/faqs`,                                changefreq: "daily",   priority: 0.95 },
+      { loc: `${base}/blogs`,                               changefreq: "daily",   priority: 0.9  },
+      { loc: `${base}/news`,                                changefreq: "daily",   priority: 0.9  },
+      { loc: `${base}/resources`,                           changefreq: "daily",   priority: 0.9  },
+      { loc: `${base}/autotube`,                            changefreq: "weekly",  priority: 0.85 },
+      { loc: `${base}/leaderboard`,                         changefreq: "daily",   priority: 0.7  },
+      { loc: `${base}/tools`,                               changefreq: "weekly",  priority: 0.85 },
+      { loc: `${base}/tools/pdf/word-to-pdf`,               changefreq: "monthly", priority: 0.75 },
+      { loc: `${base}/tools/pdf/image-to-pdf`,              changefreq: "monthly", priority: 0.75 },
+      { loc: `${base}/tools/image/jpg-to-png`,              changefreq: "monthly", priority: 0.7  },
+      { loc: `${base}/tools/career/cv-maker`,               changefreq: "monthly", priority: 0.8  },
+      { loc: `${base}/tools/career/cover-letter-maker`,     changefreq: "monthly", priority: 0.8  },
+      { loc: `${base}/contact`,                             changefreq: "monthly", priority: 0.6  },
+      { loc: `${base}/privacy-policy`,                      changefreq: "yearly",  priority: 0.3  },
+      { loc: `${base}/terms`,                               changefreq: "yearly",  priority: 0.3  },
     ];
 
     let urls = staticPages.map(urlEntry).join("\n");
 
+    // ── Blogs ─────────────────────────────────────────────
     for (const b of blogs || []) {
       if (!b.slug) continue;
       urls += "\n" + urlEntry({
-        loc: `${base}/blogs/${b.slug}`,
-        lastmod: toDate(b.updated_at || b.created_at),
+        loc:        `${base}/blogs/${b.slug}`,
+        lastmod:    toDate(b.updated_at || b.created_at),
         changefreq: "weekly",
-        priority: 0.8,
+        priority:   0.8,
       });
     }
 
+    // ── News ──────────────────────────────────────────────
     for (const n of news || []) {
       if (!n.slug) continue;
       urls += "\n" + urlEntry({
-        loc: `${base}/news/${n.slug}`,
-        lastmod: toDate(n.updated_at || n.created_at),
+        loc:        `${base}/news/${n.slug}`,
+        lastmod:    toDate(n.updated_at || n.created_at),
         changefreq: "daily",
-        priority: 0.8,
+        priority:   0.8,
       });
     }
 
+    // ── FAQs ──────────────────────────────────────────────
     for (const f of faqs || []) {
       if (!f.slug) continue;
       urls += "\n" + urlEntry({
-        loc: `${base}/faqs/${f.slug}`,
-        lastmod: toDate(f.updated_at || f.created_at),
+        loc:        `${base}/faqs/${f.slug}`,
+        lastmod:    toDate(f.updated_at || f.created_at),
         changefreq: "weekly",
-        priority: 0.75,
+        priority:   0.75,
+      });
+    }
+
+    // ── Study Materials (Resources) ───────────────────────
+    for (const m of studyMaterials || []) {
+      if (!m.slug) continue;
+      urls += "\n" + urlEntry({
+        loc:        `${base}/resources/${m.slug}`,
+        lastmod:    toDate(m.updated_at || m.created_at),
+        changefreq: "weekly",
+        priority:   0.85,
       });
     }
 

@@ -279,6 +279,7 @@ export default function AdminLayout() {
             <Tab to="/admin/AdminHome" label="AdminHome" />
             <Tab to="/admin/adminfaqs" label="FAQs" />
             <Tab to="/admin/FeedAdmin" label="Feed Admin" />
+            <Tab to="/admin/AdminStudyMaterials" label="Study Materials" />
           </nav>
         </div>
       </header>
