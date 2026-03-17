@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Helmet } from "react-helmet";
+import { Helmet } from "react-helmet-async";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { supabase } from "../lib/supabase";
@@ -706,25 +706,25 @@ export default function Home() {
     "@graph": [
       {
         "@type": "WebSite",
-        "@id": "https://aidla.online/#website",
-        "url": "https://aidla.online",
+        "@id": "https://www.aidla.online/#website",
+        "url": "https://www.aidla.online",
         "name": "AIDLA — Learn, Earn & Grow",
         "description": "Pakistan's #1 education platform. Complete quizzes, earn coins, win prizes and access free learning resources.",
         "inLanguage": ["en", "ur", "ar"],
         "potentialAction": {
           "@type": "SearchAction",
-          "target": { "@type": "EntryPoint", "urlTemplate": "https://aidla.online/search?q={search_term_string}" },
+          "target": { "@type": "EntryPoint", "urlTemplate": "https://www.aidla.online/search?q={search_term_string}" },
           "query-input": "required name=search_term_string"
         }
       },
       {
         "@type": "Organization",
-        "@id": "https://aidla.online/#organization",
+        "@id": "https://www.aidla.online/#organization",
         "name": "AIDLA",
-        "url": "https://aidla.online",
+        "url": "https://www.aidla.online",
         "logo": {
           "@type": "ImageObject",
-          "url": "https://aidla.online/logo.png",
+          "url": "https://www.aidla.online/logo.png",
           "width": 200,
           "height": 60
         },
@@ -736,11 +736,11 @@ export default function Home() {
       },
       {
         "@type": "WebPage",
-        "@id": "https://aidla.online/#webpage",
-        "url": "https://aidla.online",
+        "@id": "https://www.aidla.online/#webpage",
+        "url": "https://www.aidla.online",
         "name": "AIDLA — Learn, Earn Coins & Win Prizes | Pakistan's #1 Education Platform",
-        "isPartOf": { "@id": "https://aidla.online/#website" },
-        "publisher": { "@id": "https://aidla.online/#organization" },
+        "isPartOf": { "@id": "https://www.aidla.online/#website" },
+        "publisher": { "@id": "https://www.aidla.online/#organization" },
         "inLanguage": "en",
         "dateModified": new Date().toISOString().split("T")[0]
       }
@@ -750,47 +750,49 @@ export default function Home() {
   return (
     <div className="page-root">
       {/* ── SEO Meta Tags ── */}
-      <Helmet>
-        <html lang="en" />
-        <title>AIDLA — Learn, Earn Coins & Win Prizes | Pakistan's #1 Education Platform</title>
-        <meta name="description" content="Join AIDLA — Pakistan's top education platform. Take quizzes, earn AIDLA Coins, spin the lucky wheel, win real prizes and access free blogs, news and education resources." />
-        <meta name="keywords" content="education Pakistan, learn and earn, AIDLA coins, quizzes Pakistan, scholarships Pakistan, education news, free learning, online education" />
-        <meta name="robots" content="index, follow, max-image-preview:large" />
-        <meta name="author" content="AIDLA" />
-        {/* PERF FIX — canonical updated to aidla.online */}
-        <link rel="canonical" href="https://aidla.online/" />
-        {/* Open Graph */}
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://aidla.online/" />
-        <meta property="og:title" content="AIDLA — Learn, Earn Coins & Win Prizes" />
-        <meta property="og:description" content="Pakistan's #1 education platform. Take quizzes, earn coins, win real prizes. Free education resources, blogs, news and tools." />
-        <meta property="og:image" content="https://aidla.online/og-image.jpg" />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:site_name" content="AIDLA" />
-        <meta property="og:locale" content="en_PK" />
-        {/* Twitter Card */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:site" content="@aidla" />
-        <meta name="twitter:title" content="AIDLA — Learn, Earn Coins & Win Prizes" />
-        <meta name="twitter:description" content="Pakistan's #1 education platform. Take quizzes, earn coins, win real prizes." />
-        <meta name="twitter:image" content="https://aidla.online/og-image.jpg" />
-        {/*
-          PERF FIX — Removed preconnect tags from Helmet.
-          Reason: Helmet injects AFTER React hydrates — by that point the
-          browser has already started loading resources. Preconnects in
-          Helmet arrive too late to help.
+     <Helmet>
+  <html lang="en" />
+  <title>AIDLA – Free Learning, Tools, Courses and Rewards</title>
 
-          Preconnects are now in index.html <head> where they run
-          immediately — see your index.html file.
+  <meta
+    name="description"
+    content="AIDLA is a free learning platform with courses, quizzes, blogs, education news, useful tools, rewards, and student resources."
+  />
+  <meta
+    name="keywords"
+    content="AIDLA, free learning platform, online courses, quizzes, education news, student tools, blogs, rewards, learning resources"
+  />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <meta name="author" content="AIDLA" />
 
-          ALSO removed preconnect to images.unsplash.com — Lighthouse
-          flagged ">4 preconnects". Unsplash images only load after
-          React renders so early preconnect gives no real benefit.
-        */}
-        {/* JSON-LD */}
-        <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
-      </Helmet>
+  <link rel="canonical" href="https://www.aidla.online/" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="AIDLA" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:url" content="https://www.aidla.online/" />
+  <meta property="og:title" content="AIDLA – Free Learning, Tools, Courses and Rewards" />
+  <meta
+    property="og:description"
+    content="Explore AIDLA for free courses, quizzes, blogs, education news, AI tools, and student resources."
+  />
+  <meta property="og:image" content="https://www.aidla.online/og-home.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="AIDLA homepage preview" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@AIDLA" />
+  <meta name="twitter:title" content="AIDLA – Free Learning, Tools, Courses and Rewards" />
+  <meta
+    name="twitter:description"
+    content="Explore AIDLA for free courses, quizzes, blogs, education news, AI tools, and student resources."
+  />
+  <meta name="twitter:image" content="https://www.aidla.online/og-home.jpg" />
+  <meta name="twitter:image:alt" content="AIDLA homepage preview" />
+
+  <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
+</Helmet>
 
       {/* ── Background orbs ── */}
       <div aria-hidden="true" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>

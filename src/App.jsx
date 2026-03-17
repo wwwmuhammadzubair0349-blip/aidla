@@ -27,6 +27,8 @@ const VerifyCertificate = lazy(() => import("./pages/VerifyCertificate.jsx"));
 const ResourcesPage = lazy(() => import("./pages/ResourcesPage.jsx"));
 const ResourceDetailPage = lazy(() => import("./pages/ResourceDetailPage.jsx"));
 const AutoTubePublic = lazy(() => import("./pages/AutoTubePublic.jsx"));
+const PDFCompressor    = lazy(() => import("./pages/tools/pdf/PDFCompressor.jsx"));
+const BackgroundRemover= lazy(() => import("./pages/tools/image/BackgroundRemover.jsx"));
 
 // Footer stays static — it's used in UserLayout/AdminLayout too, tiny file
 import Footer from "./pages/components/footer.jsx";
@@ -39,6 +41,15 @@ const ImageToPdf         = lazy(() => import("./pages/tools/pdf/ImageToPdf"));
 const JpgToPng           = lazy(() => import("./pages/tools/image/JpgToPng"));
 const CvMaker            = lazy(() => import("./pages/tools/career/CvMaker"));
 const CoverLetterMaker   = lazy(() => import("./pages/tools/career/CoverLetterMaker"));
+const ResultsHub = lazy(() => import("./pages/tools/ResultsHub.jsx"));
+const BoardPage  = lazy(() => import("./pages/tools/BoardPage.jsx"));
+const QRCodeGenerator  = lazy(() => import("./pages/tools/utility/QRCodeGenerator.jsx"));
+const AgeCalculator    = lazy(() => import("./pages/tools/utility/AgeCalculator.jsx"));
+const WordCounter      = lazy(() => import("./pages/tools/utility/WordCounter.jsx"));
+const CGPACalculator   = lazy(() => import("./pages/tools/education/CGPACalculator.jsx"));
+const MDCATCalculator  = lazy(() => import("./pages/tools/education/MDCATCalculator.jsx"));
+const AISummarizer     = lazy(() => import("./pages/tools/ai/AISummarizer.jsx"));
+const AIParaphraser    = lazy(() => import("./pages/tools/ai/AIParaphraser.jsx"));
 
 // Auth
 const Login              = lazy(() => import("./pages/Login.jsx"));
@@ -485,6 +496,17 @@ export default function App() {
         <Route path="/resources" element={<ResourcesPage />} />
         <Route path="/resources/:slug" element={<ResourceDetailPage />} />
         <Route path="/autotube" element={<AutoTubePublic />} />
+        <Route path="/tools/results"     element={<ResultsHub />} />
+        <Route path="/tools/results/:boardId" element={<BoardPage />} />
+        <Route path="/tools/utility/qr-code-generator"       element={<QRCodeGenerator />} />
+<Route path="/tools/utility/age-calculator"           element={<AgeCalculator />} />
+<Route path="/tools/utility/word-counter"             element={<WordCounter />} />
+<Route path="/tools/education/cgpa-calculator"        element={<CGPACalculator />} />
+<Route path="/tools/education/mdcat-ecat-calculator"  element={<MDCATCalculator />} />
+<Route path="/tools/ai/summarizer"                    element={<AISummarizer />} />
+<Route path="/tools/ai/paraphraser"                   element={<AIParaphraser />} />
+<Route path="/tools/pdf/pdf-compressor"          element={<PDFCompressor />} />
+<Route path="/tools/image/background-remover"     element={<BackgroundRemover />} />
 
         {/* Auth */}
         <Route path="/signup"                          element={<Signup />} />
@@ -542,7 +564,7 @@ export default function App() {
           <Route path="AdminFAQs"                      element={<AdminFAQs />} />
           <Route path="FeedAdmin"                      element={<FeedAdmin />} />
           <Route path="SocialAutoPost"                 element={<SocialAutoPost />} />
-          <Route path="/admin/AdminStudyMaterials" element={<AdminStudyMaterials />} />
+          <Route path="AdminStudyMaterials" element={<AdminStudyMaterials />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import { Helmet } from "react-helmet";
+import { Helmet } from "react-helmet-async";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import Footer from "../pages/components/footer";
 import "./faqs.css";
 
 /* ─────────────────────── Constants ─────────────────────── */
-const SITE_URL = "https://aidla.online";
+const SITE_URL = "https://www.aidla.online";
 
 const CATEGORIES = [
   { id: "all",             label: "All",              icon: "◎",  desc: "Browse all frequently asked questions" },
@@ -441,7 +441,7 @@ export default function FAQs() {
         <meta property="og:url"         content={`${SITE_URL}/faqs`} />
         <meta property="og:title"       content={pageTitle} />
         <meta property="og:description" content={pageDesc} />
-        <meta property="og:image"       content={`${SITE_URL}/og-image.jpg`} />
+        <meta property="og:image" content={`${SITE_URL}/og-home.jpg`} />
         <meta property="og:site_name"   content="AIDLA" />
         <meta property="og:locale"      content="en_PK" />
 
@@ -449,7 +449,7 @@ export default function FAQs() {
         <meta name="twitter:card"        content="summary_large_image" />
         <meta name="twitter:title"       content={pageTitle} />
         <meta name="twitter:description" content={pageDesc} />
-        <meta name="twitter:image"       content={`${SITE_URL}/og-image.jpg`} />
+        <meta name="twitter:image" content={`${SITE_URL}/og-home.jpg`} />
 
         {/* Indexing */}
         <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />

@@ -158,7 +158,7 @@ export default function Signup() {
         email,
         password,
         options: {
-          emailRedirectTo: "https://aidla.online/email-confirmed",
+          emailRedirectTo: "https://www.aidla.online/email-confirmed",
           data: {
             full_name: fullName,
           },

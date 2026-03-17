@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import { Helmet } from "react-helmet";
+import { Helmet } from "react-helmet-async";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import Footer from "../pages/components/footer";
 import "./FAQPage.css";
 
 /* ─────────────────────── Constants ─────────────────────── */
-const SITE_URL = "https://aidla.online";
+const SITE_URL = "https://www.aidla.online";
 
 const CATEGORIES = [
   { id: "general",         label: "General",         icon: "🌐" },
@@ -339,14 +339,14 @@ export default function FAQPage() {
         <meta property="og:url"         content={canonicalUrl} />
         <meta property="og:title"       content={pageTitle} />
         <meta property="og:description" content={pageDesc} />
-        <meta property="og:image"       content={`${SITE_URL}/og-image.jpg`} />
+        <meta property="og:image" content={`${SITE_URL}/og-home.jpg`} />
         <meta property="og:site_name"   content="AIDLA" />
 
         {/* Twitter */}
         <meta name="twitter:card"        content="summary_large_image" />
         <meta name="twitter:title"       content={pageTitle} />
         <meta name="twitter:description" content={pageDesc} />
-        <meta name="twitter:image"       content={`${SITE_URL}/og-image.jpg`} />
+        <meta name="twitter:image" content={`${SITE_URL}/og-home.jpg`} />
 
         {/* JSON-LD — QAPage (NOT FAQPage) for individual FAQ pages */}
         <script type="application/ld+json">{JSON.stringify(buildQASchema(faq))}</script>

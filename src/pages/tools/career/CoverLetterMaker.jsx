@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Helmet } from "react-helmet"; // or "react-helmet-async"
+import { Helmet } from "react-helmet-async"; // or "react-helmet-async"
 import { supabase } from "../../../lib/supabase";
 import Footer from "../../components/footer"; // adjust path if needed
 import "./cover-letter.css";
@@ -478,7 +478,7 @@ export default function CoverLetterMaker() {
   ].filter(Boolean).length;
 
   // Canonical URL – adjust as needed
-  const canonicalUrl = "https://aidla.online/tools/cover-letter";
+  const canonicalUrl = "https://www.aidla.online/tools/career/cover-letter-maker";
 
   return (
     <>
@@ -500,14 +500,15 @@ export default function CoverLetterMaker() {
         <meta property="og:description" content="Craft a professional cover letter in minutes with our free tool." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={canonicalUrl} />
-        <meta property="og:image" content="https://aidla.online/og-cover-letter.jpg" />
+        <meta property="og:image" content="https://www.aidla.online/og-tools.jpg" />
         <meta property="og:site_name" content="AIDLA" />
+        <meta property="og:image:alt" content="AIDLA free online tools" />
 
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Cover Letter Maker by AIDLA" />
+        <meta name="twitter:title" content="Cover Letter Maker – AIDLA" />
         <meta name="twitter:description" content="Create a standout cover letter with our easy-to-use tool." />
-        <meta name="twitter:image" content="https://aidla.online/twitter-cover-letter.jpg" />
+        <meta name="twitter:image" content="https://www.aidla.online/og-tools.jpg" />
 
         {/* Font preconnect */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />

@@ -95,5 +95,5 @@ Allow: /
 User-agent: ia_archiver
 Allow: /
 
-Sitemap: https://aidla.online/sitemap.xml
+Sitemap: https://www.aidla.online/sitemap.xml
 Host: https://aidla.online

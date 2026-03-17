@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Helmet } from "react-helmet";
+import { Helmet } from "react-helmet-async";
 import { motion } from "framer-motion";
 import Footer from "./components/footer";
 
@@ -49,11 +49,34 @@ export default function AutoTubePublic() {
         <meta name="description" content="Generate SEO-optimized YouTube titles, descriptions, tags, scripts and full video packages with AI. Free preview — login for complete A-Z automation." />
         <meta name="keywords" content="YouTube SEO tool, YouTube automation, video title generator, YouTube description generator, tags generator, YouTube script generator, AutoTube AIDLA" />
         <meta name="robots" content="index, follow" />
+        <meta name="twitter:url" content="https://www.aidla.online/autotube" />
+        <meta property="og:site_name" content="AIDLA" />
+        <meta name="twitter:title" content="AutoTube by AIDLA — YouTube Automation Platform" />
+        <meta name="twitter:description" content="AI-powered YouTube SEO tool. Generate titles, scripts, tags, descriptions and full video packages in seconds." />
+        <meta property="og:image" content="https://www.aidla.online/og-autotube.jpg" />
+        <meta name="twitter:image" content="https://www.aidla.online/og-autotube.jpg" />
+        <link rel="canonical" href="https://www.aidla.online/autotube" />
         <meta property="og:title" content="AutoTube by AIDLA — YouTube Automation Platform" />
         <meta property="og:description" content="AI-powered YouTube SEO tool. Generate titles, scripts, tags, descriptions and full video packages in seconds." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://aidla.online/autotube" />
+        <meta property="og:url" content="https://www.aidla.online/autotube" />
         <meta name="twitter:card" content="summary_large_image" />
+
+        <script type="application/ld+json">
+  {JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "AutoTube by AIDLA — Free YouTube SEO & Automation Tool",
+    "description": "Generate SEO-optimized YouTube titles, descriptions, tags, scripts and full video packages with AI. Free preview — login for complete A-Z automation.",
+    "url": "https://www.aidla.online/autotube",
+    "publisher": {
+      "@type": "Organization",
+      "name": "AIDLA",
+      "url": "https://www.aidla.online"
+    }
+  })}
+</script>
+
       </Helmet>
 
       <div style={{ minHeight:"100vh", background:"linear-gradient(160deg,#f0f4ff 0%,#fffbf0 60%,#e8f4fd 100%)", fontFamily:"'DM Sans',sans-serif", overflowX:"hidden", position:"relative" }}>

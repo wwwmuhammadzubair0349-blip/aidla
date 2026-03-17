@@ -2,61 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import Footer from "../pages/components/footer";
-
-// ── SEO helper ────────────────────────────────────────────
-function useSEO({ title, description, url, type, fileType, subject, university }) {
-  useEffect(() => {
-    if (!title) return;
-    document.title = title;
-    const setMeta = (name, content, prop = false) => {
-      const attr = prop ? "property" : "name";
-      let el = document.querySelector(`meta[${attr}="${name}"]`);
-      if (!el) { el = document.createElement("meta"); el.setAttribute(attr, name); document.head.appendChild(el); }
-      el.setAttribute("content", content);
-    };
-    setMeta("description", description);
-    setMeta("og:title", title, true);
-    setMeta("og:description", description, true);
-    setMeta("og:url", url, true);
-    setMeta("og:type", "article", true);
-    setMeta("twitter:card", "summary_large_image");
-    setMeta("twitter:title", title);
-    setMeta("twitter:description", description);
-
-    // Schema.org DigitalDocument — this is what makes Google show rich results
-    let sd = document.getElementById("sm-doc-sd");
-    if (!sd) { sd = document.createElement("script"); sd.id = "sm-doc-sd"; sd.type = "application/ld+json"; document.head.appendChild(sd); }
-    sd.textContent = JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "DigitalDocument",
-      "name": title,
-      "description": description,
-      "url": url,
-      "fileFormat": fileType ? `application/${fileType}` : undefined,
-      "about": subject ? { "@type": "Thing", "name": subject } : undefined,
-      "sourceOrganization": university ? { "@type": "Organization", "name": university } : undefined,
-      "publisher": { "@type": "Organization", "name": "AIDLA", "url": "https://aidla.online" },
-      "inLanguage": "en",
-      "isAccessibleForFree": true,
-    });
-
-    // Breadcrumb schema
-    let bc = document.getElementById("sm-breadcrumb-sd");
-    if (!bc) { bc = document.createElement("script"); bc.id = "sm-breadcrumb-sd"; bc.type = "application/ld+json"; document.head.appendChild(bc); }
-    bc.textContent = JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "BreadcrumbList",
-      "itemListElement": [
-        { "@type": "ListItem", "position": 1, "name": "Home",      "item": "https://aidla.online" },
-        { "@type": "ListItem", "position": 2, "name": "Resources", "item": "https://aidla.online/resources" },
-        { "@type": "ListItem", "position": 3, "name": title,       "item": url },
-      ]
-    });
-
-    return () => { sd?.remove(); bc?.remove(); };
-  }, [title, description, url, fileType, subject, university]);
-}
-
+import { Helmet } from "react-helmet-async";
 // ── Constants ─────────────────────────────────────────────
 const CATEGORIES = {
   notes:         { label:"Notes",          icon:"📝" },
@@ -201,16 +147,6 @@ export default function ResourceDetailPage() {
     });
   }, [slug]);
 
-  // SEO
-  useSEO({
-    title:       material ? `${material.title} — Download Free | AIDLA` : "Loading…",
-    description: material?.description || `Download ${material?.title || ""} — free study material on AIDLA`,
-    url:         `https://aidla.online/resources/${slug}`,
-    fileType:    material?.file_type,
-    subject:     material?.subject,
-    university:  material?.university,
-  });
-
   // Handle download
   const handleDownload = useCallback(async () => {
     if (!material) return;
@@ -305,6 +241,67 @@ export default function ResourceDetailPage() {
 
   return (
     <>
+    <Helmet>
+  <title>{material ? `${material.title} — Download Free | AIDLA` : "Loading…"}</title>
+  <meta
+    name="description"
+    content={material?.description || `Download ${material?.title || ""} — free study material on AIDLA`}
+  />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href={`https://www.aidla.online/resources/${slug}`} />
+
+  <meta property="og:title" content={material ? `${material.title} — Download Free | AIDLA` : "Loading…"} />
+  <meta
+    property="og:description"
+    content={material?.description || `Download ${material?.title || ""} — free study material on AIDLA`}
+  />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content={`https://www.aidla.online/resources/${slug}`} />
+  <meta property="og:image" content="https://www.aidla.online/og-home.jpg" />
+  <meta property="og:site_name" content="AIDLA" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={material ? `${material.title} — Download Free | AIDLA` : "Loading…"} />
+  <meta
+    name="twitter:description"
+    content={material?.description || `Download ${material?.title || ""} — free study material on AIDLA`}
+  />
+  <meta name="twitter:image" content="https://www.aidla.online/og-home.jpg" />
+
+  {material && (
+    <script type="application/ld+json">
+      {JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "DigitalDocument",
+        "name": `${material.title} — Download Free | AIDLA`,
+        "description": material?.description || `Download ${material?.title || ""} — free study material on AIDLA`,
+        "url": `https://www.aidla.online/resources/${slug}`,
+        "fileFormat": material?.file_type ? `application/${material.file_type}` : undefined,
+        "about": material?.subject ? { "@type": "Thing", "name": material.subject } : undefined,
+        "sourceOrganization": material?.university ? { "@type": "Organization", "name": material.university } : undefined,
+        "publisher": {
+          "@type": "Organization",
+          "name": "AIDLA",
+          "url": "https://www.aidla.online"
+        },
+        "inLanguage": "en",
+        "isAccessibleForFree": true
+      })}
+    </script>
+  )}
+
+  <script type="application/ld+json">
+    {JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.aidla.online" },
+        { "@type": "ListItem", "position": 2, "name": "Resources", "item": "https://www.aidla.online/resources" },
+        { "@type": "ListItem", "position": 3, "name": material ? `${material.title} — Download Free | AIDLA` : "Loading…", "item": `https://www.aidla.online/resources/${slug}` }
+      ]
+    })}
+  </script>
+</Helmet>
       <style>{`
         * { box-sizing: border-box; }
         .rd-layout { display: grid; grid-template-columns: 1fr 320px; gap: 24px; align-items: start; }

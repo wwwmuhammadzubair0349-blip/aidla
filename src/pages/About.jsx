@@ -1,11 +1,11 @@
 import React from "react";
-import { Helmet } from "react-helmet";
+import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import Footer from "../pages/components/footer";
 import "./About.css";
 
-const SITE_URL = "https://aidla.online";
+const SITE_URL = "https://www.aidla.online";
 
 const FAQ_TEASER =[
   { q: "What is AIDLA and how does it work?", a: "AIDLA is Pakistan's #1 educational rewards platform. Create a free account, complete quizzes and tests, earn AIDLA Coins for every achievement, then redeem them for real prizes or cash withdrawals." },
@@ -70,31 +70,27 @@ export default function About() {
         <meta name="keywords"     content="AIDLA, free CV maker Pakistan, cover letter maker free, image to PDF online, word to PDF free, JPG to PNG converter, AI learning Pakistan, online quizzes Pakistan, lucky draw Pakistan, AIDLA coins, free AI chatbot Pakistan, education rewards Pakistan" />
         <meta name="content-language" content="en" />
         
-        <link rel="canonical"     href="https://aidla.online/about" />
+        <link rel="canonical"     href="https://www.aidla.online/about" />
         
         <meta property="og:type"         content="website" />
-        <meta property="og:url"          content="https://aidla.online/about" />
+        <meta property="og:url"          content="https://www.aidla.online/about" />
         <meta property="og:title"        content={pageTitle} />
         <meta property="og:description"  content={pageDesc} />
-        <meta property="og:image"        content={`${SITE_URL}/og-image.jpg`} />
+        <meta property="og:image" content={`${SITE_URL}/og-home.jpg`} />
         <meta property="og:site_name"    content="AIDLA" />
         <meta property="og:locale"       content="en_PK" />
         
         <meta name="twitter:card"        content="summary_large_image" />
         <meta name="twitter:title"       content={pageTitle} />
         <meta name="twitter:description" content={pageDesc} />
-        <meta name="twitter:image"       content={`${SITE_URL}/og-image.jpg`} />
+        <meta name="twitter:image" content={`${SITE_URL}/og-home.jpg`} />
         
         <meta name="robots"              content="index, follow, max-snippet:-1, max-image-preview:large" />
         
         {/* Fixed: Removed the React-breaking onLoad string. Preloading safely. */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@400;500;700;800&display=swap" />
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@400;500;700;800&display=swap" />
         <link rel="preload" as="image" href="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1400&h=612&auto=format,compress&fit=crop&q=80" />
 
-        <script type="application/ld+json">{JSON.stringify({ "@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":SITE_URL},{"@type":"ListItem","position":2,"name":"About","item":"https://aidla.online/about"}] })}</script>
+        <script type="application/ld+json">{JSON.stringify({ "@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":SITE_URL},{"@type":"ListItem","position":2,"name":"About","item":"https://www.aidla.online/about"}] })}</script>
         <script type="application/ld+json">{JSON.stringify({ "@context":"https://schema.org","@type":"Organization","name":"AIDLA","url":SITE_URL,"logo":{"@type":"ImageObject","url":`${SITE_URL}/logo.png`},"description":pageDesc,"foundingDate":"2024","areaServed":"PK" })}</script>
         <script type="application/ld+json">{JSON.stringify({ "@context":"https://schema.org","@type":"WebSite","name":"AIDLA Free Tools","url":`${SITE_URL}/tools`,"description":"Free online tools for Pakistani students — CV maker, cover letter maker, image to PDF, Word to PDF, JPG to PNG converter and more." })}</script>
         <script type="application/ld+json">{JSON.stringify({ "@context":"https://schema.org","@type":"FAQPage","mainEntity":FAQ_TEASER.map(f=>({ "@type":"Question","name":f.q,"acceptedAnswer":{"@type":"Answer","text":f.a} })) })}</script>

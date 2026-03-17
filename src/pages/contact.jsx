@@ -254,13 +254,14 @@ export default function Contact() {
         <meta property="og:title" content="Contact AIDLA Support" />
         <meta property="og:description" content="Reach out to AIDLA for any questions or support. We're here 24/7 to assist you." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://aidla.online/contact" />
+        <meta property="og:image" content="https://www.aidla.online/og-home.jpg" />
+        <meta name="twitter:image" content="https://www.aidla.online/og-home.jpg" />
+        <meta property="og:url" content="https://www.aidla.online/contact" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Contact AIDLA" />
         <meta name="twitter:description" content="Get help from AIDLA support team." />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin />
-        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+        <link rel="canonical" href="https://www.aidla.online/contact" />
+        
       </Helmet>
 
       <div className="ct-root">

@@ -1,19 +1,18 @@
 ﻿import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Helmet } from "react-helmet"; // or "react-helmet-async"
+import { Helmet } from "react-helmet-async"; // or "react-helmet-async"
 import Footer from "../pages/components/footer";
 import "./terms.css";
 
 // You can set this dynamically from a CMS or environment variable
-const LAST_UPDATED = "February 15, 2026";
+const LAST_UPDATED = "March 17, 2026";
 
-// Replace these with your actual image paths
-const OG_IMAGE = "https://aidla.online/og-terms.jpg";      // 1200×630 recommended
-const TWITTER_IMAGE = "https://aidla.online/twitter-terms.jpg"; // 800×418 or square
+const OG_IMAGE = "https://www.aidla.online/og-home.jpg";
+const TWITTER_IMAGE = "https://www.aidla.online/og-home.jpg";
 
 // Canonical URL – change if different
-const CANONICAL_URL = "https://aidla.online/terms";
+const CANONICAL_URL = "https://www.aidla.online/terms";
 
 const sections = [
   { n: 1, title: "Acceptance", body: "By accessing AIDLA, you agree to comply with these Terms and Conditions. If you do not agree, please do not use our platform." },
@@ -40,7 +39,7 @@ const structuredData = {
   "isPartOf": {
     "@type": "WebSite",
     "name": "AIDLA",
-    "url": "https://aidla.online"
+    "url": "https://www.aidla.online"
   }
 };
 
@@ -72,17 +71,14 @@ export default function Terms() {
         <meta name="twitter:description" content="Read our user agreement before using AIDLA." />
         <meta name="twitter:image" content={TWITTER_IMAGE} />
         <meta name="twitter:image:alt" content="AIDLA Terms and Conditions" />
-
-        {/* Font preconnect */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin />
-        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-      </Helmet>
-
       {/* JSON-LD Structured Data */}
       <script type="application/ld+json">
         {JSON.stringify(structuredData)}
       </script>
+       
+      </Helmet>
+
+
 
       <div className="tc-root">
         <div className="bg-orbs">

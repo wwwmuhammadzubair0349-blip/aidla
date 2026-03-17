@@ -5,66 +5,52 @@
     <link rel="icon" type="image/svg+xml" href="/falvicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- Primary Meta -->
-    <title>__OG_TITLE__</title>
-    <meta name="description" content="__OG_DESCRIPTION__" />
-    <meta name="keywords" content="AIDLA, Islamic education, Arabic learning, online courses, insights" />
+    <!-- Default Meta -->
+    <title>AIDLA – Free Learning, Tools, Courses and Insights</title>
+    <meta
+      name="description"
+      content="AIDLA offers free tools, online courses, blogs, news, Islamic education, Arabic learning, and useful resources for students and learners."
+    />
+    <meta
+      name="keywords"
+      content="AIDLA, free tools, online courses, AI tools, Islamic education, Arabic learning, blogs, news, student platform"
+    />
     <meta name="author" content="AIDLA Team" />
     <meta name="robots" content="index, follow" />
-    <link rel="canonical" href="__OG_URL__" />
+    <link rel="canonical" href="https://www.aidla.online/" />
 
-    <!-- Open Graph (Facebook, WhatsApp, LinkedIn) -->
+    <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="AIDLA" />
-    <meta property="og:title" content="__OG_TITLE__" />
-    <meta property="og:description" content="__OG_DESCRIPTION__" />
-    <meta property="og:image" content="__OG_IMAGE__" />
+    <meta property="og:title" content="AIDLA – Free Learning, Tools, Courses and Insights" />
+    <meta
+      property="og:description"
+      content="Explore free tools, courses, blogs, resources, and educational content on AIDLA."
+    />
+    <meta property="og:image" content="https://www.aidla.online/og-default.jpg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="__OG_TITLE__" />
-    <meta property="og:url" content="__OG_URL__" />
+    <meta property="og:image:alt" content="AIDLA – Free Learning Platform" />
+    <meta property="og:url" content="https://www.aidla.online/" />
     <meta property="og:locale" content="en_US" />
 
-    <!-- Twitter Card -->
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@AIDLA" />
-    <meta name="twitter:title" content="__OG_TITLE__" />
-    <meta name="twitter:description" content="__OG_DESCRIPTION__" />
-    <meta name="twitter:image" content="__OG_IMAGE__" />
-    <meta name="twitter:image:alt" content="__OG_TITLE__" />
+    <meta name="twitter:title" content="AIDLA – Free Learning, Tools, Courses and Insights" />
+    <meta
+      name="twitter:description"
+      content="Explore free tools, courses, blogs, resources, and educational content on AIDLA."
+    />
+    <meta name="twitter:image" content="https://www.aidla.online/og-default.jpg" />
+    <meta name="twitter:image:alt" content="AIDLA – Free Learning Platform" />
 
-    <!-- Theme & PWA -->
     <meta name="theme-color" content="#0b1437" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="AIDLA" />
 
-    <!--
-      ============================================================
-      PERFORMANCE FIX #1 — Google Fonts: Non-Blocking Load
-      ============================================================
-      PROBLEM:  Your original <link rel="stylesheet"> for Google
-                Fonts blocks rendering — Lighthouse flagged this as
-                "Render blocking requests: Est savings of 2,880ms"
-
-      FIX:      3-step non-blocking font pattern:
-                1. rel="preload" as="style"  → tells browser to
-                   fetch the font CSS early but not block render
-                2. media="print" onload="this.media='all'"  → CSS
-                   loads as non-render-blocking, swaps to 'all'
-                   once ready (fonts appear when downloaded)
-                3. <noscript> fallback for JS-disabled browsers
-
-                display=swap is kept — text shows immediately in
-                system font, swaps to custom font on arrival.
-
-      NOTE:     Kept only 2 preconnects (fonts.googleapis.com +
-                fonts.gstatic.com). Lighthouse warned you had
-                >4 preconnects which wastes connection slots.
-                All 4 font families are in a single stylesheet
-                request so no extra preconnects needed.
-    -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
@@ -85,7 +71,6 @@
         href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600;700;800&family=Syne:wght@400;600;700;800&family=Mulish:wght@300;400;500;600&display=swap"
       />
     </noscript>
-
   </head>
 
   <body>
@@ -93,37 +78,9 @@
 
     <script type="module" src="/src/main.jsx"></script>
 
-    <!--
-      ============================================================
-      PERFORMANCE FIX #2 — Tool Scripts: defer (non-blocking)
-      ============================================================
-      PROBLEM:  mammoth, jspdf, html2canvas, html2pdf load
-                synchronously and block the main thread. They are
-                large libraries that contribute to:
-                "Reduce unused JavaScript: Est savings of 395 KiB"
-
-      FIX:      Added defer to every tool script.
-                defer = browser downloads in parallel with HTML
-                parsing, executes only after DOM is ready.
-                Zero impact on page render or React startup.
-
-      NEXT LEVEL (optional — biggest JS saving):
-      Remove these global script tags entirely and use dynamic
-      import() inside the component that actually needs them:
-
-        const handleExport = async () => {
-          const html2pdf = (await import('html2pdf.js')).default;
-          // use html2pdf here
-        };
-
-      This loads 0 KB on page load and only fetches the library
-      when the user actually clicks Export — saves ~300+ KiB
-      from the initial bundle.
-    -->
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
   </body>
 </html>

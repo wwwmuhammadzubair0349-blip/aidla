@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Helmet } from "react-helmet"; // or "react-helmet-async"
+import { Helmet } from "react-helmet-async";
 import { supabase } from "../lib/supabase";
 import Footer from "../pages/components/footer"; // adjust path if needed
 import "./BlogPost.css";
@@ -447,7 +447,7 @@ export default function BlogPost() {
   const totalComments = comments.length;
 
   // Canonical URL – adjust as needed
-  const canonicalUrl = post?.canonical_url || `https://aidla.online/blogs/${slug}`;
+  const canonicalUrl = post?.canonical_url || `https://www.aidla.online/blogs/${slug}`;
 
   // JSON-LD structured data
   const structuredData = post ? {
@@ -457,7 +457,7 @@ export default function BlogPost() {
     "description": post.excerpt || "",
     "image": post.cover_image_url ? [post.cover_image_url] : undefined,
     "author": { "@type": "Person", "name": post.author_name || "AIDLA Team" },
-    "publisher": { "@type": "Organization", "name": "AIDLA", "url": "https://aidla.online" },
+    "publisher": { "@type": "Organization", "name": "AIDLA", "url": "https://www.aidla.online" },
     "datePublished": post.published_at,
     "mainEntityOfPage": { "@type": "WebPage", "@id": canonicalUrl },
     "keywords": post.tags?.join(", ")
@@ -488,21 +488,12 @@ export default function BlogPost() {
         <meta name="twitter:title" content={post?.title} />
         <meta name="twitter:description" content={post?.excerpt || ""} />
         {post?.cover_image_url && <meta name="twitter:image" content={post.cover_image_url} />}
-
-        {/* Font preconnect */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;700&display=swap"
-          rel="stylesheet"
-        />
+        {structuredData && (
+  <script type="application/ld+json">
+    {JSON.stringify(structuredData)}
+  </script>
+)}
       </Helmet>
-
-      {structuredData && (
-        <script type="application/ld+json">
-          {JSON.stringify(structuredData)}
-        </script>
-      )}
 
       <div className="blogpost-root">
         <div className="bp-progress-bar" style={{width:`${progress}%`}}/>

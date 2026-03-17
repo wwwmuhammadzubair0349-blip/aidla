@@ -1,19 +1,18 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Helmet } from "react-helmet"; // or "react-helmet-async"
+import { Helmet } from "react-helmet-async"; // or "react-helmet-async"
 import Footer from "../pages/components/footer";
 import "./privacy.css";
 
 // You can set this dynamically from a CMS or environment variable
-const LAST_UPDATED = "February 15, 2026";
+const LAST_UPDATED = "March 17, 2026";
 
-// Replace these with your actual image paths
-const OG_IMAGE = "https://aidla.online/og-privacy.jpg";      // 1200×630 recommended
-const TWITTER_IMAGE = "https://aidla.online/twitter-privacy.jpg"; // 800×418 or square
+const OG_IMAGE = "https://www.aidla.online/og-home.jpg";
+const TWITTER_IMAGE = "https://www.aidla.online/og-home.jpg";
 
 // Canonical URL – change if different
-const CANONICAL_URL = "https://aidla.online/privacy-policy";
+const CANONICAL_URL = "https://www.aidla.online/privacy-policy";
 
 const sections = [
   { n: 1, title: "Introduction", body: "Welcome to AIDLA. Your privacy is important to us. This Privacy Policy explains how AIDLA collects, uses, and protects your information when you use our website and services." },
@@ -40,7 +39,7 @@ const structuredData = {
   "isPartOf": {
     "@type": "WebSite",
     "name": "AIDLA",
-    "url": "https://aidla.online"
+    "url": "https://www.aidla.online"
   }
 };
 
@@ -72,17 +71,13 @@ export default function PrivacyPolicy() {
         <meta name="twitter:description" content="Your privacy matters to us. Read our full policy." />
         <meta name="twitter:image" content={TWITTER_IMAGE} />
         <meta name="twitter:image:alt" content="AIDLA Privacy Policy" />
-
-        {/* Font preconnect (already in CSS import, but kept for speed) */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin />
-        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-      </Helmet>
-
-      {/* JSON-LD Structured Data */}
+        
+        {/* JSON-LD Structured Data */}
       <script type="application/ld+json">
         {JSON.stringify(structuredData)}
       </script>
+
+      </Helmet>
 
       <div className="pp-root">
         <div className="bg-orbs">

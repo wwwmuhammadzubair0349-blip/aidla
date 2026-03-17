@@ -508,25 +508,22 @@ export default function Leaderboard() {
         <meta name="keywords" content="AIDLA, leaderboard, test results, lucky draw, lucky wheel, winners, rankings" />
         <meta name="author" content="AIDLA" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
-        <link rel="canonical" href="https://aidla.com/leaderboard" />
+        <link rel="canonical" href="https://www.aidla.online/leaderboard" />
 
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://aidla.com/leaderboard" />
+        <meta property="og:url" content="https://www.aidla.online/leaderboard" />
         <meta property="og:title" content="AIDLA Leaderboard – Test Champions & Lucky Winners" />
         <meta property="og:description" content="Celebrate top learners, test champions, lucky draw winners, and lucky wheel winners on the AIDLA platform." />
-        <meta property="og:image" content="https://aidla.com/og-leaderboard.jpg" />
+        <meta property="og:image" content="https://www.aidla.online/og-home.jpg" />
 
         {/* Twitter */}
         <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content="https://aidla.com/leaderboard" />
+        <meta property="twitter:url" content="https://www.aidla.online/leaderboard" />
         <meta property="twitter:title" content="AIDLA Leaderboard – Test Champions & Lucky Winners" />
         <meta property="twitter:description" content="Celebrate top learners, test champions, lucky draw winners, and lucky wheel winners on the AIDLA platform." />
-        <meta property="twitter:image" content="https://aidla.com/og-leaderboard.jpg" />
+        <meta property="twitter:image" content="https://www.aidla.online/og-home.jpg" />
 
-        {/* Preconnect for external fonts (if any) */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </Helmet>
 
       <div className="lb-root">

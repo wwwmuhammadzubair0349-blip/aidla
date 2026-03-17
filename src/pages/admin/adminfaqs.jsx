@@ -55,7 +55,7 @@ const CATS = [
 
 const STATUSES = ["draft","scheduled","published"];
 
-const SITE_URL = "https://aidla.online";
+const SITE_URL = "https://www.aidla.online";
 
 /* ── Slug utilities ── */
 function autoSlug(text) {

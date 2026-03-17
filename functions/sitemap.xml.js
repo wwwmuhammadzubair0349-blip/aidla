@@ -47,7 +47,7 @@ async function fetchTable({ env, table, select, filters = [] }) {
 export async function onRequestGet(context) {
   try {
     const { env } = context;
-    const base = env.SITE_URL || "https://aidla.online";
+    const base = env.SITE_URL || "https://www.aidla.online";
 
     const [blogs, news, faqs, studyMaterials] = await Promise.all([
       fetchTable({
@@ -89,67 +89,124 @@ export async function onRequestGet(context) {
     ]);
 
     const staticPages = [
-      { loc: `${base}/`,                                    changefreq: "daily",   priority: 1.0  },
-      { loc: `${base}/faqs`,                                changefreq: "daily",   priority: 0.95 },
-      { loc: `${base}/blogs`,                               changefreq: "daily",   priority: 0.9  },
-      { loc: `${base}/news`,                                changefreq: "daily",   priority: 0.9  },
-      { loc: `${base}/resources`,                           changefreq: "daily",   priority: 0.9  },
-      { loc: `${base}/autotube`,                            changefreq: "weekly",  priority: 0.85 },
-      { loc: `${base}/leaderboard`,                         changefreq: "daily",   priority: 0.7  },
-      { loc: `${base}/tools`,                               changefreq: "weekly",  priority: 0.85 },
-      { loc: `${base}/tools/pdf/word-to-pdf`,               changefreq: "monthly", priority: 0.75 },
-      { loc: `${base}/tools/pdf/image-to-pdf`,              changefreq: "monthly", priority: 0.75 },
-      { loc: `${base}/tools/image/jpg-to-png`,              changefreq: "monthly", priority: 0.7  },
-      { loc: `${base}/tools/career/cv-maker`,               changefreq: "monthly", priority: 0.8  },
-      { loc: `${base}/tools/career/cover-letter-maker`,     changefreq: "monthly", priority: 0.8  },
-      { loc: `${base}/contact`,                             changefreq: "monthly", priority: 0.6  },
-      { loc: `${base}/privacy-policy`,                      changefreq: "yearly",  priority: 0.3  },
-      { loc: `${base}/terms`,                               changefreq: "yearly",  priority: 0.3  },
+      { loc: `${base}/`,                                      changefreq: "daily",   priority: 1.0  },
+      { loc: `${base}/about`,                                 changefreq: "monthly", priority: 0.7  },
+      { loc: `${base}/faqs`,                                  changefreq: "daily",   priority: 0.95 },
+      { loc: `${base}/blogs`,                                 changefreq: "daily",   priority: 0.9  },
+      { loc: `${base}/news`,                                  changefreq: "daily",   priority: 0.9  },
+      { loc: `${base}/resources`,                             changefreq: "daily",   priority: 0.9  },
+      { loc: `${base}/autotube`,                              changefreq: "weekly",  priority: 0.85 },
+      { loc: `${base}/leaderboard`,                           changefreq: "daily",   priority: 0.7  },
+      { loc: `${base}/tools`,                                 changefreq: "weekly",  priority: 0.85 },
+
+      { loc: `${base}/tools/results`,                         changefreq: "daily",   priority: 0.9  },
+
+      { loc: `${base}/tools/ai/summarizer`,                   changefreq: "monthly", priority: 0.85 },
+      { loc: `${base}/tools/ai/paraphraser`,                  changefreq: "monthly", priority: 0.85 },
+
+      { loc: `${base}/tools/education/cgpa-calculator`,       changefreq: "monthly", priority: 0.8  },
+      { loc: `${base}/tools/education/mdcat-ecat-calculator`, changefreq: "monthly", priority: 0.8  },
+
+      { loc: `${base}/tools/utility/qr-code-generator`,       changefreq: "monthly", priority: 0.75 },
+      { loc: `${base}/tools/utility/age-calculator`,          changefreq: "monthly", priority: 0.75 },
+      { loc: `${base}/tools/utility/word-counter`,            changefreq: "monthly", priority: 0.75 },
+
+      { loc: `${base}/tools/pdf/word-to-pdf`,                 changefreq: "monthly", priority: 0.75 },
+      { loc: `${base}/tools/pdf/image-to-pdf`,                changefreq: "monthly", priority: 0.75 },
+      { loc: `${base}/tools/pdf/pdf-compressor`,              changefreq: "monthly", priority: 0.75 },
+
+      { loc: `${base}/tools/image/jpg-to-png`,                changefreq: "monthly", priority: 0.7  },
+      { loc: `${base}/tools/image/background-remover`,        changefreq: "monthly", priority: 0.75 },
+
+      { loc: `${base}/tools/career/cv-maker`,                 changefreq: "monthly", priority: 0.8  },
+      { loc: `${base}/tools/career/cover-letter-maker`,       changefreq: "monthly", priority: 0.8  },
+
+      { loc: `${base}/contact`,                               changefreq: "monthly", priority: 0.6  },
+      { loc: `${base}/privacy-policy`,                        changefreq: "yearly",  priority: 0.3  },
+      { loc: `${base}/terms`,                                 changefreq: "yearly",  priority: 0.3  },
     ];
 
     let urls = staticPages.map(urlEntry).join("\n");
 
-    // ── Blogs ─────────────────────────────────────────────
+    // Blogs
     for (const b of blogs || []) {
       if (!b.slug) continue;
       urls += "\n" + urlEntry({
-        loc:        `${base}/blogs/${b.slug}`,
-        lastmod:    toDate(b.updated_at || b.created_at),
+        loc: `${base}/blogs/${b.slug}`,
+        lastmod: toDate(b.updated_at || b.created_at),
         changefreq: "weekly",
-        priority:   0.8,
+        priority: 0.8,
       });
     }
 
-    // ── News ──────────────────────────────────────────────
+    // Board result pages
+    const BOARD_IDS = [
+      "bise-lahore",
+      "bise-gujranwala",
+      "bise-faisalabad",
+      "bise-rawalpindi",
+      "bise-multan",
+      "bise-sahiwal",
+      "bise-dgkhan",
+      "bise-sargodha",
+      "bise-bahawalpur",
+      "bise-peshawar",
+      "bise-mardan",
+      "bise-abbottabad",
+      "bise-bannu",
+      "bise-swat",
+      "bise-kohat",
+      "bise-malakand",
+      "bise-dikhankpk",
+      "bise-karachi",
+      "bise-hyderabad",
+      "bise-sukkur",
+      "bise-larkana",
+      "bise-mirpurkhas",
+      "bise-quetta",
+      "fbise-islamabad",
+      "bise-ajk",
+      "bise-gilgit",
+    ];
+
+    for (const id of BOARD_IDS) {
+      urls += "\n" + urlEntry({
+        loc: `${base}/tools/results/${id}`,
+        changefreq: "weekly",
+        priority: 0.85,
+      });
+    }
+
+    // News
     for (const n of news || []) {
       if (!n.slug) continue;
       urls += "\n" + urlEntry({
-        loc:        `${base}/news/${n.slug}`,
-        lastmod:    toDate(n.updated_at || n.created_at),
+        loc: `${base}/news/${n.slug}`,
+        lastmod: toDate(n.updated_at || n.created_at),
         changefreq: "daily",
-        priority:   0.8,
+        priority: 0.8,
       });
     }
 
-    // ── FAQs ──────────────────────────────────────────────
+    // FAQs
     for (const f of faqs || []) {
       if (!f.slug) continue;
       urls += "\n" + urlEntry({
-        loc:        `${base}/faqs/${f.slug}`,
-        lastmod:    toDate(f.updated_at || f.created_at),
+        loc: `${base}/faqs/${f.slug}`,
+        lastmod: toDate(f.updated_at || f.created_at),
         changefreq: "weekly",
-        priority:   0.75,
+        priority: 0.75,
       });
     }
 
-    // ── Study Materials (Resources) ───────────────────────
+    // Resources
     for (const m of studyMaterials || []) {
       if (!m.slug) continue;
       urls += "\n" + urlEntry({
-        loc:        `${base}/resources/${m.slug}`,
-        lastmod:    toDate(m.updated_at || m.created_at),
+        loc: `${base}/resources/${m.slug}`,
+        lastmod: toDate(m.updated_at || m.created_at),
         changefreq: "weekly",
-        priority:   0.85,
+        priority: 0.85,
       });
     }
 

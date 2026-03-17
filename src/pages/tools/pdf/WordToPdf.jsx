@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Helmet } from "react-helmet"; // or "react-helmet-async"
+import { Helmet } from "react-helmet-async"; // or "react-helmet-async"
 import Footer from "../../components/footer"; // adjust path if needed
 import "./word-to-pdf.css"; // external CSS
 
@@ -366,7 +366,7 @@ export default function WordToPdf() {
   };
 
   // Canonical URL – adjust as needed
-  const canonicalUrl = "https://aidla.online/tools/pdf/word-to-pdf";
+  const canonicalUrl = "https://www.aidla.online/tools/pdf/word-to-pdf";
 
   return (
     <>
@@ -388,14 +388,14 @@ export default function WordToPdf() {
         <meta property="og:description" content="Convert Word documents to PDF with perfect layout and images – free, private, no sign-up." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={canonicalUrl} />
-        <meta property="og:image" content="https://aidla.online/og-word-to-pdf.jpg" />
+        <meta property="og:image" content="https://www.aidla.online/og-word-to-pdf.jpg" />
         <meta property="og:site_name" content="AIDLA" />
 
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Word to PDF Converter by AIDLA" />
         <meta name="twitter:description" content="Word to PDF conversion done right – free and private." />
-        <meta name="twitter:image" content="https://aidla.online/twitter-word-to-pdf.jpg" />
+        <meta name="twitter:image" content="https://www.aidla.online/twitter-word-to-pdf.jpg" />
 
         {/* Font preconnect */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />

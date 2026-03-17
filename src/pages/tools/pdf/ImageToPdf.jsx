@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Helmet } from "react-helmet"; // or "react-helmet-async"
+import { Helmet } from "react-helmet-async"; // or "react-helmet-async"
 import Footer from "../../components/footer"; // adjust path if needed
 import "./image-to-pdf.css"; // external CSS
 
@@ -170,7 +170,7 @@ export default function ImageToPdf() {
   };
 
   // Canonical URL – adjust as needed
-  const canonicalUrl = "https://aidla.online/tools/pdf/image-to-pdf";
+  const canonicalUrl = "https://www.aidla.online/tools/pdf/image-to-pdf";
 
   return (
     <>
@@ -192,14 +192,14 @@ export default function ImageToPdf() {
         <meta property="og:description" content="Turn your images into a PDF in seconds – free, private, no sign-up." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={canonicalUrl} />
-        <meta property="og:image" content="https://aidla.online/og-image-to-pdf.jpg" />
+        <meta property="og:image" content="https://www.aidla.online/og-image-to-pdf.jpg" />
         <meta property="og:site_name" content="AIDLA" />
 
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Image to PDF Converter by AIDLA" />
         <meta name="twitter:description" content="Convert any image to PDF online – free and private." />
-        <meta name="twitter:image" content="https://aidla.online/twitter-image-to-pdf.jpg" />
+        <meta name="twitter:image" content="https://www.aidla.online/twitter-image-to-pdf.jpg" />
 
         {/* Font preconnect */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Helmet } from "react-helmet"; // or "react-helmet-async"
+import { Helmet } from "react-helmet-async";
 import { supabase } from "../lib/supabase";
 import Footer from "../pages/components/footer"; // adjust path if needed
 import "./news.css";
@@ -50,9 +50,9 @@ function formatDate(d) {
 }
 
 // Canonical URL – replace with your actual domain
-const CANONICAL_URL = "https://aidla.online/news";
-const OG_IMAGE = "https://aidla.online/og-news.jpg";
-const TWITTER_IMAGE = "https://aidla.online/twitter-news.jpg";
+const CANONICAL_URL = "https://www.aidla.online/news";
+const OG_IMAGE = "https://www.aidla.online/og-home.jpg";
+const TWITTER_IMAGE = "https://www.aidla.online/og-home.jpg";
 
 export default function News() {
   const [loading, setLoading] = useState(true);
@@ -158,7 +158,7 @@ export default function News() {
     "isPartOf": {
       "@type": "WebSite",
       "name": "AIDLA",
-      "url": "https://aidla.online"
+      "url": "https://www.aidla.online"
     }
   };
 
@@ -196,20 +196,11 @@ export default function News() {
         <meta name="twitter:image" content={TWITTER_IMAGE} />
         <meta name="twitter:image:alt" content="AIDLA News" />
 
-        {/* Font preconnect */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
+        <script type="application/ld+json">
+  {JSON.stringify(structuredData)}
+</script>
+
       </Helmet>
-
-      {/* JSON-LD Structured Data */}
-      <script type="application/ld+json">
-        {JSON.stringify(structuredData)}
-      </script>
-
       <div className="news-root">
         <div className="news-bg-orbs">
           <div className="news-orb-1" />

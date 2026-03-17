@@ -173,10 +173,10 @@ export default function EmailConfirmed() {
           content="Your email has been confirmed. You can now sign in to AIDLA and start learning, winning, and earning."
         />
         <meta name="robots" content="noindex, follow" />
-        <link rel="canonical" href="https://aidla.com/email-confirmed" />
+        <link rel="canonical" href="https://www.aidla.online/email-confirmed" />
         <meta property="og:title" content="Email Confirmed | AIDLA" />
         <meta property="og:description" content="Your email has been confirmed. You can now sign in to AIDLA." />
-        <meta property="og:url" content="https://aidla.com/email-confirmed" />
+        <meta property="og:url" content="https://www.aidla.online/email-confirmed" />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />

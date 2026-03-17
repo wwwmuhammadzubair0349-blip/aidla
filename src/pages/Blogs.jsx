@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Helmet } from "react-helmet";
+import { Helmet } from "react-helmet-async";
 import { supabase } from "../lib/supabase";
 import Footer from "../pages/components/footer";
 import "./Blogs.css";
@@ -17,10 +17,9 @@ function formatDate(d) {
   return new Date(d).toLocaleDateString("en-US",{ month:"short", day:"numeric", year:"numeric" });
 }
 
-const CANONICAL_URL = "https://aidla.online/blogs";
-const OG_IMAGE      = "https://aidla.online/og-blogs.jpg";
-const TWITTER_IMAGE = "https://aidla.online/twitter-blogs.jpg";
-
+const CANONICAL_URL = "https://www.aidla.online/blogs";
+const OG_IMAGE      = "https://www.aidla.online/og-home.jpg";
+const TWITTER_IMAGE = "https://www.aidla.online/og-home.jpg";
 // Collapsed height constant — 3 rows of tags
 // tag height (32px) + gap (8px) = 40px/row × 3 rows = 120px + 12px padding-bottom = 132px
 const COLLAPSED_H = 132;
@@ -221,7 +220,7 @@ export default function Blogs() {
     "description": "Discover educational strategies, app updates, and tips to maximize your learning and earnings on AIDLA.",
     "url": CANONICAL_URL,
     "inLanguage": "en",
-    "isPartOf": { "@type": "WebSite", "name": "AIDLA", "url": "https://aidla.online" }
+    "isPartOf": { "@type": "WebSite", "name": "AIDLA", "url": "https://www.aidla.online" }
   };
 
   return (

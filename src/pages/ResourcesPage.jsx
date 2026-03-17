@@ -2,38 +2,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import Footer from "../pages/components/footer";
-
-// ── SEO Head helper ───────────────────────────────────────
-function useSEO({ title, description, url }) {
-  useEffect(() => {
-    document.title = title;
-    const setMeta = (name, content, prop = false) => {
-      const attr = prop ? "property" : "name";
-      let el = document.querySelector(`meta[${attr}="${name}"]`);
-      if (!el) { el = document.createElement("meta"); el.setAttribute(attr, name); document.head.appendChild(el); }
-      el.setAttribute("content", content);
-    };
-    setMeta("description", description);
-    setMeta("og:title", title, true);
-    setMeta("og:description", description, true);
-    setMeta("og:url", url, true);
-    setMeta("og:type", "website", true);
-    setMeta("twitter:card", "summary_large_image");
-    setMeta("twitter:title", title);
-    setMeta("twitter:description", description);
-    let sd = document.getElementById("sm-structured-data");
-    if (!sd) { sd = document.createElement("script"); sd.id = "sm-structured-data"; sd.type = "application/ld+json"; document.head.appendChild(sd); }
-    sd.textContent = JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "CollectionPage",
-      "name": title,
-      "description": description,
-      "url": url,
-      "publisher": { "@type": "Organization", "name": "AIDLA", "url": "https://aidla.online" }
-    });
-    return () => { if (sd) sd.remove(); };
-  }, [title, description, url]);
-}
+import { Helmet } from "react-helmet-async";
 
 // ── Constants ─────────────────────────────────────────────
 const CATEGORIES = [
@@ -343,12 +312,6 @@ export default function ResourcesPage() {
   const searchInputRef = useRef(null);
   const debounceRef    = useRef(null);
 
-  useSEO({
-    title:       "Study Materials & Resources — AIDLA | Notes, Past Papers, Books",
-    description: "Download free study materials, notes, past papers, thesis, templates and books. Organized by subject, university and class level.",
-    url:         "https://aidla.online/resources",
-  });
-
   // Load filter options
   useEffect(() => {
     supabase.rpc("study_materials_filter_options").then(({ data }) => {
@@ -420,6 +383,52 @@ export default function ResourcesPage() {
 
   return (
     <>
+    <Helmet>
+  <title>Study Materials & Resources — AIDLA | Notes, Past Papers, Books</title>
+  <meta
+    name="description"
+    content="Download free study materials, notes, past papers, thesis, templates and books. Organized by subject, university and class level."
+  />
+  <meta
+    name="keywords"
+    content="study materials Pakistan, notes, past papers, thesis, templates, books, AIDLA resources"
+  />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://www.aidla.online/resources" />
+
+  <meta property="og:title" content="Study Materials & Resources — AIDLA | Notes, Past Papers, Books" />
+  <meta
+    property="og:description"
+    content="Download free study materials, notes, past papers, thesis, templates and books. Organized by subject, university and class level."
+  />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://www.aidla.online/resources" />
+  <meta property="og:image" content="https://www.aidla.online/og-home.jpg" />
+  <meta property="og:site_name" content="AIDLA" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Study Materials & Resources — AIDLA | Notes, Past Papers, Books" />
+  <meta
+    name="twitter:description"
+    content="Download free study materials, notes, past papers, thesis, templates and books. Organized by subject, university and class level."
+  />
+  <meta name="twitter:image" content="https://www.aidla.online/og-home.jpg" />
+
+  <script type="application/ld+json">
+    {JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      "name": "Study Materials & Resources — AIDLA | Notes, Past Papers, Books",
+      "description": "Download free study materials, notes, past papers, thesis, templates and books. Organized by subject, university and class level.",
+      "url": "https://www.aidla.online/resources",
+      "publisher": {
+        "@type": "Organization",
+        "name": "AIDLA",
+        "url": "https://www.aidla.online"
+      }
+    })}
+  </script>
+</Helmet>
       <style>{`
         * { box-sizing: border-box; }
         .res-layout { display: grid; grid-template-columns: 260px 1fr; gap: 20px; align-items: start; }

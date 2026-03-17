@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Helmet } from "react-helmet"; // or "react-helmet-async"
+import { Helmet } from "react-helmet-async"; // or "react-helmet-async"
 import Footer from "../../components/footer"; // adjust path if needed
 import "./jpg-to-png.css"; // external CSS
 
@@ -183,7 +183,7 @@ export default function JpgToPng() {
   };
 
   // Canonical URL – adjust as needed
-  const canonicalUrl = "https://aidla.online/tools/image/jpg-to-png";
+  const canonicalUrl = "https://www.aidla.online/tools/image/jpg-to-png";
 
   return (
     <>
@@ -205,14 +205,14 @@ export default function JpgToPng() {
         <meta property="og:description" content="Convert JPG to PNG instantly in your browser – private, free, and batch support." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={canonicalUrl} />
-        <meta property="og:image" content="https://aidla.online/og-jpg-to-png.jpg" />
+        <meta property="og:image" content="https://www.aidla.online/og-jpg-to-png.jpg" />
         <meta property="og:site_name" content="AIDLA" />
 
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="JPG to PNG Converter by AIDLA" />
         <meta name="twitter:description" content="Free, private, browser‑based JPG to PNG converter." />
-        <meta name="twitter:image" content="https://aidla.online/twitter-jpg-to-png.jpg" />
+        <meta name="twitter:image" content="https://www.aidla.online/twitter-jpg-to-png.jpg" />
 
         {/* Font preconnect */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
