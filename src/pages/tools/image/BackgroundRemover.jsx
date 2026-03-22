@@ -174,7 +174,7 @@ export default function BackgroundRemover() {
         <meta name="keywords" content="background remover free, remove background online, transparent background PNG, image background remover Pakistan, remove bg free" />
         <meta name="robots" content="index, follow" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="canonical" href="https://aidla.online/tools/image/background-remover" />
+        <link rel="canonical" href="https://www.aidla.online/tools/image/background-remover" />
       </Helmet>
       <style>{`
         *{box-sizing:border-box;}

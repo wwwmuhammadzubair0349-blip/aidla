@@ -47,11 +47,11 @@ const itemVariants = {
 
 function FAQItem({ q, a }) {
   return (
-    <div className="ab-faq-item" itemScope itemProp="mainEntity" itemType="https://schema.org/Question">
+    <div className="ab-faq-item">
       <details>
-        <summary><span itemProp="name">{q}</span><span className="ab-faq-chevron" aria-hidden="true">▼</span></summary>
-        <div className="ab-faq-answer" itemScope itemProp="acceptedAnswer" itemType="https://schema.org/Answer">
-          <span itemProp="text">{a}</span>
+        <summary><span>{q}</span><span className="ab-faq-chevron" aria-hidden="true">▼</span></summary>
+        <div className="ab-faq-answer">
+          <span>{a}</span>
         </div>
       </details>
     </div>
@@ -324,7 +324,7 @@ export default function About() {
           </section>
 
           {/* ══ FAQ TEASER ══ */}
-          <section className="ab-faq-section" aria-labelledby="faq-heading" itemScope itemType="https://schema.org/FAQPage">
+          <section className="ab-faq-section" aria-labelledby="faq-heading">
             <div className="ab-faq-inner">
               <div className="ab-faq-left">
                 <span className="ab-label">Got Questions?</span>

@@ -110,7 +110,7 @@ export default function PDFCompressor() {
         <meta name="keywords" content="PDF compressor free, compress PDF online, reduce PDF size, PDF file size reducer, compress PDF WhatsApp, PDF optimizer Pakistan" />
         <meta name="robots" content="index, follow" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="canonical" href="https://aidla.online/tools/pdf/pdf-compressor" />
+        <link rel="canonical" href="https://www.aidla.online/tools/pdf/pdf-compressor" />
       </Helmet>
       <style>{`
         *{box-sizing:border-box;}
