@@ -280,6 +280,8 @@ export default function AdminLayout() {
             <Tab to="/admin/adminfaqs" label="FAQs" />
             <Tab to="/admin/FeedAdmin" label="Feed Admin" />
             <Tab to="/admin/AdminStudyMaterials" label="Study Materials" />
+            <Tab to="/admin/AutoBlogTab" label="Auto Blog" />
+            <Tab to="/admin/AutoNewsTab" label="Auto News" />
           </nav>
         </div>
       </header>

@@ -1,3 +1,7 @@
+// functions/sitemap.xml.js
+// Cloudflare Pages Function — replace your existing file completely
+// Changes: Added all missing tool pages from App.jsx
+
 function escXml(str) {
   return String(str)
     .replace(/&/g, "&amp;")
@@ -89,84 +93,100 @@ export async function onRequestGet(context) {
     ]);
 
     const staticPages = [
-      { loc: `${base}/`,                                      changefreq: "daily",   priority: 1.0  },
-      { loc: `${base}/about`,                                 changefreq: "monthly", priority: 0.7  },
-      { loc: `${base}/faqs`,                                  changefreq: "daily",   priority: 0.95 },
-      { loc: `${base}/blogs`,                                 changefreq: "daily",   priority: 0.9  },
-      { loc: `${base}/news`,                                  changefreq: "daily",   priority: 0.9  },
-      { loc: `${base}/resources`,                             changefreq: "daily",   priority: 0.9  },
-      { loc: `${base}/autotube`,                              changefreq: "weekly",  priority: 0.85 },
-      { loc: `${base}/leaderboard`,                           changefreq: "daily",   priority: 0.7  },
-      { loc: `${base}/tools`,                                 changefreq: "weekly",  priority: 0.85 },
+      // ── Core pages ──
+      { loc: `${base}/`,               changefreq: "daily",   priority: 1.0  },
+      { loc: `${base}/about`,          changefreq: "monthly", priority: 0.7  },
+      { loc: `${base}/contact`,        changefreq: "monthly", priority: 0.6  },
+      { loc: `${base}/privacy-policy`, changefreq: "yearly",  priority: 0.3  },
+      { loc: `${base}/terms`,          changefreq: "yearly",  priority: 0.3  },
 
-      { loc: `${base}/tools/results`,                         changefreq: "daily",   priority: 0.9  },
+      // ── Content pages ──
+      { loc: `${base}/blogs`,          changefreq: "daily",   priority: 0.9  },
+      { loc: `${base}/news`,           changefreq: "daily",   priority: 0.9  },
+      { loc: `${base}/faqs`,           changefreq: "daily",   priority: 0.95 },
+      { loc: `${base}/resources`,      changefreq: "daily",   priority: 0.9  },
+      { loc: `${base}/leaderboard`,    changefreq: "daily",   priority: 0.7  },
+      { loc: `${base}/autotube`,       changefreq: "weekly",  priority: 0.85 },
 
-      { loc: `${base}/tools/ai/summarizer`,                   changefreq: "monthly", priority: 0.85 },
-      { loc: `${base}/tools/ai/paraphraser`,                  changefreq: "monthly", priority: 0.85 },
+      // ── Tools hub ──
+      { loc: `${base}/tools`,          changefreq: "weekly",  priority: 0.85 },
 
-      { loc: `${base}/tools/education/cgpa-calculator`,       changefreq: "monthly", priority: 0.8  },
-      { loc: `${base}/tools/education/mdcat-ecat-calculator`, changefreq: "monthly", priority: 0.8  },
+      // ── Results ──
+      { loc: `${base}/tools/results`,  changefreq: "daily",   priority: 0.9  },
 
-      { loc: `${base}/tools/utility/qr-code-generator`,       changefreq: "monthly", priority: 0.75 },
-      { loc: `${base}/tools/utility/age-calculator`,          changefreq: "monthly", priority: 0.75 },
-      { loc: `${base}/tools/utility/word-counter`,            changefreq: "monthly", priority: 0.75 },
+      // ── AI Tools ──
+      { loc: `${base}/tools/ai/summarizer`,      changefreq: "monthly", priority: 0.85 },
+      { loc: `${base}/tools/ai/paraphraser`,     changefreq: "monthly", priority: 0.85 },
+      { loc: `${base}/tools/ai/email-writer`,    changefreq: "monthly", priority: 0.85 },
+      { loc: `${base}/tools/ai/interview-prep`,  changefreq: "monthly", priority: 0.85 },
+      { loc: `${base}/tools/ai/linkedin-bio`,    changefreq: "monthly", priority: 0.85 },
+      { loc: `${base}/tools/ai/cover-letter`,    changefreq: "monthly", priority: 0.85 },
 
-      { loc: `${base}/tools/pdf/word-to-pdf`,                 changefreq: "monthly", priority: 0.75 },
-      { loc: `${base}/tools/pdf/image-to-pdf`,                changefreq: "monthly", priority: 0.75 },
-      { loc: `${base}/tools/pdf/pdf-compressor`,              changefreq: "monthly", priority: 0.75 },
+      // ── Education Tools ──
+      { loc: `${base}/tools/education/cgpa-calculator`,         changefreq: "monthly", priority: 0.85 },
+      { loc: `${base}/tools/education/mdcat-ecat-calculator`,   changefreq: "monthly", priority: 0.85 },
+      { loc: `${base}/tools/education/percentage-calculator`,   changefreq: "monthly", priority: 0.8  },
+      { loc: `${base}/tools/education/grade-calculator`,        changefreq: "monthly", priority: 0.8  },
+      { loc: `${base}/tools/education/attendance-calculator`,   changefreq: "monthly", priority: 0.8  },
+      { loc: `${base}/tools/education/marks-to-grade`,          changefreq: "monthly", priority: 0.8  },
+      { loc: `${base}/tools/education/study-planner`,           changefreq: "monthly", priority: 0.8  },
+      { loc: `${base}/tools/education/pomodoro-timer`,          changefreq: "monthly", priority: 0.8  },
+      { loc: `${base}/tools/education/assignment-tracker`,      changefreq: "monthly", priority: 0.8  },
+      { loc: `${base}/tools/education/flashcard-maker`,         changefreq: "monthly", priority: 0.8  },
+      { loc: `${base}/tools/education/scholarship-eligibility`, changefreq: "monthly", priority: 0.8  },
 
-      { loc: `${base}/tools/image/jpg-to-png`,                changefreq: "monthly", priority: 0.7  },
-      { loc: `${base}/tools/image/background-remover`,        changefreq: "monthly", priority: 0.75 },
+      // ── Finance Tools ──
+      { loc: `${base}/tools/finance/salary-calculator`,   changefreq: "monthly", priority: 0.8 },
+      { loc: `${base}/tools/finance/zakat-calculator`,    changefreq: "monthly", priority: 0.8 },
+      { loc: `${base}/tools/finance/loan-emi-calculator`, changefreq: "monthly", priority: 0.8 },
+      { loc: `${base}/tools/finance/tip-calculator`,      changefreq: "monthly", priority: 0.75 },
 
-      { loc: `${base}/tools/career/cv-maker`,                 changefreq: "monthly", priority: 0.8  },
-      { loc: `${base}/tools/career/cover-letter-maker`,       changefreq: "monthly", priority: 0.8  },
+      // ── Health Tools ──
+      { loc: `${base}/tools/health/bmi-calculator`,          changefreq: "monthly", priority: 0.8  },
+      { loc: `${base}/tools/health/calorie-calculator`,      changefreq: "monthly", priority: 0.8  },
+      { loc: `${base}/tools/health/water-intake-calculator`, changefreq: "monthly", priority: 0.75 },
+      { loc: `${base}/tools/health/sleep-calculator`,        changefreq: "monthly", priority: 0.75 },
 
-      { loc: `${base}/contact`,                               changefreq: "monthly", priority: 0.6  },
-      { loc: `${base}/privacy-policy`,                        changefreq: "yearly",  priority: 0.3  },
-      { loc: `${base}/terms`,                                 changefreq: "yearly",  priority: 0.3  },
+      // ── Utility Tools ──
+      { loc: `${base}/tools/utility/qr-code-generator`,      changefreq: "monthly", priority: 0.8  },
+      { loc: `${base}/tools/utility/age-calculator`,         changefreq: "monthly", priority: 0.8  },
+      { loc: `${base}/tools/utility/word-counter`,           changefreq: "monthly", priority: 0.75 },
+      { loc: `${base}/tools/utility/password-generator`,     changefreq: "monthly", priority: 0.75 },
+      { loc: `${base}/tools/utility/unit-converter`,         changefreq: "monthly", priority: 0.75 },
+      { loc: `${base}/tools/utility/countdown-timer`,        changefreq: "monthly", priority: 0.75 },
+      { loc: `${base}/tools/utility/percentage-change`,      changefreq: "monthly", priority: 0.75 },
+      { loc: `${base}/tools/utility/roman-numeral-converter`,changefreq: "monthly", priority: 0.7  },
+      { loc: `${base}/tools/utility/binary-converter`,       changefreq: "monthly", priority: 0.7  },
+      { loc: `${base}/tools/utility/color-picker`,           changefreq: "monthly", priority: 0.7  },
+      { loc: `${base}/tools/utility/text-case-converter`,    changefreq: "monthly", priority: 0.7  },
+
+      // ── PDF Tools ──
+      { loc: `${base}/tools/pdf/word-to-pdf`,      changefreq: "monthly", priority: 0.8  },
+      { loc: `${base}/tools/pdf/image-to-pdf`,     changefreq: "monthly", priority: 0.8  },
+      { loc: `${base}/tools/pdf/pdf-compressor`,   changefreq: "monthly", priority: 0.8  },
+
+      // ── Image Tools ──
+      { loc: `${base}/tools/image/jpg-to-png`,          changefreq: "monthly", priority: 0.75 },
+      { loc: `${base}/tools/image/background-remover`,  changefreq: "monthly", priority: 0.8  },
+
+      // ── Career Tools ──
+      { loc: `${base}/tools/career/cv-maker`,           changefreq: "monthly", priority: 0.85 },
+      { loc: `${base}/tools/career/cover-letter-maker`, changefreq: "monthly", priority: 0.85 },
     ];
 
     let urls = staticPages.map(urlEntry).join("\n");
 
-    // Blogs
-    for (const b of blogs || []) {
-      if (!b.slug) continue;
-      urls += "\n" + urlEntry({
-        loc: `${base}/blogs/${b.slug}`,
-        lastmod: toDate(b.updated_at || b.created_at),
-        changefreq: "weekly",
-        priority: 0.8,
-      });
-    }
-
-    // Board result pages
+    // ── Board result pages (26 boards) ──
     const BOARD_IDS = [
-      "bise-lahore",
-      "bise-gujranwala",
-      "bise-faisalabad",
-      "bise-rawalpindi",
-      "bise-multan",
-      "bise-sahiwal",
-      "bise-dgkhan",
-      "bise-sargodha",
-      "bise-bahawalpur",
-      "bise-peshawar",
-      "bise-mardan",
-      "bise-abbottabad",
-      "bise-bannu",
-      "bise-swat",
-      "bise-kohat",
-      "bise-malakand",
-      "bise-dikhankpk",
-      "bise-karachi",
-      "bise-hyderabad",
-      "bise-sukkur",
-      "bise-larkana",
-      "bise-mirpurkhas",
-      "bise-quetta",
-      "fbise-islamabad",
-      "bise-ajk",
-      "bise-gilgit",
+      "bise-lahore", "bise-gujranwala", "bise-faisalabad",
+      "bise-rawalpindi", "bise-multan", "bise-sahiwal",
+      "bise-dgkhan", "bise-sargodha", "bise-bahawalpur",
+      "bise-peshawar", "bise-mardan", "bise-abbottabad",
+      "bise-bannu", "bise-swat", "bise-kohat",
+      "bise-malakand", "bise-dikhankpk", "bise-karachi",
+      "bise-hyderabad", "bise-sukkur", "bise-larkana",
+      "bise-mirpurkhas", "bise-quetta", "fbise-islamabad",
+      "bise-ajk", "bise-gilgit",
     ];
 
     for (const id of BOARD_IDS) {
@@ -177,7 +197,18 @@ export async function onRequestGet(context) {
       });
     }
 
-    // News
+    // ── Blogs ──
+    for (const b of blogs || []) {
+      if (!b.slug) continue;
+      urls += "\n" + urlEntry({
+        loc: `${base}/blogs/${b.slug}`,
+        lastmod: toDate(b.updated_at || b.created_at),
+        changefreq: "weekly",
+        priority: 0.8,
+      });
+    }
+
+    // ── News ──
     for (const n of news || []) {
       if (!n.slug) continue;
       urls += "\n" + urlEntry({
@@ -188,7 +219,7 @@ export async function onRequestGet(context) {
       });
     }
 
-    // FAQs
+    // ── FAQs ──
     for (const f of faqs || []) {
       if (!f.slug) continue;
       urls += "\n" + urlEntry({
@@ -199,7 +230,7 @@ export async function onRequestGet(context) {
       });
     }
 
-    // Resources
+    // ── Resources / Study Materials ──
     for (const m of studyMaterials || []) {
       if (!m.slug) continue;
       urls += "\n" + urlEntry({
@@ -221,6 +252,7 @@ ${urls}
         "Cache-Control": "public, max-age=3600",
       },
     });
+
   } catch (error) {
     return new Response(
       `<?xml version="1.0" encoding="UTF-8"?><error>${escXml(error.message)}</error>`,

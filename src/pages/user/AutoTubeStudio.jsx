@@ -456,7 +456,7 @@ export default function AutoTubeStudio() {
                 <span style={{ fontSize:20 }}>🏆</span>
                 <div>
                   <div style={{ fontSize:11, fontWeight:800, color:"#ef4444" }}>PRO SEO ENGINE</div>
-                  <div style={{ fontSize:10, color:"rgba(255,255,255,0.3)", marginTop:1 }}>Llama 3.3 70B · YouTube-grade</div>
+                  <div style={{ fontSize:10, color:"rgba(255,255,255,0.3)", marginTop:1 }}>AIDLA AI · YouTube-grade</div>
                 </div>
               </div>
             </aside>

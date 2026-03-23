@@ -225,15 +225,12 @@ export default function FAQPage() {
       supabase.rpc("faq_increment_view", { p_faq_id: data.id });
     }
 
-    const { data: rel } = await supabase
-      .from("faqs")
-      .select("id, slug, question")
-      .eq("status", "published")
-      .eq("is_visible", true)
-      .eq("category", data.category)
-      .neq("id", data.id)
-      .order("sort_order")
-      .limit(5);
+const { data: rel } = await supabase.rpc("get_related_faqs", {
+  p_faq_id:   data.id,
+  p_category: data.category,
+  p_question: data.question,
+  p_limit:    5,
+});
 
     setRelated(rel || []);
 

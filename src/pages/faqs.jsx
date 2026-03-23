@@ -217,7 +217,7 @@ function AskForm({ onSubmit }) {
       setState("err"); setMsg("Something went wrong. Please try again.");
     } else {
       setState("ok");
-      setMsg("✅ Your question has been submitted! We'll email you when it's answered.");
+      setMsg("✅ Question submitted! Our AI is generating your answer — you'll receive it by email within a few minutes.");
       setForm({ name: "", email: "", question: "" });
       if (onSubmit) onSubmit();
     }
@@ -301,6 +301,9 @@ export default function FAQs() {
   const [userVotes, setUserVotes] = useState({});
   const [totalCount, setTotalCount] = useState(0);
   const searchRef = useRef(null);
+  const [searchResults, setSearchResults] = useState(null);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const searchTimeoutRef = useRef(null);
   const fp        = useRef(getFingerprint());
 
   /* ── Load FAQs ── */
@@ -389,24 +392,40 @@ export default function FAQs() {
   }, [userVotes]);
 
   /* ── Search: expand all matches ── */
-  useEffect(() => {
-    if (search.trim().length >= 2) {
-      const matches = {};
-      filtered.forEach(f => { matches[f.id] = true; });
-      setOpenIds(matches);
-    } else if (!search.trim()) {
-      setOpenIds({});
+useEffect(() => {
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    if (!search.trim() || search.trim().length < 2) {
+      setSearchResults(null); setOpenIds({}); setSearchLoading(false); return;
     }
+    setSearchLoading(true);
+    searchTimeoutRef.current = setTimeout(async () => {
+      try {
+        const { data, error } = await supabase.rpc("search_faqs", {
+          search_query: search.trim(),
+        });
+        if (!error && data) {
+          setSearchResults(data);
+          const matches = {};
+          data.forEach(f => { matches[f.id] = true; });
+          setOpenIds(matches);
+        } else {
+          setSearchResults(null);
+        }
+      } catch { setSearchResults(null); }
+      finally { setSearchLoading(false); }
+    }, 400);
   }, [search]);
 
   /* ── Filter logic ── */
-  const filtered = faqs.filter(f => {
-    const catMatch = activeCat === "all" || f.category === activeCat;
-    if (!catMatch) return false;
-    if (!search.trim()) return true;
-    const q = search.toLowerCase();
-    return f.question.toLowerCase().includes(q) || f.answer.toLowerCase().includes(q);
-  });
+const filtered = search.trim().length >= 2 && searchResults !== null
+    ? searchResults
+    : faqs.filter(f => {
+        const catMatch = activeCat === "all" || f.category === activeCat;
+        if (!catMatch) return false;
+        if (!search.trim()) return true;
+        const q = search.toLowerCase();
+        return f.question.toLowerCase().includes(q) || f.answer.toLowerCase().includes(q);
+      });
 
   /* ── Group by category (for "all" view) ── */
   const grouped = {};
@@ -548,9 +567,12 @@ export default function FAQs() {
               )}
             </div>
 
-            {search && (
+           {search && (
               <div className="faq-search-result-count" aria-live="polite">
-                {filtered.length} result{filtered.length !== 1 ? "s" : ""} for "<strong>{search}</strong>"
+                {searchLoading
+                  ? "🔍 Searching…"
+                  : `${filtered.length} result${filtered.length !== 1 ? "s" : ""} for "${search}"`
+                }
               </div>
             )}
           </div>

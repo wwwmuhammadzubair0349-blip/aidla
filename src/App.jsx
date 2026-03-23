@@ -9,7 +9,7 @@ import { registerPushToken, listenForNotifications } from "./lib/notifications";
 //  FIX — EmailConfirmed was a static import (bloated initial bundle).
 //  Now lazy like every other page.
 // ─────────────────────────────────────────────────────────────
-
+import SchemaMarkup from "./pages/components/SchemaMarkup.jsx";
 const Home             = lazy(() => import("./pages/Home.jsx"));
 const About            = lazy(() => import("./pages/About.jsx"));
 const Blogs            = lazy(() => import("./pages/Blogs.jsx"));
@@ -29,6 +29,44 @@ const ResourceDetailPage = lazy(() => import("./pages/ResourceDetailPage.jsx"));
 const AutoTubePublic = lazy(() => import("./pages/AutoTubePublic.jsx"));
 const PDFCompressor    = lazy(() => import("./pages/tools/pdf/PDFCompressor.jsx"));
 const BackgroundRemover= lazy(() => import("./pages/tools/image/BackgroundRemover.jsx"));
+const EmailWriter        = lazy(() => import("./pages/tools/ai/Emailwriter.jsx"));
+// AI Tools
+const InterviewPrep     = lazy(() => import("./pages/tools/ai/interview-prep/interview-prep.jsx"));
+const LinkedInBio       = lazy(() => import("./pages/tools/ai/linkedin-bio/linkedin-bio.jsx"));
+const CoverLetterAI     = lazy(() => import("./pages/tools/ai/cover-letter/cover-letter.jsx"));
+ 
+// Education Tools
+const PercentageCalculator  = lazy(() => import("./pages/tools/education/percentage-calculator/percentage-calculator.jsx"));
+const GradeCalculator       = lazy(() => import("./pages/tools/education/grade-calculator/grade-calculator.jsx"));
+const AttendanceCalc        = lazy(() => import("./pages/tools/education/attendance-calculator/attendance-calculator.jsx"));
+const MarksToGrade          = lazy(() => import("./pages/tools/education/marks-to-grade/marks-to-grade.jsx"));
+const StudyPlanner          = lazy(() => import("./pages/tools/education/study-planner/study-planner.jsx"));
+const PomodoroTimer         = lazy(() => import("./pages/tools/education/pomodoro-timer/pomodoro-timer.jsx"));
+const AssignmentTracker     = lazy(() => import("./pages/tools/education/assignment-tracker/assignment-tracker.jsx"));
+const FlashcardMaker        = lazy(() => import("./pages/tools/education/flashcard-maker/flashcard-maker.jsx"));
+const ScholarshipCheck      = lazy(() => import("./pages/tools/education/scholarship-eligibility/scholarship-eligibility.jsx"));
+ 
+// Finance Tools
+const SalaryCalculator  = lazy(() => import("./pages/tools/finance/salary-calculator/salary-calculator.jsx"));
+const ZakatCalculator   = lazy(() => import("./pages/tools/finance/zakat-calculator/zakat-calculator.jsx"));
+const LoanEMICalculator = lazy(() => import("./pages/tools/finance/loan-emi-calculator/loan-emi-calculator.jsx"));
+const TipCalculator     = lazy(() => import("./pages/tools/finance/tip-calculator/tip-calculator.jsx"));
+ 
+// Health Tools
+const BMICalculator     = lazy(() => import("./pages/tools/health/bmi-calculator/bmi-calculator.jsx"));
+const CalorieCalculator = lazy(() => import("./pages/tools/health/calorie-calculator/calorie-calculator.jsx"));
+const WaterIntakeCalc   = lazy(() => import("./pages/tools/health/water-intake-calculator/water-intake-calculator.jsx"));
+const SleepCalculator   = lazy(() => import("./pages/tools/health/sleep-calculator/sleep-calculator.jsx"));
+ 
+// Utility Tools
+const PasswordGenerator = lazy(() => import("./pages/tools/utility/password-generator/password-generator.jsx"));
+const UnitConverter     = lazy(() => import("./pages/tools/utility/unit-converter/unit-converter.jsx"));
+const CountdownTimer    = lazy(() => import("./pages/tools/utility/countdown-timer/countdown-timer.jsx"));
+const PercentageChange  = lazy(() => import("./pages/tools/utility/percentage-change/percentage-change.jsx"));
+const RomanNumeral      = lazy(() => import("./pages/tools/utility/roman-numeral-converter/roman-numeral-converter.jsx"));
+const BinaryConverter   = lazy(() => import("./pages/tools/utility/binary-converter/binary-converter.jsx"));
+const ColorPicker       = lazy(() => import("./pages/tools/utility/color-picker/color-picker.jsx"));
+const TextCaseConverter = lazy(() => import("./pages/tools/utility/text-case-converter/text-case-converter.jsx"));
 
 // Footer stays static — it's used in UserLayout/AdminLayout too, tiny file
 import Footer from "./pages/components/footer.jsx";
@@ -107,6 +145,9 @@ const AdminFAQs          = lazy(() => import("./pages/admin/adminfaqs.jsx"));
 const FeedAdmin          = lazy(() => import("./pages/admin/FeedAdmin.jsx"));
 const SocialAutoPost     = lazy(() => import("./pages/admin/SocialAutoPost.jsx"));
 const AdminStudyMaterials = lazy(() => import("./pages/admin/AdminStudyMaterials.jsx"));
+const  AutoBlogTab       = lazy(() => import("./pages/admin/AutoBlogTab.jsx"));
+const AutoNewsTab       = lazy(() => import("./pages/admin/AutoNewsTab.jsx"));
+
 
 
 // ─────────────────────────────────────────
@@ -507,6 +548,46 @@ export default function App() {
 <Route path="/tools/ai/paraphraser"                   element={<AIParaphraser />} />
 <Route path="/tools/pdf/pdf-compressor"          element={<PDFCompressor />} />
 <Route path="/tools/image/background-remover"     element={<BackgroundRemover />} />
+<Route path="/tools/ai/email-writer"              element={<EmailWriter />} />
+
+// AI Tools
+<Route path="/tools/ai/interview-prep"                element={<InterviewPrep />} />
+<Route path="/tools/ai/linkedin-bio" element={<LinkedInBio />} />
+<Route path="/tools/ai/cover-letter"                  element={<CoverLetterAI />} />
+ 
+// Education Tools
+<Route path="/tools/education/percentage-calculator"  element={<PercentageCalculator />} />
+<Route path="/tools/education/grade-calculator"       element={<GradeCalculator />} />
+<Route path="/tools/education/attendance-calculator"  element={<AttendanceCalc />} />
+<Route path="/tools/education/marks-to-grade"         element={<MarksToGrade />} />
+<Route path="/tools/education/study-planner"          element={<StudyPlanner />} />
+<Route path="/tools/education/pomodoro-timer"         element={<PomodoroTimer />} />
+<Route path="/tools/education/assignment-tracker"     element={<AssignmentTracker />} />
+<Route path="/tools/education/flashcard-maker"        element={<FlashcardMaker />} />
+<Route path="/tools/education/scholarship-eligibility" element={<ScholarshipCheck />} />
+ 
+// Finance Tools
+<Route path="/tools/finance/salary-calculator"        element={<SalaryCalculator />} />
+<Route path="/tools/finance/zakat-calculator"         element={<ZakatCalculator />} />
+<Route path="/tools/finance/loan-emi-calculator"      element={<LoanEMICalculator />} />
+<Route path="/tools/finance/tip-calculator"           element={<TipCalculator />} />
+ 
+// Health Tools
+<Route path="/tools/health/bmi-calculator"            element={<BMICalculator />} />
+<Route path="/tools/health/calorie-calculator"        element={<CalorieCalculator />} />
+<Route path="/tools/health/water-intake-calculator"   element={<WaterIntakeCalc />} />
+<Route path="/tools/health/sleep-calculator"          element={<SleepCalculator />} />
+ 
+// Utility Tools (new)
+<Route path="/tools/utility/password-generator"       element={<PasswordGenerator />} />
+<Route path="/tools/utility/unit-converter"           element={<UnitConverter />} />
+<Route path="/tools/utility/countdown-timer"          element={<CountdownTimer />} />
+<Route path="/tools/utility/percentage-change"        element={<PercentageChange />} />
+<Route path="/tools/utility/roman-numeral-converter"  element={<RomanNumeral />} />
+<Route path="/tools/utility/binary-converter"         element={<BinaryConverter />} />
+<Route path="/tools/utility/color-picker"             element={<ColorPicker />} />
+<Route path="/tools/utility/text-case-converter"      element={<TextCaseConverter />} />
+ 
 
         {/* Auth */}
         <Route path="/signup"                          element={<Signup />} />
@@ -565,6 +646,8 @@ export default function App() {
           <Route path="FeedAdmin"                      element={<FeedAdmin />} />
           <Route path="SocialAutoPost"                 element={<SocialAutoPost />} />
           <Route path="AdminStudyMaterials" element={<AdminStudyMaterials />} />
+          <Route path="autoBlogTab" element={<AutoBlogTab />} />
+          <Route path="autoNewsTab" element={<AutoNewsTab />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
@@ -574,6 +657,7 @@ export default function App() {
 
   return (
     <div>
+      <SchemaMarkup />
       {!hidePublicHeader && <PublicHeader />}
       {!hidePublicHeader ? (
         <main className="container">
