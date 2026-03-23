@@ -1,4 +1,4 @@
-﻿import { useState, useMemo } from "react";
+﻿import { useState, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Helmet } from "react-helmet-async";
@@ -69,10 +69,10 @@ const CATEGORIES = [
     badge: "🇵🇰 + 🇦🇪",
     badgeColor: "#059669",
     tools: [
-      { to: "/tools/finance/salary-calculator",   emoji: "💵", label: "Salary / Tax Calculator", desc: "Calculate net salary after Pakistan income tax deductions.",       badge: "New", badgeColor: "#059669" },
-      { to: "/tools/finance/zakat-calculator",    emoji: "🌙", label: "Zakat Calculator",         desc: "Calculate your Zakat on savings, gold, silver and assets.",        badge: "New", badgeColor: "#059669" },
-      { to: "/tools/finance/loan-emi-calculator", emoji: "🏦", label: "Loan / EMI Calculator",    desc: "Calculate monthly EMI for home, car or personal loans.",            badge: "New", badgeColor: "#059669" },
-      { to: "/tools/finance/tip-calculator",      emoji: "🧾", label: "Tip Calculator",           desc: "Split bills and calculate tips for groups easily.",                 badge: "New", badgeColor: "#059669" },
+      { to: "/tools/finance/salary-calculator",   emoji: "💵", label: "Salary / Tax Calculator", desc: "Calculate net salary after Pakistan income tax deductions.",    badge: "New", badgeColor: "#059669" },
+      { to: "/tools/finance/zakat-calculator",    emoji: "🌙", label: "Zakat Calculator",         desc: "Calculate your Zakat on savings, gold, silver and assets.",     badge: "New", badgeColor: "#059669" },
+      { to: "/tools/finance/loan-emi-calculator", emoji: "🏦", label: "Loan / EMI Calculator",    desc: "Calculate monthly EMI for home, car or personal loans.",         badge: "New", badgeColor: "#059669" },
+      { to: "/tools/finance/tip-calculator",      emoji: "🧾", label: "Tip Calculator",           desc: "Split bills and calculate tips for groups easily.",              badge: "New", badgeColor: "#059669" },
     ],
   },
   {
@@ -82,10 +82,10 @@ const CATEGORIES = [
     badge: "🏥 Wellness",
     badgeColor: "#dc2626",
     tools: [
-      { to: "/tools/health/bmi-calculator",          emoji: "⚖️", label: "BMI Calculator",          desc: "Calculate your Body Mass Index and healthy weight range.",          badge: "New", badgeColor: "#059669" },
-      { to: "/tools/health/calorie-calculator",      emoji: "🔥", label: "Calorie Calculator",       desc: "Calculate daily calorie needs based on age, weight and activity.",  badge: "New", badgeColor: "#059669" },
-      { to: "/tools/health/water-intake-calculator", emoji: "💧", label: "Water Intake Calculator",  desc: "Find out how much water you should drink daily.",                   badge: "New", badgeColor: "#059669" },
-      { to: "/tools/health/sleep-calculator",        emoji: "😴", label: "Sleep Calculator",         desc: "Find the best bedtime or wake-up time based on sleep cycles.",      badge: "New", badgeColor: "#059669" },
+      { to: "/tools/health/bmi-calculator",          emoji: "⚖️", label: "BMI Calculator",         desc: "Calculate your Body Mass Index and healthy weight range.",         badge: "New", badgeColor: "#059669" },
+      { to: "/tools/health/calorie-calculator",      emoji: "🔥", label: "Calorie Calculator",      desc: "Calculate daily calorie needs based on age, weight and activity.", badge: "New", badgeColor: "#059669" },
+      { to: "/tools/health/water-intake-calculator", emoji: "💧", label: "Water Intake Calculator", desc: "Find out how much water you should drink daily.",                  badge: "New", badgeColor: "#059669" },
+      { to: "/tools/health/sleep-calculator",        emoji: "😴", label: "Sleep Calculator",        desc: "Find the best bedtime or wake-up time based on sleep cycles.",     badge: "New", badgeColor: "#059669" },
     ],
   },
   {
@@ -106,17 +106,17 @@ const CATEGORIES = [
     badge: "✅ No Login",
     badgeColor: "#2563eb",
     tools: [
-      { to: "/tools/utility/qr-code-generator",      emoji: "📱", label: "QR Code Generator",       desc: "Generate QR codes for URLs, text, WhatsApp, WiFi & more."              },
-      { to: "/tools/utility/age-calculator",          emoji: "🎂", label: "Age Calculator",           desc: "Calculate exact age in years, months and days from any date."          },
-      { to: "/tools/utility/word-counter",            emoji: "🔢", label: "Word Counter",             desc: "Count words, characters, sentences and reading time."                  },
-      { to: "/tools/utility/password-generator",      emoji: "🔐", label: "Password Generator",       desc: "Generate strong, secure random passwords instantly.",                  badge: "New", badgeColor: "#059669" },
-      { to: "/tools/utility/unit-converter",          emoji: "📏", label: "Unit Converter",           desc: "Convert length, weight, temperature, speed and more.",                 badge: "New", badgeColor: "#059669" },
-      { to: "/tools/utility/countdown-timer",         emoji: "⏳", label: "Countdown Timer",          desc: "Count down to any date — exams, events, deadlines.",                   badge: "New", badgeColor: "#059669" },
-      { to: "/tools/utility/percentage-change",       emoji: "📉", label: "Percentage Change",        desc: "Calculate percentage increase or decrease between two values.",         badge: "New", badgeColor: "#059669" },
-      { to: "/tools/utility/roman-numeral-converter", emoji: "🏛️", label: "Roman Numeral Converter",  desc: "Convert numbers to Roman numerals and back.",                          badge: "New", badgeColor: "#059669" },
-      { to: "/tools/utility/binary-converter",        emoji: "💻", label: "Binary Converter",         desc: "Convert decimal, binary, octal and hexadecimal numbers.",              badge: "New", badgeColor: "#059669" },
-      { to: "/tools/utility/color-picker",            emoji: "🎨", label: "Color Picker",             desc: "Pick colors and get HEX, RGB, HSL values instantly.",                  badge: "New", badgeColor: "#059669" },
-      { to: "/tools/utility/text-case-converter",     emoji: "🔡", label: "Text Case Converter",      desc: "Convert text to UPPERCASE, lowercase, Title Case and more.",           badge: "New", badgeColor: "#059669" },
+      { to: "/tools/utility/qr-code-generator",      emoji: "📱", label: "QR Code Generator",      desc: "Generate QR codes for URLs, text, WhatsApp, WiFi & more."             },
+      { to: "/tools/utility/age-calculator",          emoji: "🎂", label: "Age Calculator",          desc: "Calculate exact age in years, months and days from any date."         },
+      { to: "/tools/utility/word-counter",            emoji: "🔢", label: "Word Counter",            desc: "Count words, characters, sentences and reading time."                 },
+      { to: "/tools/utility/password-generator",      emoji: "🔐", label: "Password Generator",      desc: "Generate strong, secure random passwords instantly.",                 badge: "New", badgeColor: "#059669" },
+      { to: "/tools/utility/unit-converter",          emoji: "📏", label: "Unit Converter",          desc: "Convert length, weight, temperature, speed and more.",                badge: "New", badgeColor: "#059669" },
+      { to: "/tools/utility/countdown-timer",         emoji: "⏳", label: "Countdown Timer",         desc: "Count down to any date — exams, events, deadlines.",                  badge: "New", badgeColor: "#059669" },
+      { to: "/tools/utility/percentage-change",       emoji: "📉", label: "Percentage Change",       desc: "Calculate percentage increase or decrease between two values.",        badge: "New", badgeColor: "#059669" },
+      { to: "/tools/utility/roman-numeral-converter", emoji: "🏛️", label: "Roman Numeral Converter", desc: "Convert numbers to Roman numerals and back.",                         badge: "New", badgeColor: "#059669" },
+      { to: "/tools/utility/binary-converter",        emoji: "💻", label: "Binary Converter",        desc: "Convert decimal, binary, octal and hexadecimal numbers.",             badge: "New", badgeColor: "#059669" },
+      { to: "/tools/utility/color-picker",            emoji: "🎨", label: "Color Picker",            desc: "Pick colors and get HEX, RGB, HSL values instantly.",                 badge: "New", badgeColor: "#059669" },
+      { to: "/tools/utility/text-case-converter",     emoji: "🔡", label: "Text Case Converter",     desc: "Convert text to UPPERCASE, lowercase, Title Case and more.",          badge: "New", badgeColor: "#059669" },
     ],
   },
   {
@@ -136,25 +136,59 @@ const ALL_TOOLS = CATEGORIES.flatMap(c =>
   c.tools.map(t => ({ ...t, categoryTitle: c.title, categoryId: c.id }))
 );
 
+const CAT_FILTERS = [
+  { id: "all",       label: "All",       icon: "◎" },
+  { id: "results",   label: "Results",   icon: "📋" },
+  { id: "ai",        label: "AI",        icon: "🤖" },
+  { id: "education", label: "Education", icon: "🎓" },
+  { id: "finance",   label: "Finance",   icon: "💰" },
+  { id: "health",    label: "Health",    icon: "❤️" },
+  { id: "career",    label: "Career",    icon: "💼" },
+  { id: "utility",   label: "Utility",   icon: "⚙️" },
+  { id: "pdf",       label: "PDF",       icon: "📄" },
+];
+
 /* ─────────────────────────────────────────────────────────────
-   TOOL CARD (new grid-card style)
+   RECENTLY VIEWED
 ───────────────────────────────────────────────────────────── */
-function ToolRow({ tool }) {
+const RECENT_KEY = "aidla_recent_tools";
+const MAX_RECENT = 6;
+
+function getRecentTools() {
+  try { return JSON.parse(localStorage.getItem(RECENT_KEY) || "[]"); }
+  catch { return []; }
+}
+
+function addRecentTool(tool) {
+  try {
+    const prev = getRecentTools().filter(t => t.to !== tool.to);
+    localStorage.setItem(RECENT_KEY, JSON.stringify(
+      [{ to: tool.to, emoji: tool.emoji, label: tool.label }, ...prev].slice(0, MAX_RECENT)
+    ));
+  } catch { /* ignore */ }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   COMPONENTS
+───────────────────────────────────────────────────────────── */
+function ToolRow({ tool, onVisit }) {
   return (
-    <Link to={tool.to} className="tools-tool-row">
+    <Link
+      to={tool.to}
+      className="tools-tool-row"
+      onClick={() => onVisit(tool)}
+      aria-label={`${tool.label} — ${tool.desc}`}
+    >
       <div className="tools-tool-row-emoji" aria-hidden="true">{tool.emoji}</div>
       <div style={{ minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap" }}>
           <span className="tools-tool-row-label">{tool.label}</span>
           {tool.badge && (
-            <span
-              className="tools-tool-row-badge"
-              style={{
-                background: `${tool.badgeColor}18`,
-                color: tool.badgeColor,
-                border: `1px solid ${tool.badgeColor}28`,
-              }}
-            >
+            <span className="tools-tool-row-badge" style={{
+              background: `${tool.badgeColor}14`,
+              color: tool.badgeColor,
+              border: `1px solid ${tool.badgeColor}28`,
+            }}>
               {tool.badge}
             </span>
           )}
@@ -165,31 +199,51 @@ function ToolRow({ tool }) {
   );
 }
 
-/* Search result row (horizontal layout) */
-function SearchRow({ tool }) {
+function SearchRow({ tool, onVisit }) {
   return (
-    <Link to={tool.to} className="tools-tool-row">
+    <Link
+      to={tool.to}
+      className="tools-tool-row"
+      onClick={() => onVisit(tool)}
+      aria-label={`${tool.label} — ${tool.desc}`}
+    >
       <div className="tools-tool-row-emoji" aria-hidden="true">{tool.emoji}</div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap" }}>
           <span className="tools-tool-row-label">{tool.label}</span>
           {tool.badge && (
-            <span
-              className="tools-tool-row-badge"
-              style={{
-                background: `${tool.badgeColor}18`,
-                color: tool.badgeColor,
-                border: `1px solid ${tool.badgeColor}28`,
-              }}
-            >
+            <span className="tools-tool-row-badge" style={{
+              background: `${tool.badgeColor}14`,
+              color: tool.badgeColor,
+              border: `1px solid ${tool.badgeColor}28`,
+            }}>
               {tool.badge}
             </span>
           )}
         </div>
         <div className="tools-tool-row-desc">{tool.desc}</div>
       </div>
-      <span style={{ fontSize: 14, color: "#cbd5e1", flexShrink: 0 }}>›</span>
+      <span aria-hidden="true" style={{ fontSize: 14, color: "#c8d0e8", flexShrink: 0 }}>›</span>
     </Link>
+  );
+}
+
+function StatsStrip() {
+  const stats = [
+    { value: `${ALL_TOOLS.length}+`, label: "Free Tools" },
+    { value: "No",                    label: "Ads" },
+    { value: "8",                    label: "Categories" },
+    { value: "100%",                 label: "Free" },
+  ];
+  return (
+    <div className="tools-stats" role="list" aria-label="AIDLA highlights">
+      {stats.map((s, i) => (
+        <div key={i} className="tools-stat" role="listitem">
+          <span className="tools-stat-value">{s.value}</span>
+          <span className="tools-stat-label">{s.label}</span>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -197,19 +251,39 @@ function SearchRow({ tool }) {
    MAIN PAGE
 ───────────────────────────────────────────────────────────── */
 export default function ToolsHome() {
-  const [search,   setSearch]   = useState("");
-  const [openCats, setOpenCats] = useState(() => new Set());
+  const [search,       setSearch]       = useState("");
+  const [openCats,     setOpenCats]     = useState(() => new Set());
+  const [activeFilter, setActiveFilter] = useState("all");
+  const [sortBy,       setSortBy]       = useState("default");
+  const [recentTools,  setRecentTools]  = useState(() => getRecentTools());
 
   const q = search.trim().toLowerCase();
 
+  const handleVisit = useCallback((tool) => {
+    addRecentTool(tool);
+    setRecentTools(getRecentTools());
+  }, []);
+
+  const clearRecent = useCallback(() => {
+    localStorage.removeItem(RECENT_KEY);
+    setRecentTools([]);
+  }, []);
+
   const filtered = useMemo(() => {
-    if (!q) return null;
-    return ALL_TOOLS.filter(t =>
+    if (!q && activeFilter === "all" && sortBy === "default") return null;
+    let pool = [...ALL_TOOLS];
+    if (activeFilter !== "all") pool = pool.filter(t => t.categoryId === activeFilter);
+    if (q) pool = pool.filter(t =>
       t.label.toLowerCase().includes(q) ||
       t.desc.toLowerCase().includes(q) ||
       t.categoryTitle.toLowerCase().includes(q)
     );
-  }, [q]);
+    if (sortBy === "new")
+      pool = pool.filter(t => t.badge === "New").concat(pool.filter(t => t.badge !== "New"));
+    else if (sortBy === "az")
+      pool = [...pool].sort((a, b) => a.label.localeCompare(b.label));
+    return pool;
+  }, [q, activeFilter, sortBy]);
 
   const toggle = (id) =>
     setOpenCats(prev => {
@@ -218,24 +292,31 @@ export default function ToolsHome() {
       return next;
     });
 
+  const isFiltering = !!q || activeFilter !== "all" || sortBy !== "default";
+
+  const visibleCategories = useMemo(() =>
+    activeFilter === "all" ? CATEGORIES : CATEGORIES.filter(c => c.id === activeFilter),
+    [activeFilter]
+  );
+
   return (
     <>
       <Helmet>
-        <title>Free Online Tools — Board Results, AI, Education, Finance & More | AIDLA</title>
-        <meta name="description" content="Free online tools for Pakistani students — Pakistan board results, AI email writer, CGPA calculator, MDCAT aggregate, percentage calculator, Zakat calculator, BMI, password generator, QR code and 30+ more tools. No sign-up needed." />
+        <title>Free Online Tools — Board Results, AI, Education, Finance &amp; More | AIDLA</title>
+        <meta name="description" content="Free online tools for Pakistani students — Pakistan board results, AI email writer, CGPA calculator, MDCAT aggregate, percentage calculator, Zakat calculator, BMI, password generator, QR code and 60+ more tools. No sign-up needed." />
         <meta name="keywords" content="free online tools Pakistan, BISE result 2025, CGPA calculator, MDCAT calculator, AI email writer, percentage calculator, Zakat calculator, BMI calculator, password generator, QR code, AIDLA" />
         <meta name="robots" content="index, follow" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="canonical" href="https://www.aidla.online/tools" />
         <meta property="og:title" content="Free Online Tools — AIDLA" />
-        <meta property="og:description" content="30+ free tools — Pakistan board results, AI, education, finance, health & utility. No sign-up." />
+        <meta property="og:description" content="60+ free tools — Pakistan board results, AI, education, finance, health & utility. No sign-up." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://www.aidla.online/tools" />
         <meta property="og:image" content="https://www.aidla.online/og-home.jpg" />
         <meta property="og:site_name" content="AIDLA" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Free Online Tools — AIDLA" />
-        <meta name="twitter:description" content="30+ free tools — AI, education, finance, health & utility. No sign-up." />
+        <meta name="twitter:description" content="60+ free tools — AI, education, finance, health & utility. No sign-up." />
         <meta name="twitter:image" content="https://www.aidla.online/og-home.jpg" />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
@@ -251,165 +332,282 @@ export default function ToolsHome() {
         <div className="bg-orbs" aria-hidden="true">
           <div className="bg-orb-1" />
           <div className="bg-orb-2" />
+          <div className="bg-orb-3" />
         </div>
 
         <div className="tools-wrap">
-          <div className="tools-list-wrap">
 
-            {/* ── HERO ── */}
-            <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} style={{ marginBottom: 18 }}>
-              <div className="tools-badge">⚡ {ALL_TOOLS.length}+ Free Tools</div>
-              <h1 className="tools-title">
-                Free Online <span className="tools-title-accent">Tools</span>
-              </h1>
-              <p className="tools-sub">
-                Board results, AI tools, education calculators, finance, health &amp; utility — all free, no sign-up.
-              </p>
-              <div className="tools-pills">
-                {["📋 Board Results", "🤖 AIDLA AI", "🎓 Education", "💰 Finance", "❤️ Health", "⚙️ Utility", "📄 PDF"].map(p => (
-                  <span key={p} className="tools-pill">{p}</span>
+          {/* ── HERO ── */}
+          <header className="tools-hero">
+            <div className="tools-badge" aria-label={`${ALL_TOOLS.length} free tools`}>
+              {ALL_TOOLS.length}+ Free Tools
+            </div>
+            <h1 className="tools-title">
+              Free Online <span className="tools-title-accent">Tools</span>
+            </h1>
+            <p className="tools-sub">
+              Board results, AI tools, education calculators, finance, health &amp; utility — all free, no sign-up required.
+            </p>
+            <div className="tools-pills" role="list" aria-label="Tool categories">
+              {["📋 Board Results","🤖 AIDLA AI","🎓 Education","💰 Finance","❤️ Health","⚙️ Utility","📄 PDF"].map(p => (
+                <span key={p} className="tools-pill" role="listitem">{p}</span>
+              ))}
+            </div>
+          </header>
+
+          {/* ── STATS STRIP ── */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.05 }}
+          >
+            <StatsStrip />
+          </motion.div>
+
+          {/* ── FEATURED ── */}
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+          >
+            <Link to="/autotube" className="tools-featured" aria-label="AutoTube by AIDLA — AI YouTube automation">
+              <span style={{ fontSize: "clamp(1.5rem,5vw,1.9rem)", flexShrink: 0 }} aria-hidden="true">🎬</span>
+              <div style={{ flex: 1, minWidth: 0, position: "relative", zIndex: 1 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3, flexWrap: "wrap" }}>
+                  <span className="tools-featured-title">AutoTube by AIDLA</span>
+                  <span className="tools-featured-badge">New AI Tool</span>
+                </div>
+                <p className="tools-featured-desc">
+                  AI YouTube automation — titles, scripts, tags &amp; descriptions in seconds.
+                </p>
+              </div>
+              <span aria-hidden="true" style={{ fontSize: 16, color: "rgba(255,255,255,0.25)", flexShrink: 0, position: "relative", zIndex: 1 }}>›</span>
+            </Link>
+          </motion.div>
+
+          {/* ── SEARCH ── */}
+          <motion.div
+            className="tools-search-section"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.38, delay: 0.15 }}
+          >
+            <div className="tools-search-wrap" role="search">
+              <span className="tools-search-icon" aria-hidden="true">🔍</span>
+              <label htmlFor="tools-search-input" className="sr-only">Search tools</label>
+              <input
+                id="tools-search-input"
+                className="tools-search"
+                type="search"
+                placeholder={`Search ${ALL_TOOLS.length}+ tools…`}
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                aria-label={`Search ${ALL_TOOLS.length}+ tools`}
+                autoComplete="off"
+                spellCheck="false"
+              />
+              {search && (
+                <button className="tools-search-clear" onClick={() => setSearch("")} aria-label="Clear search">✕</button>
+              )}
+            </div>
+
+            <div className="tools-filter-row" role="group" aria-label="Filter by category">
+              <span className="tools-filter-label" aria-hidden="true">Filter:</span>
+              <div className="tools-filter-chips">
+                {CAT_FILTERS.map(f => (
+                  <button
+                    key={f.id}
+                    className="tools-filter-chip"
+                    aria-pressed={activeFilter === f.id}
+                    onClick={() => setActiveFilter(f.id)}
+                  >
+                    <span aria-hidden="true">{f.icon}</span>
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+
+          {/* ── SORT ROW ── */}
+          {(isFiltering || filtered) && (
+            <motion.div
+              className="tools-sort-row"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.2 }}
+            >
+              <span className="tools-sort-label" aria-live="polite">
+                {filtered
+                  ? `${filtered.length} tool${filtered.length !== 1 ? "s" : ""} found`
+                  : `${ALL_TOOLS.length} tools`}
+              </span>
+              <div className="tools-sort-btns" role="group" aria-label="Sort tools">
+                {[
+                  { id: "default", label: "Default" },
+                  { id: "new",     label: "🆕 New" },
+                  { id: "az",      label: "A → Z" },
+                ].map(s => (
+                  <button
+                    key={s.id}
+                    className="tools-sort-btn"
+                    aria-pressed={sortBy === s.id}
+                    onClick={() => setSortBy(s.id)}
+                  >
+                    {s.label}
+                  </button>
                 ))}
               </div>
             </motion.div>
+          )}
 
-            {/* ── FEATURED: AutoTube ── */}
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.38, delay: 0.07 }}>
-              <Link to="/autotube" className="tools-featured" aria-label="AutoTube by AIDLA">
-                <span style={{ fontSize: "clamp(1.4rem,4.5vw,1.75rem)", flexShrink: 0 }}>🎬</span>
-                <div style={{ flex: 1, minWidth: 0, position: "relative" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 2, flexWrap: "wrap" }}>
-                    <span className="tools-featured-title">AutoTube by AIDLA</span>
-                    <span className="tools-featured-badge">🔥 New AI Tool</span>
-                  </div>
-                  <p className="tools-featured-desc">
-                    AI YouTube automation — titles, scripts, tags &amp; descriptions in seconds.
-                  </p>
-                </div>
-                <span style={{ fontSize: 13, color: "rgba(255,255,255,0.35)", flexShrink: 0 }}>›</span>
-              </Link>
-            </motion.div>
-
-            {/* ── SEARCH ── */}
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.12 }}>
-              <div className="tools-search-wrap">
-                <span className="tools-search-icon" aria-hidden="true">🔍</span>
-                <input
-                  className="tools-search"
-                  type="search"
-                  placeholder={`Search ${ALL_TOOLS.length}+ tools…`}
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  aria-label="Search all tools"
-                  autoComplete="off"
-                  spellCheck="false"
-                />
-                {search && (
-                  <button className="tools-search-clear" onClick={() => setSearch("")} aria-label="Clear search">✕</button>
-                )}
+          {/* ── RECENTLY VIEWED ── */}
+          {recentTools.length > 0 && !isFiltering && (
+            <motion.div
+              className="tools-recent"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="tools-recent-header">
+                <span className="tools-recent-title"><span aria-hidden="true">🕐</span> Recently Viewed</span>
+                <button className="tools-recent-clear" onClick={clearRecent} aria-label="Clear recently viewed tools">Clear</button>
+              </div>
+              <div className="tools-recent-list" role="list" aria-label="Recently viewed tools">
+                {recentTools.map(t => (
+                  <Link
+                    key={t.to} to={t.to}
+                    className="tools-recent-chip"
+                    onClick={() => handleVisit(t)}
+                    role="listitem"
+                    aria-label={t.label}
+                  >
+                    <span className="tools-recent-chip-emoji" aria-hidden="true">{t.emoji}</span>
+                    <span className="tools-recent-chip-label">{t.label}</span>
+                  </Link>
+                ))}
               </div>
             </motion.div>
+          )}
 
-            {/* ── SEARCH RESULTS ── */}
-            <AnimatePresence>
-              {q && (
-                <motion.div key="sr" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.18 }}>
-                  <div className="tools-results-box">
-                    <div className="tools-results-hdr">
-                      {filtered.length > 0
-                        ? `${filtered.length} result${filtered.length !== 1 ? "s" : ""} for "${search.trim()}"`
-                        : `No results for "${search.trim()}"`}
-                    </div>
+          {/* ── SEARCH RESULTS ── */}
+          <AnimatePresence>
+            {isFiltering && filtered !== null && (
+              <motion.div
+                key="filtered"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="tools-results-box" role="region" aria-label="Search results">
+                  <div className="tools-results-hdr" aria-live="polite">
                     {filtered.length > 0
-                      ? filtered.map((t) => <SearchRow key={t.to} tool={t} />)
-                      : <div className="tools-no-results">😕 Try a different keyword — e.g. "marks", "salary", "BMI"</div>
-                    }
+                      ? `${filtered.length} result${filtered.length !== 1 ? "s" : ""}${q ? ` for "${search.trim()}"` : ""}`
+                      : `No results${q ? ` for "${search.trim()}"` : ""}`}
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* ── CATEGORY ACCORDIONS ── */}
-            {!q && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3, delay: 0.15 }}>
-                {CATEGORIES.map((cat, ci) => {
-                  const isOpen = openCats.has(cat.id);
-                  return (
-                    <motion.div
-                      key={cat.id}
-                      className="tools-accordion"
-                      data-cat={cat.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.28, delay: ci * 0.03 }}
-                    >
-                      <button
-                        className="tools-accordion-btn"
-                        onClick={() => toggle(cat.id)}
-                        aria-expanded={isOpen}
-                        aria-controls={`cat-${cat.id}`}
-                      >
-                        <span aria-hidden="true" style={{ fontSize: 16, flexShrink: 0 }}>{cat.icon}</span>
-                        <div className="tools-accordion-title">
-                          <span>{cat.title}</span>
-                          <span
-                            className="tools-accordion-badge"
-                            style={{
-                              background: `${cat.badgeColor}18`,
-                              color: cat.badgeColor,
-                              border: `1px solid ${cat.badgeColor}28`,
-                            }}
-                          >
-                            {cat.badge}
-                          </span>
-                        </div>
-                        <span className="tools-accordion-count">{cat.tools.length}</span>
-                        <span className={`tools-accordion-chevron${isOpen ? " open" : ""}`} aria-hidden="true">›</span>
-                      </button>
-
-                      <AnimatePresence initial={false}>
-                        {isOpen && (
-                          <motion.div
-                            id={`cat-${cat.id}`}
-                            key="open"
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-                            style={{ overflow: "hidden" }}
-                          >
-                            <div className="tools-accordion-list">
-                              {cat.tools.map((t) => (
-                                <ToolRow key={t.to} tool={t} />
-                              ))}
-                              {cat.viewAll && (
-                                <Link to={cat.viewAll.to} className="tools-accordion-viewall">
-                                  {cat.viewAll.label}
-                                </Link>
-                              )}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </motion.div>
-                  );
-                })}
+                  {filtered.length > 0
+                    ? filtered.map(t => <SearchRow key={t.to} tool={t} onVisit={handleVisit} />)
+                    : <div className="tools-no-results">😕 Try a different keyword — e.g. "marks", "salary", "BMI", "CGPA"</div>
+                  }
+                </div>
               </motion.div>
             )}
+          </AnimatePresence>
 
-            {/* ── CTA ── */}
-            <motion.div initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.38 }}>
-              <div className="tools-cta">
-                <div>
-                  <div className="tools-cta-free-badge">✨ FREE · NO ACCOUNT NEEDED</div>
-                  <h3>Earn while you learn 🚀</h3>
-                  <p>Join AIDLA and start earning rewards as you build your skills.</p>
-                </div>
-                <Link to="/signup" className="tools-cta-btn">Join now ✨</Link>
-              </div>
+          {/* ── ACCORDIONS ── */}
+          {!isFiltering && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.2 }}
+            >
+              {visibleCategories.map((cat, ci) => {
+                const isOpen = openCats.has(cat.id);
+                return (
+                  <motion.div
+                    key={cat.id}
+                    className="tools-accordion"
+                    data-cat={cat.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: ci * 0.05 }}
+                  >
+                    <button
+                      className="tools-accordion-btn"
+                      onClick={() => toggle(cat.id)}
+                      aria-expanded={isOpen}
+                      aria-controls={`cat-panel-${cat.id}`}
+                      id={`cat-btn-${cat.id}`}
+                    >
+                      <span aria-hidden="true" style={{ fontSize: 17, flexShrink: 0 }}>{cat.icon}</span>
+                      <div className="tools-accordion-title">
+                        <span>{cat.title}</span>
+                        <span className="tools-accordion-badge" style={{
+                          background: `${cat.badgeColor}14`,
+                          color: cat.badgeColor,
+                          border: `1px solid ${cat.badgeColor}26`,
+                        }}>
+                          {cat.badge}
+                        </span>
+                      </div>
+                      <span className="tools-accordion-count" aria-label={`${cat.tools.length} tools`}>
+                        {cat.tools.length}
+                      </span>
+                      <span className={`tools-accordion-chevron${isOpen ? " open" : ""}`} aria-hidden="true">›</span>
+                    </button>
+
+                    <AnimatePresence initial={false}>
+                      {isOpen && (
+                        <motion.div
+                          id={`cat-panel-${cat.id}`}
+                          role="region"
+                          aria-labelledby={`cat-btn-${cat.id}`}
+                          key="panel"
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.26, ease: [0.22,1,0.36,1] }}
+                          style={{ overflow: "hidden" }}
+                        >
+                          <div className="tools-accordion-list">
+                            {cat.tools.map(t => <ToolRow key={t.to} tool={t} onVisit={handleVisit} />)}
+                            {cat.viewAll && (
+                              <Link to={cat.viewAll.to} className="tools-accordion-viewall">
+                                {cat.viewAll.label}
+                              </Link>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                );
+              })}
             </motion.div>
+          )}
 
-          </div>
+          {/* ── CTA ── */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.45 }}
+          >
+            <div className="tools-cta" role="complementary" aria-label="Join AIDLA">
+              <div className="tools-cta-inner-top" aria-hidden="true" />
+              <div>
+                <div className="tools-cta-free-badge">✦ Free · No Account Needed</div>
+                <h2>Earn while you learn 🚀</h2>
+                <p>Join AIDLA and start earning rewards as you build your skills.</p>
+              </div>
+              <Link to="/signup" className="tools-cta-btn">Join now ✦</Link>
+            </div>
+          </motion.div>
+
         </div>
+
+        <style>{`.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}`}</style>
 
         <Footer />
       </div>
