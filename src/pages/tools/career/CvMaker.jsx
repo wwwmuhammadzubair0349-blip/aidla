@@ -1,4 +1,4 @@
-/**
+﻿/**
  * CvMaker.jsx — Professional CV Maker v5
  * ✅ 3-tab mobile: Edit | Templates | Preview
  * ✅ No horizontal overflow on mobile
@@ -235,9 +235,12 @@ function Field({ label, id, children, span2 }) {
    EXPERIENCE ITEM
 ================================================================ */
 function ExpItem({ item, onUpdate, onRemove }) {
-  const [L, setL] = useState({ ...item });
-  const upd = (k, v) => { const n={...L,[k]:v}; setL(n); onUpdate(n); };
-  const bid = `exp-${L.id}`;
+const [L, setL] = useState({ ...item });
+const upd = (k, v) => { const n={...L,[k]:v}; setL(n); onUpdate(n); };
+const bid = `exp-${L.id}`;
+
+// Sync when parent updates (e.g. AI writes bullets)
+useEffect(() => { setL({ ...item }); }, [item.bullets]);
   return (
     <div className="cv-shell">
       <div className="cv-shell-h">
@@ -296,10 +299,13 @@ function ExpItem({ item, onUpdate, onRemove }) {
 /* ================================================================
    EDUCATION ITEM
 ================================================================ */
-function EduItem({ item, onUpdate, onRemove }) {
-  const [L, setL] = useState({ ...item });
-  const upd = (k,v) => { const n={...L,[k]:v}; setL(n); onUpdate(n); };
-  const bid = `edu-${L.id}`;
+function EduItem({ item, onUpdate, onRemove, onAiNotes }) {
+const [L, setL] = useState({ ...item });
+const upd = (k,v) => { const n={...L,[k]:v}; setL(n); onUpdate(n); };
+const bid = `edu-${L.id}`;
+
+// Sync when parent updates (e.g. AI writes notes)
+useEffect(() => { setL({ ...item }); }, [item.notes]);
   return (
     <div className="cv-shell">
       <div className="cv-shell-h">
@@ -334,8 +340,11 @@ function EduItem({ item, onUpdate, onRemove }) {
           <input id={`${bid}-end`} className="cv-inp" value={L.end} placeholder="2022" onChange={e=>upd('end',e.target.value)}/>
         </Field>
       </div>
-      <div className="cv-field" style={{marginTop:8}}>
-        <label className="cv-lbl" htmlFor={`${bid}-notes`}>Achievements / Notes</label>
+<div className="cv-field" style={{marginTop:8}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:5}}>
+          <label className="cv-lbl" htmlFor={`${bid}-notes`}>Achievements / Notes</label>
+          <button className="cv-ai-btn" onClick={()=>onAiNotes(L)}>✨ AI Write</button>
+        </div>
         <textarea id={`${bid}-notes`} className="cv-inp" rows={2} placeholder="Dean's List · Thesis: Renewable Energy Systems"
           value={L.notes} onChange={e=>upd('notes',e.target.value)}/>
       </div>
@@ -346,12 +355,15 @@ function EduItem({ item, onUpdate, onRemove }) {
 /* ================================================================
    GENERIC SIMPLE ITEM
 ================================================================ */
-function SItem({ item, onUpdate, onRemove, children }) {
+function SItem({ item, onUpdate, onRemove, onAiDesc, onAiNotes, children }) {
   const [L, setL] = useState({ ...item });
   const upd = (k,v) => { const n={...L,[k]:v}; setL(n); onUpdate(n); };
-  return children(L, upd, onRemove);
-}
 
+  // Sync when parent updates via AI
+  useEffect(() => { setL({ ...item }); }, [item.bullets, item.notes]);
+
+  return children(L, upd, onRemove, onAiDesc, onAiNotes);
+}
 /* ================================================================
    PRINT FILENAME MODAL
 ================================================================ */
@@ -745,38 +757,151 @@ export default function CvMaker() {
   };
 
   /* ── AI ── */
-  const callClaude = async prompt => {
-    const r = await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,messages:[{role:'user',content:prompt}]}),
-    });
-    const d=await r.json();
-    return d.content?.find(b=>b.type==='text')?.text?.trim()||'';
+const callClaude = async (prompt) => {
+    const res = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cv-ai`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt }),
+      }
+    );
+    const data = await res.json();
+    return data.result || "";
   };
   const aiSummary = async () => {
     setAiLoading(l=>({...l,summary:true})); toast('AI writing summary…','inf',8000);
     try {
       const sk=lines(data.skills).slice(0,6).join(', ')||'various skills';
       const exp=(data.experience||[]).slice(0,2).map(e=>`${e.role} at ${e.company}`).join('; ');
-      const text=await callClaude(`Write a punchy 2-3 sentence professional CV summary for a ${data.title||'professional'}. Skills: ${sk}. ${exp?'Experience: '+exp+'.':''} Use strong action verbs, quantify where logical. Just the text, no labels or preamble.`);
+      const existing = data.summary?.trim();
+      const text=await callClaude(`You are an expert CV writer. ${existing?`Improve and expand this existing summary: "${existing}"\n\nUse this additional context:`:'Write a punchy 2-3 sentence professional CV summary using this context:'}
+Job Title: ${data.title||'Professional'}
+Skills: ${sk}
+Experience: ${exp||'Not specified'}
+
+Rules:
+- 2-3 sentences maximum
+- Start with a strong action word
+- Quantify impact where logical
+- Output only the summary text, no labels or preamble`);
       if(text){ sf('summary',text); toast('Summary written ✅','ok'); }
     }catch{ toast('AI error — check console','err'); }
     finally{ setAiLoading(l=>({...l,summary:false})); }
   };
-  const aiSkills = async () => {
+const aiSkills = async () => {
     setAiLoading(l=>({...l,skills:true}));
     try {
-      const text=await callClaude(`List exactly 12 ATS-optimized professional skills for a ${data.title||'professional'}. One skill per line. No bullets, numbers, or preamble.`);
+      const exp = (data.experience||[]).slice(0,3).map(e=>`${e.role} at ${e.company}`).join(', ');
+      const text = await callClaude(
+        `You are an expert CV writer. Generate exactly 12 ATS-optimized professional skills for this person:
+Name: ${data.fullName||'Professional'}
+Job Title: ${data.title||'Professional'}
+Experience: ${exp||'Not specified'}
+Summary: ${data.summary||'Not specified'}
+
+Rules:
+- One skill per line
+- Mix technical and soft skills relevant to their role
+- No bullets, numbers, or preamble
+- Just the skill names, one per line`
+      );
       if(text){ sf('skills',text); toast('Skills added ✅','ok'); }
     }catch{ toast('AI error','err'); }
     finally{ setAiLoading(l=>({...l,skills:false})); }
   };
-  const aiBullets = async expItem => {
+const aiProjectDesc = async (projItem) => {
+    toast('AI writing project description…','inf',8000);
+    try {
+      const existing = projItem.bullets?.trim();
+      const text = await callClaude(
+        `You are an expert CV writer. ${existing?`Improve and expand these existing project bullet points: "${existing}"\n\nUse this additional context:`:'Write 2-3 impressive bullet points using this context:'}
+
+Person: ${data.fullName||'Developer'}
+Job Title: ${data.title||'Professional'}
+Project Name: ${projItem.name||'Project'}
+Technologies Used: ${projItem.tech||'Not specified'}
+Project Status: ${projItem.status||'Completed'}
+Project URL: ${projItem.url||'Not specified'}
+Person Skills: ${data.skills||'Not specified'}
+Experience: ${(data.experience||[]).slice(0,2).map(e=>e.role+' at '+e.company).join(', ')||'Not specified'}
+
+Rules:
+- Write 2-3 short powerful bullet points
+- Start each with a strong action verb
+- Mention technologies used
+- Quantify impact where logical
+- One bullet per line
+- No bullet characters, numbers, or preamble
+- Sound human and impressive`
+      );
+      if(text){
+        updateItem('projects',{...projItem, bullets:text});
+        toast('Project description written ✅','ok');
+      }
+    }catch{ toast('AI error','err'); }
+  };
+
+const aiEduNotes = async (eduItem) => {
+    toast('AI writing education notes…','inf',8000);
+    try {
+      const existing = eduItem.notes?.trim();
+      const text = await callClaude(
+        `You are an expert CV writer. ${existing?`Improve and expand these existing education notes: "${existing}"\n\nUse this additional context:`:'Write 2-3 impressive achievement notes using this context:'}
+
+Person: ${data.fullName||'Student'}
+Degree: ${eduItem.degType||''} in ${eduItem.degree||''}
+University: ${eduItem.school||'University'}
+City: ${eduItem.city||''}
+GPA: ${eduItem.gpa||'Not specified'}
+Duration: ${eduItem.start||''} - ${eduItem.end||''}
+Job Title they are targeting: ${data.title||'Professional'}
+Skills: ${data.skills||'Not specified'}
+
+Rules:
+- Write 2-3 short achievement notes
+- Include thesis, projects, awards, dean's list if relevant
+- One note per line
+- No bullet characters or numbers
+- Sound human and impressive`
+      );
+      if(text){
+        updateItem('education',{...eduItem, notes:text});
+        toast('Education notes written ✅','ok');
+      }
+    }catch{ toast('AI error','err'); }
+  };
+
+const aiBullets = async (expItem) => {
     toast('AI writing bullets…','inf',8000);
     try {
-      const text=await callClaude(`Write 3 strong CV achievement bullet points for ${expItem.role||'a professional'} at ${expItem.company||'a company'}. Start each with a past-tense action verb, quantify impact where possible. One per line, no prefixes or bullet characters.`);
-      if(text){ updateItem('experience',{...expItem,bullets:text,_aiBullets:false}); toast('Bullets written ✅','ok'); }
+      const existing = expItem.bullets?.trim();
+      const text = await callClaude(
+        `You are an expert CV writer. ${existing?`Improve and expand these existing bullet points: "${existing}"\n\nUse this additional context:`:'Write 3 powerful achievement bullet points using this context:'}
+
+Person: ${data.fullName||'Professional'}
+Job Title: ${data.title||'Professional'}
+Role at this job: ${expItem.role||'Professional'}
+Company: ${expItem.company||'Company'}
+Industry: ${expItem.industry||'Not specified'}
+Employment Type: ${expItem.empType||'Full-time'}
+City: ${expItem.city||'Not specified'}
+Duration: ${expItem.start||''}${expItem.current?' - Present':expItem.end?' - '+expItem.end:''}
+Other experience: ${(data.experience||[]).filter(e=>e.id!==expItem.id).slice(0,2).map(e=>e.role+' at '+e.company).join(', ')||'None'}
+Skills: ${data.skills||'Not specified'}
+
+Rules:
+- Start each bullet with a strong past-tense action verb
+- Quantify impact with numbers/percentages where logical
+- Keep each bullet under 20 words
+- One bullet per line
+- No bullet characters, numbers, or preamble
+- Sound human, not AI-generated`
+      );
+      if(text){
+        updateItem('experience',{...expItem, bullets:text, _aiBullets:false});
+        toast('Bullets written ✅','ok');
+      }
     }catch{ toast('AI error','err'); }
   };
   useEffect(()=>{
@@ -1084,14 +1209,14 @@ export default function CvMaker() {
                 <div className="cv-card">
                   <div className="cv-card-h"><h2 className="cv-card-t">🎓 Education</h2><button className="cv-btn-add" onClick={()=>addItem('education',{degree:'',degType:"Bachelor's Degree",school:'',schoolLogo:'',city:'',start:'',end:'',gpa:'',notes:''})}>+ Add</button></div>
                   {!(data.education||[]).length&&<div className="cv-empty" role="status">🎓 No education added yet.</div>}
-                  {(data.education||[]).map(item=><EduItem key={item.id} item={item} onUpdate={u=>updateItem('education',u)} onRemove={()=>removeItem('education',item.id)}/>)}
+                  {(data.education||[]).map(item=><EduItem key={item.id} item={item} onUpdate={u=>updateItem('education',u)} onRemove={()=>removeItem('education',item.id)} onAiNotes={aiEduNotes}/>)}
                 </div>
                 <div className="cv-card">
                   <div className="cv-card-h"><h2 className="cv-card-t">🛠 Projects</h2><button className="cv-btn-add" onClick={()=>addItem('projects',{name:'',tech:'',url:'',status:'Completed',bullets:''})}>+ Add</button></div>
                   {!(data.projects||[]).length&&<div className="cv-empty" role="status">🛠 No projects yet.</div>}
                   {(data.projects||[]).map(item=>(
-                    <SItem key={item.id} item={item} onUpdate={u=>updateItem('projects',u)} onRemove={()=>removeItem('projects',item.id)}>
-                      {(L,upd,rm)=>{
+                    <SItem key={item.id} item={item} onUpdate={u=>updateItem('projects',u)} onRemove={()=>removeItem('projects',item.id)} onAiDesc={aiProjectDesc}>
+                      {(L,upd,rm,onAiDesc)=>{
                         const bid=`proj-${L.id}`;
                         return (
                           <div className="cv-shell">
@@ -1103,8 +1228,11 @@ export default function CvMaker() {
                               <Field label="URL" id={`${bid}-url`}><input id={`${bid}-url`} className="cv-inp" value={L.url} placeholder="github.com/…" onChange={e=>upd('url',e.target.value)}/></Field>
                             </div>
                             <div className="cv-field" style={{marginTop:8}}>
-                              <label className="cv-lbl" htmlFor={`${bid}-desc`}>Description</label>
-                              <textarea id={`${bid}-desc`} className="cv-inp" rows={2} value={L.bullets} onChange={e=>upd('bullets',e.target.value)}/>
+                              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:5}}>
+                <label className="cv-lbl" htmlFor={`${bid}-desc`}>Description</label>
+                <button className="cv-ai-btn" onClick={()=>onAiDesc(L)}>✨ AI Write</button>
+              </div>
+              <textarea id={`${bid}-desc`} className="cv-inp" rows={2} value={L.bullets} onChange={e=>upd('bullets',e.target.value)}/>
                             </div>
                           </div>
                         );
