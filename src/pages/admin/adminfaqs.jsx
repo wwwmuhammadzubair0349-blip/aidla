@@ -386,6 +386,18 @@ export default function AdminFAQs() {
 
   /* ── Load data ── */
   useEffect(() => { loadAll(); }, []);
+  useEffect(() => {
+  const channel = supabase
+    .channel("faq_realtime")
+    .on(
+      "postgres_changes",
+      { event: "UPDATE", schema: "public", table: "user_questions" },
+      () => loadAll()
+    )
+    .subscribe();
+
+  return () => supabase.removeChannel(channel);
+}, []);
 
   const loadAll = async () => {
     setLoading(true);
