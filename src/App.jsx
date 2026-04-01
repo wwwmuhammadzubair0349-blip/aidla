@@ -30,6 +30,9 @@ const AutoTubePublic = lazy(() => import("./pages/AutoTubePublic.jsx"));
 const PDFCompressor    = lazy(() => import("./pages/tools/pdf/PDFCompressor.jsx"));
 const BackgroundRemover= lazy(() => import("./pages/tools/image/BackgroundRemover.jsx"));
 const EmailWriter        = lazy(() => import("./pages/tools/ai/Emailwriter.jsx"));
+
+const PublicCourses      = lazy(() => import("./pages/PublicCourses.jsx"));
+const PublicCourseDetail = lazy(() => import("./pages/PublicCourseDetail.jsx"));
 // AI Tools
 const InterviewPrep     = lazy(() => import("./pages/tools/ai/interview-prep/interview-prep.jsx"));
 const LinkedInBio       = lazy(() => import("./pages/tools/ai/linkedin-bio/linkedin-bio.jsx"));
@@ -305,6 +308,7 @@ const NAV_LINKS = [
   { to: "/news",        label: "News",        icon: "📰" },
   { to: "/faqs",        label: "FAQs",        icon: "❓" },
   { to: "/tools",       label: "Tools",       icon: "🧰" },
+  { to: "/courses",     label: "Courses",     icon: "🎓" },
   { to: "/resources",   label: "Resources",   icon: "📚" },
   { to: "/leaderboard", label: "Leaderboard", icon: "🏆" },
 ];
@@ -536,6 +540,10 @@ export default function App() {
         <Route path="/verify/:certId" element={<VerifyCertificate />} />
         <Route path="/resources" element={<ResourcesPage />} />
         <Route path="/resources/:slug" element={<ResourceDetailPage />} />
+
+<Route path="/courses"       element={<PublicCourses />} />
+<Route path="/courses/:slug" element={<PublicCourseDetail />} />
+
         <Route path="/autotube" element={<AutoTubePublic />} />
         <Route path="/tools/results"     element={<ResultsHub />} />
         <Route path="/tools/results/:boardId" element={<BoardPage />} />

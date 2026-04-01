@@ -20,7 +20,6 @@ function fmtDate(iso) {
   return d.toLocaleDateString([], { weekday: "long", month: "short", day: "numeric" });
 }
 
-// Group messages by date
 function groupByDate(messages) {
   const groups = [];
   let lastDate = null;
@@ -33,6 +32,201 @@ function groupByDate(messages) {
     groups.push({ type: "message", ...msg });
   }
   return groups;
+}
+
+// ── Markdown renderer ──────────────────────────────────────────────────────
+// Handles: code blocks, inline code, bold, italic, links, bullet lists,
+//          numbered lists, headers, horizontal rules, blockquotes
+function renderMarkdown(text, isUser) {
+  const lines = text.split("\n");
+  const elements = [];
+  let i = 0;
+  let keyCounter = 0;
+  const k = () => keyCounter++;
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // ── Fenced code block ─────────────────────────
+    if (line.startsWith("```")) {
+      const lang = line.slice(3).trim() || "code";
+      const codeLines = [];
+      i++;
+      while (i < lines.length && !lines[i].startsWith("```")) {
+        codeLines.push(lines[i]);
+        i++;
+      }
+      i++; // skip closing ```
+      const code = codeLines.join("\n");
+      elements.push(
+        <div key={k()} className="bot-code-block">
+          <div className="bot-code-header">
+            <span className="bot-code-lang">{lang}</span>
+            <CodeCopyBtn code={code} />
+          </div>
+          <pre className="bot-code-pre"><code>{code}</code></pre>
+        </div>
+      );
+      continue;
+    }
+
+    // ── Horizontal rule ───────────────────────────
+    if (/^(-{3,}|\*{3,}|_{3,})$/.test(line.trim())) {
+      elements.push(<hr key={k()} className="bot-hr" />);
+      i++;
+      continue;
+    }
+
+    // ── Heading ───────────────────────────────────
+    const headingMatch = line.match(/^(#{1,4})\s+(.+)/);
+    if (headingMatch) {
+      const level = headingMatch[1].length;
+      const Tag = `h${Math.min(level + 2, 6)}`; // h3-h6 so it doesn't overpower chat
+      elements.push(
+        <Tag key={k()} className={`bot-heading bot-h${level}`}>
+          {inlineFormat(headingMatch[2], isUser)}
+        </Tag>
+      );
+      i++;
+      continue;
+    }
+
+    // ── Blockquote ────────────────────────────────
+    if (line.startsWith("> ")) {
+      const quoteLines = [];
+      while (i < lines.length && lines[i].startsWith("> ")) {
+        quoteLines.push(lines[i].slice(2));
+        i++;
+      }
+      elements.push(
+        <blockquote key={k()} className="bot-blockquote">
+          {quoteLines.map((ql, qi) => (
+            <p key={qi}>{inlineFormat(ql, isUser)}</p>
+          ))}
+        </blockquote>
+      );
+      continue;
+    }
+
+    // ── Unordered list ────────────────────────────
+    if (/^(\s*[-*+]\s)/.test(line)) {
+      const items = [];
+      while (i < lines.length && /^(\s*[-*+]\s)/.test(lines[i])) {
+        items.push(lines[i].replace(/^\s*[-*+]\s/, ""));
+        i++;
+      }
+      elements.push(
+        <ul key={k()} className="bot-ul">
+          {items.map((item, ii) => (
+            <li key={ii}>{inlineFormat(item, isUser)}</li>
+          ))}
+        </ul>
+      );
+      continue;
+    }
+
+    // ── Ordered list ──────────────────────────────
+    if (/^\d+\.\s/.test(line)) {
+      const items = [];
+      while (i < lines.length && /^\d+\.\s/.test(lines[i])) {
+        items.push(lines[i].replace(/^\d+\.\s/, ""));
+        i++;
+      }
+      elements.push(
+        <ol key={k()} className="bot-ol">
+          {items.map((item, ii) => (
+            <li key={ii}>{inlineFormat(item, isUser)}</li>
+          ))}
+        </ol>
+      );
+      continue;
+    }
+
+    // ── Empty line → spacer ───────────────────────
+    if (line.trim() === "") {
+      elements.push(<div key={k()} className="bot-spacer" />);
+      i++;
+      continue;
+    }
+
+    // ── Normal paragraph ──────────────────────────
+    elements.push(
+      <p key={k()} className="bot-p">
+        {inlineFormat(line, isUser)}
+      </p>
+    );
+    i++;
+  }
+
+  return elements;
+}
+
+// ── Inline formatting: bold, italic, inline code, links ───────────────────
+function inlineFormat(text, isUser) {
+  // Tokenize: **bold**, *italic*, `code`, [text](url), bare URLs
+  const pattern = /(\*\*(.+?)\*\*|\*(.+?)\*|`([^`]+)`|\[([^\]]+)\]\((https?:\/\/[^\)]+)\)|(https?:\/\/[^\s\)\]\>"']+))/g;
+  const parts = [];
+  let last = 0;
+  let match;
+  let idx = 0;
+
+  while ((match = pattern.exec(text)) !== null) {
+    if (match.index > last) {
+      parts.push(<span key={idx++}>{text.slice(last, match.index)}</span>);
+    }
+    if (match[2]) {
+      // **bold**
+      parts.push(<strong key={idx++}>{match[2]}</strong>);
+    } else if (match[3]) {
+      // *italic*
+      parts.push(<em key={idx++}>{match[3]}</em>);
+    } else if (match[4]) {
+      // `inline code`
+      parts.push(
+        <code key={idx++} className={`bot-inline-code ${isUser ? "bot-inline-code-user" : ""}`}>
+          {match[4]}
+        </code>
+      );
+    } else if (match[5] && match[6]) {
+      // [text](url)
+      parts.push(
+        <a key={idx++} href={match[6]} target="_blank" rel="noopener noreferrer"
+          className={`bot-link ${isUser ? "bot-link-user" : "bot-link-bot"}`}>
+          {match[5]}
+        </a>
+      );
+    } else if (match[7]) {
+      // bare URL
+      parts.push(
+        <a key={idx++} href={match[7]} target="_blank" rel="noopener noreferrer"
+          className={`bot-link ${isUser ? "bot-link-user" : "bot-link-bot"}`}>
+          {match[7]}
+        </a>
+      );
+    }
+    last = match.index + match[0].length;
+  }
+
+  if (last < text.length) {
+    parts.push(<span key={idx++}>{text.slice(last)}</span>);
+  }
+
+  return parts.length === 0 ? text : parts;
+}
+
+// ── Code block copy button ─────────────────────────────────────────────────
+function CodeCopyBtn({ code }) {
+  const [copied, setCopied] = useState(false);
+  const copy = () => {
+    navigator.clipboard.writeText(code).catch(() => {});
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1800);
+  };
+  return (
+    <button className="bot-code-copy" onClick={copy}>
+      {copied ? "✓ Copied" : "Copy"}
+    </button>
+  );
 }
 
 // ── Typing indicator ───────────────────────────────────────────────────────
@@ -49,7 +243,7 @@ function TypingIndicator() {
   );
 }
 
-// ── Copy toast ─────────────────────────────────────────────────────────────
+// ── Copy button on bubble ──────────────────────────────────────────────────
 function CopyBtn({ text }) {
   const [copied, setCopied] = useState(false);
   const copy = () => {
@@ -68,20 +262,6 @@ function CopyBtn({ text }) {
   );
 }
 
-// ── Render text with clickable hyperlinks ─────────────────────────────────
-const URL_REGEX = /(https?:\/\/[^\s\)\]\>"']+)/g;
-function renderTextWithLinks(text, isUser) {
-  const parts = text.split(URL_REGEX);
-  return parts.map((part, i) =>
-    /^https?:\/\//.test(part) ? (
-      <a key={i} href={part} target="_blank" rel="noopener noreferrer"
-        className={`bot-link ${isUser ? "bot-link-user" : "bot-link-bot"}`}>
-        {part}
-      </a>
-    ) : part
-  );
-}
-
 // ── Message bubble ─────────────────────────────────────────────────────────
 function MessageBubble({ msg }) {
   const isUser = msg.role === "user";
@@ -89,7 +269,11 @@ function MessageBubble({ msg }) {
     <div className={`bot-msg-row ${isUser ? "bot-msg-row-user" : "bot-msg-row-bot"}`}>
       {!isUser && <div className="bot-avatar-sm">🤖</div>}
       <div className={`bot-bubble ${isUser ? "bot-bubble-user" : "bot-bubble-bot"}`}>
-        <div className="bot-bubble-text">{renderTextWithLinks(msg.content, isUser)}</div>
+        <div className="bot-bubble-text">
+          {isUser
+            ? inlineFormat(msg.content, true)
+            : renderMarkdown(msg.content, false)}
+        </div>
         <div className="bot-bubble-footer">
           <span className="bot-bubble-time">{fmtTime(msg.created_at)}</span>
           <CopyBtn text={msg.content} />
@@ -99,6 +283,16 @@ function MessageBubble({ msg }) {
     </div>
   );
 }
+
+// ── Suggestion chips ───────────────────────────────────────────────────────
+const CHIPS = [
+  "Write me a Python function to reverse a string 🐍",
+  "Help me write a professional CV 📄",
+  "How do I earn coins on AIDLA? 🪙",
+  "Explain photosynthesis simply 🌿",
+  "Write an Instagram caption for a study post 📱",
+  "How to prepare for a job interview? 💼",
+];
 
 // ── Main Component ─────────────────────────────────────────────────────────
 export default function Bot() {
@@ -115,8 +309,6 @@ export default function Bot() {
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
   const messagesRef = useRef([]);
-
-  // Keep ref in sync with state (for access inside callbacks without stale closure)
   messagesRef.current = messages;
 
   // ── Auth + load history ───────────────────────────────────────────────────
@@ -126,7 +318,6 @@ export default function Bot() {
       if (!user) return;
       setUserId(user.id);
 
-      // Get user name
       const { data: profile } = await supabase
         .from("users_profiles")
         .select("full_name")
@@ -134,7 +325,6 @@ export default function Bot() {
         .single();
       if (profile?.full_name) setUserName(profile.full_name.split(" ")[0]);
 
-      // Load chat history
       const { data: history, error: histErr } = await supabase
         .from("bot_chat_messages")
         .select("id, role, content, created_at")
@@ -147,10 +337,17 @@ export default function Bot() {
     })();
   }, []);
 
-  // ── Auto-scroll on new messages ───────────────────────────────────────────
+  // ── Auto-scroll ───────────────────────────────────────────────────────────
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
+
+  // ── Auto-resize textarea ──────────────────────────────────────────────────
+  const handleInputChange = (e) => {
+    setInput(e.target.value);
+    e.target.style.height = "auto";
+    e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
+  };
 
   // ── Send message ──────────────────────────────────────────────────────────
   const sendMessage = useCallback(async () => {
@@ -161,7 +358,11 @@ export default function Bot() {
     setError("");
     setLoading(true);
 
-    // 1. Append user message to UI immediately
+    // Reset textarea height
+    if (inputRef.current) {
+      inputRef.current.style.height = "auto";
+    }
+
     const userMsg = {
       id: "local-u-" + Date.now(),
       role: "user",
@@ -171,19 +372,16 @@ export default function Bot() {
     setMessages(prev => [...prev, userMsg]);
 
     try {
-      // 2. Save user message to DB directly from client
       await supabase.from("bot_chat_messages").insert({
         user_id: userId,
         role: "user",
         content: text,
       });
 
-      // 3. Build history for context
       const historyForContext = messagesRef.current
         .slice(-10)
         .map(m => ({ role: m.role, content: m.content }));
 
-      // 4. Call edge function for AI reply only
       const res = await fetch(SUPABASE_FUNC_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -200,8 +398,6 @@ export default function Bot() {
         setError("Bot error: " + data.error);
       } else {
         const replyText = data.reply;
-
-        // 5. Append bot reply to UI
         const botMsg = {
           id: "local-b-" + Date.now(),
           role: "assistant",
@@ -210,7 +406,6 @@ export default function Bot() {
         };
         setMessages(prev => [...prev, botMsg]);
 
-        // 6. Save bot reply to DB directly from client
         await supabase.from("bot_chat_messages").insert({
           user_id: userId,
           role: "assistant",
@@ -256,7 +451,7 @@ export default function Bot() {
             <div className="bot-header-name">AIDLA Bot</div>
             <div className="bot-header-status">
               <span className="bot-status-dot" />
-              Always online · Speaks all languages
+              Always online · Coding · Writing · Research · Education
             </div>
           </div>
         </div>
@@ -305,13 +500,22 @@ export default function Bot() {
         ) : messages.length === 0 ? (
           <div className="bot-empty">
             <div className="bot-empty-icon">🤖</div>
-            <div className="bot-empty-title">Hi{userName ? `, ${userName}` : ""}! I'm AIDLA Bot 👋</div>
+            <div className="bot-empty-title">
+              Hi{userName ? `, ${userName}` : ""}! I'm AIDLA Bot 👋
+            </div>
             <div className="bot-empty-sub">
-              Ask me anything about AIDLA — coins, courses, free tools, lucky draws, withdrawals, and more! I speak all languages. 🌍
+              Your all-in-one AI assistant. Ask me anything — coding, writing, research, study help, career advice, social media, and more. I speak all languages! 🌍
             </div>
             <div className="bot-empty-chips">
-              {["How do I earn coins? 🪙", "What free tools are available? 🔧", "How to withdraw earnings? 💵", "Tell me about Lucky Draw 🎲"].map(q => (
-                <button key={q} className="bot-suggestion-chip" onClick={() => { setInput(q); inputRef.current?.focus(); }}>
+              {CHIPS.map(q => (
+                <button
+                  key={q}
+                  className="bot-suggestion-chip"
+                  onClick={() => {
+                    setInput(q);
+                    inputRef.current?.focus();
+                  }}
+                >
                   {q}
                 </button>
               ))}
@@ -349,9 +553,9 @@ export default function Bot() {
             ref={inputRef}
             className="bot-textarea"
             value={input}
-            onChange={e => setInput(e.target.value)}
+            onChange={handleInputChange}
             onKeyDown={onKeyDown}
-            placeholder="Ask me anything about AIDLA…"
+            placeholder="Ask me anything — coding, writing, study help, career advice…"
             rows={1}
             disabled={loading || historyLoading}
           />
@@ -406,102 +610,57 @@ const CSS = `
     flex-shrink: 0;
     gap: 10px;
   }
-  .bot-header-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
+  .bot-header-left { display: flex; align-items: center; gap: 12px; }
   .bot-header-avatar {
-    width: 42px;
-    height: 42px;
+    width: 42px; height: 42px;
     border-radius: 14px;
     background: linear-gradient(135deg, #1e3a8a, #3b82f6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; align-items: center; justify-content: center;
     font-size: 20px;
     box-shadow: 0 4px 12px rgba(59,130,246,0.3);
     flex-shrink: 0;
   }
-  .bot-header-name {
-    font-weight: 800;
-    font-size: 1rem;
-    color: #0f172a;
-    letter-spacing: -0.3px;
-  }
+  .bot-header-name { font-weight: 800; font-size: 1rem; color: #0f172a; letter-spacing: -0.3px; }
   .bot-header-status {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 11px;
-    font-weight: 600;
-    color: #64748b;
-    margin-top: 1px;
+    display: flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 600; color: #64748b; margin-top: 1px;
   }
   .bot-status-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: #22c55e;
-    animation: botPulse 2s ease infinite;
-    flex-shrink: 0;
+    width: 7px; height: 7px; border-radius: 50%; background: #22c55e;
+    animation: botPulse 2s ease infinite; flex-shrink: 0;
   }
   @keyframes botPulse {
     0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.4); }
-    50% { box-shadow: 0 0 0 4px rgba(34,197,94,0); }
+    50%       { box-shadow: 0 0 0 4px rgba(34,197,94,0); }
   }
-
-  .bot-header-actions {
-    display: flex;
-    gap: 8px;
-  }
+  .bot-header-actions { display: flex; gap: 8px; }
   .bot-clear-btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 7px 13px;
-    border-radius: 10px;
+    display: flex; align-items: center; gap: 6px;
+    padding: 7px 13px; border-radius: 10px;
     border: 1px solid rgba(239,68,68,0.18);
     background: rgba(239,68,68,0.05);
-    color: #dc2626;
-    font-size: 0.78rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.15s;
-    white-space: nowrap;
+    color: #dc2626; font-size: 0.78rem; font-weight: 700;
+    cursor: pointer; transition: all 0.15s; white-space: nowrap;
   }
   .bot-clear-btn:hover:not(:disabled) {
-    background: rgba(239,68,68,0.1);
-    border-color: rgba(239,68,68,0.3);
-    transform: translateY(-1px);
+    background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.3); transform: translateY(-1px);
   }
   .bot-clear-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
   /* ── Messages area ── */
   .bot-messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    scroll-behavior: smooth;
+    flex: 1; overflow-y: auto; padding: 16px;
+    display: flex; flex-direction: column; gap: 4px; scroll-behavior: smooth;
   }
   .bot-messages::-webkit-scrollbar { width: 4px; }
   .bot-messages::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.25); border-radius: 100px; }
 
   /* ── Date divider ── */
   .bot-date-divider {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 10px 0 6px;
-    font-size: 11px;
-    font-weight: 700;
-    color: #94a3b8;
-    letter-spacing: 0.5px;
-    text-align: center;
-    justify-content: center;
+    display: flex; align-items: center; gap: 10px;
+    margin: 10px 0 6px; font-size: 11px; font-weight: 700;
+    color: #94a3b8; letter-spacing: 0.5px;
+    text-align: center; justify-content: center;
   }
   .bot-date-divider span {
     padding: 3px 12px;
@@ -512,30 +671,22 @@ const CSS = `
 
   /* ── Message rows ── */
   .bot-msg-row {
-    display: flex;
-    align-items: flex-end;
-    gap: 8px;
-    margin-bottom: 6px;
+    display: flex; align-items: flex-end; gap: 8px; margin-bottom: 6px;
     animation: botMsgIn 0.3s cubic-bezier(0.16,1,0.3,1) forwards;
   }
   @keyframes botMsgIn {
     from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: none; }
+    to   { opacity: 1; transform: none; }
   }
   .bot-msg-row-user { flex-direction: row-reverse; }
   .bot-msg-row-bot  { flex-direction: row; }
 
   /* ── Avatars ── */
   .bot-avatar-sm {
-    width: 30px;
-    height: 30px;
-    border-radius: 10px;
+    width: 30px; height: 30px; border-radius: 10px;
     background: linear-gradient(135deg, #1e3a8a, #3b82f6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; flex-shrink: 0;
     box-shadow: 0 2px 8px rgba(59,130,246,0.2);
   }
   .bot-avatar-user {
@@ -545,7 +696,7 @@ const CSS = `
 
   /* ── Bubbles ── */
   .bot-bubble {
-    max-width: min(75%, 560px);
+    max-width: min(78%, 600px);
     padding: 10px 13px 8px;
     border-radius: 16px;
     line-height: 1.55;
@@ -565,182 +716,188 @@ const CSS = `
     border-bottom-right-radius: 4px;
     box-shadow: 0 4px 16px rgba(59,130,246,0.25);
   }
-  .bot-bubble-text {
-    font-weight: 500;
-    white-space: pre-wrap;
-    word-break: break-word;
-  }
+  .bot-bubble-text { font-weight: 500; word-break: break-word; }
   .bot-bubble-footer {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 6px;
-    margin-top: 5px;
+    display: flex; align-items: center; justify-content: flex-end;
+    gap: 6px; margin-top: 5px;
   }
-  .bot-bubble-time {
-    font-size: 10px;
-    font-weight: 600;
-    opacity: 0.55;
-  }
+  .bot-bubble-time { font-size: 10px; font-weight: 600; opacity: 0.55; }
 
   /* ── Copy button ── */
   .bot-copy-btn {
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    padding: 2px;
-    opacity: 0.45;
-    color: inherit;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 0.15s;
-    border-radius: 4px;
+    background: transparent; border: none; cursor: pointer;
+    padding: 2px; opacity: 0.45; color: inherit;
+    display: flex; align-items: center; justify-content: center;
+    transition: opacity 0.15s; border-radius: 4px;
   }
   .bot-copy-btn:hover { opacity: 1; }
 
-  /* ── Hyperlinks in messages ── */
+  /* ── Markdown elements ── */
+  .bot-p { margin: 0 0 4px 0; line-height: 1.6; }
+  .bot-spacer { height: 6px; }
+  .bot-ul, .bot-ol {
+    margin: 4px 0 6px 0;
+    padding-left: 20px;
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .bot-ul li, .bot-ol li { line-height: 1.55; }
+  .bot-heading { margin: 6px 0 3px 0; font-weight: 800; color: #0f172a; line-height: 1.3; }
+  .bot-h1 { font-size: 1.05rem; }
+  .bot-h2 { font-size: 0.98rem; }
+  .bot-h3 { font-size: 0.93rem; }
+  .bot-h4 { font-size: 0.9rem; }
+  .bot-hr { border: none; border-top: 1px solid rgba(30,58,138,0.12); margin: 8px 0; }
+  .bot-blockquote {
+    border-left: 3px solid rgba(59,130,246,0.4);
+    margin: 4px 0; padding: 4px 10px;
+    background: rgba(59,130,246,0.04);
+    border-radius: 0 6px 6px 0;
+    font-style: italic; color: #475569;
+  }
+  .bot-blockquote p { margin: 0; }
+
+  /* ── Inline code ── */
+  .bot-inline-code {
+    font-family: 'Courier New', Consolas, monospace;
+    font-size: 0.82em;
+    background: rgba(30,58,138,0.08);
+    border: 1px solid rgba(30,58,138,0.12);
+    border-radius: 5px;
+    padding: 1px 5px;
+    color: #1e3a8a;
+    font-style: normal;
+  }
+  .bot-inline-code-user {
+    background: rgba(255,255,255,0.2);
+    border-color: rgba(255,255,255,0.3);
+    color: #fff;
+  }
+
+  /* ── Code block ── */
+  .bot-code-block {
+    margin: 6px 0;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(30,58,138,0.12);
+    background: #0f172a;
+    font-size: 0.82rem;
+  }
+  .bot-code-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 7px 12px;
+    background: rgba(255,255,255,0.06);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+  .bot-code-lang {
+    font-size: 0.72rem; font-weight: 700;
+    color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;
+    font-family: 'Courier New', monospace;
+  }
+  .bot-code-copy {
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
+    color: #cbd5e1; font-size: 0.72rem; font-weight: 600;
+    padding: 3px 9px; border-radius: 6px; cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .bot-code-copy:hover { background: rgba(255,255,255,0.18); color: #fff; }
+  .bot-code-pre {
+    margin: 0; padding: 12px 14px; overflow-x: auto;
+    font-family: 'Courier New', Consolas, 'Fira Code', monospace;
+    font-size: 0.82rem; line-height: 1.6;
+    color: #e2e8f0; white-space: pre;
+  }
+  .bot-code-pre::-webkit-scrollbar { height: 4px; }
+  .bot-code-pre::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+
+  /* ── Links ── */
   .bot-link {
-    text-decoration: underline;
-    text-underline-offset: 2px;
-    word-break: break-all;
-    transition: opacity 0.15s;
+    text-decoration: underline; text-underline-offset: 2px;
+    word-break: break-all; transition: opacity 0.15s;
   }
   .bot-link:hover { opacity: 0.75; }
-  .bot-link-bot { color: #2563eb; }
+  .bot-link-bot  { color: #2563eb; }
   .bot-link-user { color: #bfdbfe; }
 
   /* ── Typing indicator ── */
   .bot-typing-wrap {
-    display: flex;
-    align-items: flex-end;
-    gap: 8px;
+    display: flex; align-items: flex-end; gap: 8px;
     animation: botMsgIn 0.3s cubic-bezier(0.16,1,0.3,1) forwards;
   }
   .bot-typing-bubble {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    background: #ffffff;
-    border: 1px solid rgba(30,58,138,0.1);
-    border-bottom-left-radius: 4px;
-    border-radius: 16px;
+    display: flex; align-items: center; gap: 4px;
+    background: #ffffff; border: 1px solid rgba(30,58,138,0.1);
+    border-bottom-left-radius: 4px; border-radius: 16px;
     padding: 12px 16px;
     box-shadow: 4px 4px 14px rgba(15,23,42,0.06);
   }
   .bot-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
+    width: 7px; height: 7px; border-radius: 50%;
     background: linear-gradient(135deg, #1e3a8a, #3b82f6);
-    animation: botDotBounce 1.2s ease infinite;
-    display: block;
+    animation: botDotBounce 1.2s ease infinite; display: block;
   }
   @keyframes botDotBounce {
     0%, 60%, 100% { transform: translateY(0); opacity: 0.6; }
-    30% { transform: translateY(-6px); opacity: 1; }
+    30%            { transform: translateY(-6px); opacity: 1; }
   }
 
   /* ── Empty state ── */
   .bot-empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    flex: 1;
-    padding: 30px 20px;
-    text-align: center;
-    gap: 10px;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; flex: 1; padding: 30px 20px;
+    text-align: center; gap: 10px;
   }
-  .bot-empty-icon {
-    font-size: 52px;
-    animation: botFloat 3s ease-in-out infinite;
-  }
+  .bot-empty-icon { font-size: 52px; animation: botFloat 3s ease-in-out infinite; }
   @keyframes botFloat {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
+    50%       { transform: translateY(-8px); }
   }
-  .bot-empty-title {
-    font-size: 1.1rem;
-    font-weight: 800;
-    color: #1e3a8a;
-    margin-top: 4px;
-  }
+  .bot-empty-title { font-size: 1.1rem; font-weight: 800; color: #1e3a8a; margin-top: 4px; }
   .bot-empty-sub {
-    font-size: 0.85rem;
-    color: #64748b;
-    font-weight: 500;
-    max-width: 360px;
-    line-height: 1.5;
+    font-size: 0.85rem; color: #64748b; font-weight: 500;
+    max-width: 400px; line-height: 1.5;
   }
   .bot-empty-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: center;
-    margin-top: 6px;
+    display: flex; flex-wrap: wrap; gap: 8px;
+    justify-content: center; margin-top: 6px;
   }
   .bot-suggestion-chip {
-    padding: 8px 14px;
-    border-radius: 100px;
+    padding: 8px 14px; border-radius: 100px;
     border: 1px solid rgba(30,58,138,0.15);
     background: rgba(30,58,138,0.05);
-    color: #1e3a8a;
-    font-size: 0.8rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s;
-    text-align: left;
+    color: #1e3a8a; font-size: 0.8rem; font-weight: 600;
+    cursor: pointer; transition: all 0.15s; text-align: left;
   }
   .bot-suggestion-chip:hover {
-    background: rgba(30,58,138,0.1);
-    border-color: rgba(30,58,138,0.3);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(30,58,138,0.1);
+    background: rgba(30,58,138,0.1); border-color: rgba(30,58,138,0.3);
+    transform: translateY(-1px); box-shadow: 0 4px 10px rgba(30,58,138,0.1);
   }
 
   /* ── History loading ── */
   .bot-history-loading {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: #64748b;
-    font-size: 0.85rem;
-    font-weight: 600;
-    padding: 20px;
-    justify-content: center;
+    display: flex; align-items: center; gap: 10px;
+    color: #64748b; font-size: 0.85rem; font-weight: 600;
+    padding: 20px; justify-content: center;
   }
   .bot-spinner {
-    width: 18px;
-    height: 18px;
+    width: 18px; height: 18px;
     border: 2.5px solid rgba(59,130,246,0.2);
     border-top-color: #3b82f6;
-    border-radius: 50%;
-    animation: botSpin 0.7s linear infinite;
+    border-radius: 50%; animation: botSpin 0.7s linear infinite;
   }
   @keyframes botSpin { to { transform: rotate(360deg); } }
 
   /* ── Error bar ── */
   .bot-error {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    display: flex; align-items: center; justify-content: space-between;
     padding: 10px 16px;
     background: rgba(239,68,68,0.07);
     border-top: 1px solid rgba(239,68,68,0.15);
-    color: #dc2626;
-    font-size: 0.82rem;
-    font-weight: 600;
-    flex-shrink: 0;
+    color: #dc2626; font-size: 0.82rem; font-weight: 600; flex-shrink: 0;
   }
   .bot-error button {
-    background: transparent;
-    border: none;
-    color: #dc2626;
-    font-size: 18px;
-    cursor: pointer;
-    font-weight: 700;
-    padding: 0 4px;
+    background: transparent; border: none; color: #dc2626;
+    font-size: 18px; cursor: pointer; font-weight: 700; padding: 0 4px;
   }
 
   /* ── Input area ── */
@@ -751,162 +908,95 @@ const CSS = `
     flex-shrink: 0;
   }
   .bot-input-box {
-    display: flex;
-    align-items: flex-end;
-    gap: 10px;
+    display: flex; align-items: flex-end; gap: 10px;
     background: #f8fafc;
     border: 1.5px solid rgba(30,58,138,0.12);
-    border-radius: 16px;
-    padding: 8px 10px 8px 16px;
+    border-radius: 16px; padding: 8px 10px 8px 16px;
     box-shadow: inset 3px 3px 6px rgba(15,23,42,0.04), inset -3px -3px 6px rgba(255,255,255,1);
     transition: border-color 0.2s, box-shadow 0.2s;
   }
   .bot-input-box:focus-within {
-    border-color: rgba(59,130,246,0.4);
-    background: #fff;
+    border-color: rgba(59,130,246,0.4); background: #fff;
     box-shadow: inset 2px 2px 4px rgba(15,23,42,0.03), inset -2px -2px 4px rgba(255,255,255,1), 0 0 0 3px rgba(59,130,246,0.08);
   }
   .bot-textarea {
-    flex: 1;
-    background: transparent;
-    border: none;
-    outline: none;
-    resize: none;
-    font-size: 0.92rem;
-    font-weight: 500;
-    color: #0f172a;
-    line-height: 1.5;
-    max-height: 120px;
-    overflow-y: auto;
-    font-family: inherit;
-    padding: 4px 0;
+    flex: 1; background: transparent; border: none; outline: none;
+    resize: none; font-size: 0.92rem; font-weight: 500; color: #0f172a;
+    line-height: 1.5; max-height: 120px; overflow-y: auto;
+    font-family: inherit; padding: 4px 0;
   }
   .bot-textarea::placeholder { color: #94a3b8; }
   .bot-textarea:disabled { opacity: 0.6; cursor: not-allowed; }
 
   .bot-send-btn {
-    width: 38px;
-    height: 38px;
-    border-radius: 12px;
-    border: none;
-    background: #e2e8f0;
-    color: #94a3b8;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: not-allowed;
-    flex-shrink: 0;
-    transition: all 0.2s;
+    width: 38px; height: 38px; border-radius: 12px; border: none;
+    background: #e2e8f0; color: #94a3b8;
+    display: flex; align-items: center; justify-content: center;
+    cursor: not-allowed; flex-shrink: 0; transition: all 0.2s;
   }
   .bot-send-btn-active {
-    background: linear-gradient(135deg, #1e3a8a, #3b82f6);
-    color: #fff;
-    cursor: pointer;
-    box-shadow: 0 3px 10px rgba(59,130,246,0.3);
+    background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: #fff;
+    cursor: pointer; box-shadow: 0 3px 10px rgba(59,130,246,0.3);
   }
   .bot-send-btn-active:hover {
-    filter: brightness(1.1);
-    transform: translateY(-1px);
+    filter: brightness(1.1); transform: translateY(-1px);
     box-shadow: 0 5px 14px rgba(59,130,246,0.4);
   }
   .bot-send-btn-active:active {
-    transform: translateY(1px);
-    box-shadow: 0 2px 6px rgba(59,130,246,0.2);
+    transform: translateY(1px); box-shadow: 0 2px 6px rgba(59,130,246,0.2);
   }
   .bot-send-spinner {
-    width: 16px;
-    height: 16px;
+    width: 16px; height: 16px;
     border: 2px solid rgba(255,255,255,0.3);
-    border-top-color: #fff;
-    border-radius: 50%;
+    border-top-color: #fff; border-radius: 50%;
     animation: botSpin 0.7s linear infinite;
   }
-
   .bot-input-hint {
-    text-align: center;
-    font-size: 10px;
-    color: #94a3b8;
-    font-weight: 600;
-    margin-top: 6px;
-    letter-spacing: 0.3px;
+    text-align: center; font-size: 10px; color: #94a3b8;
+    font-weight: 600; margin-top: 6px; letter-spacing: 0.3px;
   }
 
   /* ── Clear confirm modal ── */
   .bot-confirm-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(2,6,23,0.55);
-    backdrop-filter: blur(6px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 99999;
-    padding: 16px;
+    position: fixed; inset: 0;
+    background: rgba(2,6,23,0.55); backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 99999; padding: 16px;
   }
   .bot-confirm-box {
-    background: #fff;
-    border-radius: 22px;
-    padding: 30px 28px;
-    text-align: center;
-    max-width: 380px;
-    width: 100%;
+    background: #fff; border-radius: 22px; padding: 30px 28px;
+    text-align: center; max-width: 380px; width: 100%;
     box-shadow: 0 30px 80px rgba(2,6,23,0.25), inset 0 1px 0 rgba(255,255,255,0.6);
     animation: botConfirmIn 0.4s cubic-bezier(0.16,1,0.3,1) forwards;
   }
   @keyframes botConfirmIn {
     from { opacity: 0; transform: scale(0.88) translateY(20px); }
-    to { opacity: 1; transform: none; }
+    to   { opacity: 1; transform: none; }
   }
   .bot-confirm-icon { font-size: 44px; margin-bottom: 10px; }
-  .bot-confirm-title {
-    font-size: 1.15rem;
-    font-weight: 900;
-    color: #0f172a;
-    margin-bottom: 8px;
-  }
-  .bot-confirm-sub {
-    font-size: 0.84rem;
-    color: #64748b;
-    line-height: 1.5;
-    margin-bottom: 22px;
-  }
+  .bot-confirm-title { font-size: 1.15rem; font-weight: 900; color: #0f172a; margin-bottom: 8px; }
+  .bot-confirm-sub { font-size: 0.84rem; color: #64748b; line-height: 1.5; margin-bottom: 22px; }
   .bot-confirm-actions { display: flex; gap: 10px; justify-content: center; }
   .bot-confirm-cancel {
-    padding: 10px 22px;
-    border-radius: 12px;
-    border: 1.5px solid #e2e8f0;
-    background: transparent;
-    color: #475569;
-    font-size: 0.88rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.15s;
+    padding: 10px 22px; border-radius: 12px;
+    border: 1.5px solid #e2e8f0; background: transparent;
+    color: #475569; font-size: 0.88rem; font-weight: 700;
+    cursor: pointer; transition: all 0.15s;
   }
   .bot-confirm-cancel:hover { background: #f8fafc; }
   .bot-confirm-delete {
-    padding: 10px 22px;
-    border-radius: 12px;
-    border: none;
-    background: linear-gradient(135deg, #dc2626, #ef4444);
-    color: #fff;
-    font-size: 0.88rem;
-    font-weight: 700;
-    cursor: pointer;
+    padding: 10px 22px; border-radius: 12px; border: none;
+    background: linear-gradient(135deg, #dc2626, #ef4444); color: #fff;
+    font-size: 0.88rem; font-weight: 700; cursor: pointer;
     box-shadow: 0 3px 0 #b91c1c, 0 6px 14px rgba(239,68,68,0.25);
     transition: all 0.15s;
   }
-  .bot-confirm-delete:hover:not(:disabled) {
-    filter: brightness(1.08);
-    transform: translateY(-1px);
-  }
+  .bot-confirm-delete:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); }
   .bot-confirm-delete:disabled { opacity: 0.7; cursor: not-allowed; }
 
   /* ── Mobile ── */
   @media (max-width: 640px) {
-    .bot-root {
-      height: calc(100vh - 100px);
-      border-radius: 14px;
-    }
+    .bot-root { height: calc(100vh - 100px); border-radius: 14px; }
     .bot-header { padding: 11px 13px; }
     .bot-header-avatar { width: 36px; height: 36px; font-size: 17px; border-radius: 11px; }
     .bot-header-name { font-size: 0.9rem; }
@@ -914,7 +1004,9 @@ const CSS = `
     .bot-clear-btn span { display: none; }
     .bot-clear-btn { padding: 7px 10px; }
     .bot-messages { padding: 12px; gap: 3px; }
-    .bot-bubble { font-size: 0.85rem; padding: 9px 11px 7px; max-width: 85%; }
+    .bot-bubble { font-size: 0.85rem; padding: 9px 11px 7px; max-width: 88%; }
+    .bot-code-block { font-size: 0.78rem; }
+    .bot-code-pre { padding: 10px 12px; }
     .bot-empty-icon { font-size: 40px; }
     .bot-empty-title { font-size: 0.95rem; }
     .bot-empty-sub { font-size: 0.8rem; }
