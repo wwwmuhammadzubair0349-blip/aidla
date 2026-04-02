@@ -46,6 +46,12 @@ function buildQASchema(faq) {
       "name": faq.question,
       "text": faq.question,
       "dateCreated": faq.created_at,
+      "answerCount": 1,                    // ← ADD THIS (critical fix)
+      "author": {                           // ← ADD THIS (optional but fixes warning)
+        "@type": "Organization",
+        "name": "AIDLA",
+        "url": SITE_URL,
+      },
       "acceptedAnswer": {
         "@type": "Answer",
         "text": faq.answer,

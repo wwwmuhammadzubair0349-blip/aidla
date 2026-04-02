@@ -478,8 +478,8 @@ const PH_CSS = `
   .ph-mob-icon { font-size:1.1rem;width:26px;flex-shrink:0; }
 
   @media (max-width: 640px) {
-    .ph-inner { padding:9px 12px 0; }
-    .ph-top { gap:8px;padding-bottom:9px; }
+    .ph-inner { padding:4px 10px 0; }
+    .ph-top { gap:6px;padding-bottom:5px; }
     .ph-logo { font-size:1.4rem; }
     .ph-cat-widget { padding:5px 10px;border-radius:40px;gap:7px; }
     .ph-cat-widget .pub-cat-svg { width:30px !important;height:30px !important; }
@@ -524,7 +524,8 @@ export default function App() {
         <Route path="/blogs/:slug"                     element={<BlogPost />} />
         <Route path="/news"                            element={<News />} />
         <Route path="/news/:slug"                      element={<NewsPost />} />
-        <Route path="/leaderboard"                     element={<Leaderboard />} />
+        <Route path="/Leaderboard" element={<Navigate to="/leaderboard" replace />} />
+        <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/contact"                         element={<Contact />} />
         <Route path="/privacy-policy"                  element={<PrivacyPolicy />} />
         <Route path="/terms"                           element={<Terms />} />
