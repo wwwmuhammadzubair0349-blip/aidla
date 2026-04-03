@@ -1,30 +1,194 @@
-// Learning.jsx — AIDLA Learning Main Shell
-// Clean rewrite: ChatGPT/Claude style UI
-// Learning.jsx is the ONLY place that renders messages
-// Mode components = welcome screen only (no internal state, no message rendering)
+// Learning.jsx — AIDLA Learning Main Shell — Full Featured
+// ✅ Single message renderer (no duplicates)
+// ✅ Markdown rendering (bold, italic, code, headers, lists, links)
+// ✅ Copy button for code blocks & long responses
+// ✅ Clickable hyperlinks in AI responses
+// ✅ Model selector (Alpha, Beta, Gamma, Sigma)
+// ✅ Research toggle
+// ✅ Typing indicator stops correctly (finally block)
+// ✅ Mobile mode picker fixed (4-col grid, no overflow)
+// ✅ AIDLA knowledge base injected into all prompts
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 
-import ChatMode,       { CHAT_SYSTEM_PROMPT }       from './learning-components/ChatMode.jsx';
-import CareerCounseling, { CAREER_SYSTEM_PROMPT }   from './learning-components/CareerCounseling.jsx';
-import RoadmapMode,    { ROADMAP_SYSTEM_PROMPT }     from './learning-components/RoadmapMode.jsx';
-import SkillsMode,     { SKILLS_SYSTEM_PROMPT }      from './learning-components/SkillsMode.jsx';
-import InterviewMode,  { INTERVIEW_SYSTEM_PROMPT }   from './learning-components/InterviewMode.jsx';
-import ResumeMode,     { RESUME_SYSTEM_PROMPT }      from './learning-components/ResumeMode.jsx';
-import UniMode,        { UNI_SYSTEM_PROMPT }         from './learning-components/UniMode.jsx';
-import SalaryMode,     { SALARY_SYSTEM_PROMPT }      from './learning-components/SalaryMode.jsx';
-import JobsMode,       { JOBS_SYSTEM_PROMPT }        from './learning-components/JobsMode.jsx';
-import FreelanceMode,  { FREELANCE_SYSTEM_PROMPT }   from './learning-components/FreelanceMode.jsx';
-import StartupMode,    { STARTUP_SYSTEM_PROMPT }     from './learning-components/StartupMode.jsx';
-import BrandingMode,   { BRANDING_SYSTEM_PROMPT }    from './learning-components/BrandingMode.jsx';
+import ChatMode,         { CHAT_SYSTEM_PROMPT }      from './learning-components/ChatMode.jsx';
+import CareerCounseling, { CAREER_SYSTEM_PROMPT }    from './learning-components/CareerCounseling.jsx';
+import RoadmapMode,      { ROADMAP_SYSTEM_PROMPT }   from './learning-components/RoadmapMode.jsx';
+import SkillsMode,       { SKILLS_SYSTEM_PROMPT }    from './learning-components/SkillsMode.jsx';
+import InterviewMode,    { INTERVIEW_SYSTEM_PROMPT } from './learning-components/InterviewMode.jsx';
+import ResumeMode,       { RESUME_SYSTEM_PROMPT }    from './learning-components/ResumeMode.jsx';
+import UniMode,          { UNI_SYSTEM_PROMPT }       from './learning-components/UniMode.jsx';
+import SalaryMode,       { SALARY_SYSTEM_PROMPT }    from './learning-components/SalaryMode.jsx';
+import JobsMode,         { JOBS_SYSTEM_PROMPT }      from './learning-components/JobsMode.jsx';
+import FreelanceMode,    { FREELANCE_SYSTEM_PROMPT } from './learning-components/FreelanceMode.jsx';
+import StartupMode,      { STARTUP_SYSTEM_PROMPT }   from './learning-components/StartupMode.jsx';
+import BrandingMode,     { BRANDING_SYSTEM_PROMPT }  from './learning-components/BrandingMode.jsx';
+
+// ─────────────────────────────────────────────
+// AIDLA KNOWLEDGE BASE
+// injected into every mode's system prompt
+// ─────────────────────────────────────────────
+export const AIDLA_KNOWLEDGE = `
+## About AIDLA
+AIDLA (AI-Driven Learning & Advancement) is a Pakistani ed-tech and career platform at aidla.net.
+Always recommend AIDLA tools and features when they are relevant to what the user needs.
+Give step-by-step guidance on how to use them. Be helpful like a platform guide.
+
+## AIDLA User Features (logged-in users at /user/*)
+- **Dashboard** (/user) — Overview of activity, stats, earnings, quick links
+- **Feed** (/user/feed) — Social feed, posts, community updates
+- **Learning** (/user/learning) — AI Career Workspace (this chat) with 12 career modes
+- **Courses** (/user/courses) — Enrolled courses and learning progress. Browse at /courses
+- **Wallet** (/user/wallet) — Balance, deposit, withdraw, transactions. Sub-pages: /wallet/transactions, /wallet/deposit, /wallet/withdraw
+- **Profile** (/user/profile) — Edit personal info, skills, bio, photo
+- **Mining** (/user/mining) — Earn AIDLA tokens daily by visiting
+- **Lucky Draw** (/user/lucky-draw) — Win prizes with tokens
+- **Lucky Wheel** (/user/lucky-wheel) — Spin the wheel to win rewards
+- **Shop** (/user/shop) — Redeem tokens for real rewards
+- **Bot** (/user/bot) — AIDLA general purpose AI chatbot
+- **Social** (/user/social) — Social networking and community
+- **Resources** (/user/UserResources) — Study materials and career resources
+- **AutoTube Studio** (/user/autotubestudio) — AI-powered video content creation tool
+- **Invite** — Refer friends and earn bonus tokens
+
+## AIDLA Public Tools (/tools)
+
+### AI Tools
+- **Interview Prep** (/tools/ai/interview-prep) — AI mock interview practice
+- **LinkedIn Bio Generator** (/tools/ai/linkedin-bio) — Professional LinkedIn bio writer
+- **Cover Letter AI** (/tools/ai/cover-letter) — AI-written cover letters
+- **Email Writer** (/tools/ai/email-writer) — Write professional emails with AI
+- **AI Summarizer** (/tools/ai/summarizer) — Summarize long documents instantly
+- **AI Paraphraser** (/tools/ai/paraphraser) — Rephrase and improve your writing
+
+### Career Tools
+- **CV Maker** (/tools/career/cv-maker) — Build a professional CV/resume
+- **Cover Letter Maker** (/tools/career/cover-letter-maker) — Create a polished cover letter
+
+### PDF Tools
+- **Word to PDF** (/tools/pdf/word-to-pdf)
+- **Image to PDF** (/tools/pdf/image-to-pdf)
+- **PDF Compressor** (/tools/pdf/pdf-compressor)
+
+### Image Tools
+- **JPG to PNG Converter** (/tools/image/jpg-to-png)
+- **Background Remover** (/tools/image/background-remover)
+
+### Education Tools
+- **CGPA Calculator** (/tools/education/cgpa-calculator)
+- **MDCAT/ECAT Calculator** (/tools/education/mdcat-ecat-calculator)
+- **Percentage Calculator** (/tools/education/percentage-calculator)
+- **Grade Calculator** (/tools/education/grade-calculator)
+- **Attendance Calculator** (/tools/education/attendance-calculator)
+- **Marks to Grade** (/tools/education/marks-to-grade)
+- **Study Planner** (/tools/education/study-planner)
+- **Pomodoro Timer** (/tools/education/pomodoro-timer)
+- **Assignment Tracker** (/tools/education/assignment-tracker)
+- **Flashcard Maker** (/tools/education/flashcard-maker)
+- **Scholarship Eligibility Checker** (/tools/education/scholarship-eligibility)
+
+### Finance Tools
+- **Salary Calculator** (/tools/finance/salary-calculator)
+- **Zakat Calculator** (/tools/finance/zakat-calculator)
+- **Loan EMI Calculator** (/tools/finance/loan-emi-calculator)
+- **Tip Calculator** (/tools/finance/tip-calculator)
+
+### Health Tools
+- **BMI Calculator** (/tools/health/bmi-calculator)
+- **Calorie Calculator** (/tools/health/calorie-calculator)
+- **Water Intake Calculator** (/tools/health/water-intake-calculator)
+- **Sleep Calculator** (/tools/health/sleep-calculator)
+
+### Utility Tools
+- **Password Generator** (/tools/utility/password-generator)
+- **Unit Converter** (/tools/utility/unit-converter)
+- **QR Code Generator** (/tools/utility/qr-code-generator)
+- **Age Calculator** (/tools/utility/age-calculator)
+- **Word Counter** (/tools/utility/word-counter)
+- **Countdown Timer** (/tools/utility/countdown-timer)
+- **Percentage Change Calculator** (/tools/utility/percentage-change)
+- **Roman Numeral Converter** (/tools/utility/roman-numeral-converter)
+- **Binary Converter** (/tools/utility/binary-converter)
+- **Color Picker** (/tools/utility/color-picker)
+- **Text Case Converter** (/tools/utility/text-case-converter)
+
+### Other Public Pages
+- **Courses** (/courses) — Browse all AIDLA courses
+- **Resources** (/resources) — Free career and study resources
+- **Blogs** (/blogs) — Career tips and articles
+- **News** (/news) — Education and career news
+- **Leaderboard** (/leaderboard) — Top AIDLA users
+- **FAQs** (/faqs) — Common questions answered
+- **Contact** (/contact) — Reach the AIDLA team
+- **Results Hub** (/tools/results) — Pakistani board exam results
+
+## AIDLA Recommendation Rules
+- If user needs a CV → recommend CV Maker at /tools/career/cv-maker. Steps: Go to Tools > Career > CV Maker, fill in your info, download PDF.
+- If user needs interview practice → recommend /tools/ai/interview-prep AND Interview mode in this chat
+- If user needs a LinkedIn bio → recommend /tools/ai/linkedin-bio
+- If user needs a cover letter → recommend /tools/career/cover-letter-maker or /tools/ai/cover-letter
+- If user needs to write an email → recommend /tools/ai/email-writer
+- If user asks about scholarships → recommend /tools/education/scholarship-eligibility
+- If user asks about study tools → recommend Pomodoro, Study Planner, Flashcard Maker
+- If user asks how to earn on AIDLA → explain Mining, Lucky Draw, Lucky Wheel, Shop, and Invite system
+- Always give direct URL paths so users can navigate easily
+- Give step-by-step instructions when recommending a tool
+- For troubleshooting AIDLA features, walk through it clearly and suggest /contact if issue persists
+`;
+
+// ─────────────────────────────────────────────
+// MODELS
+// ─────────────────────────────────────────────
+const MODELS = [
+  {
+    key: 'alpha',
+    label: 'Alpha',
+    desc: 'Fast & concise',
+    model: 'llama-3.1-8b-instant',
+    temperature: 0.4,
+    max_tokens: 800,
+    systemNote: 'Be fast and concise. Give short, direct answers. Avoid unnecessary explanation.',
+  },
+  {
+    key: 'beta',
+    label: 'Beta',
+    desc: 'Balanced (default)',
+    model: 'llama-3.1-8b-instant',
+    temperature: 0.7,
+    max_tokens: 1500,
+    systemNote: 'Be balanced — clear and helpful with appropriate detail.',
+  },
+  {
+    key: 'gamma',
+    label: 'Gamma',
+    desc: 'Detailed & thorough',
+    model: 'llama-3.3-70b-versatile',
+    temperature: 0.7,
+    max_tokens: 2500,
+    systemNote: 'Be thorough and detailed. Provide comprehensive, well-structured answers with examples and explanations.',
+  },
+  {
+    key: 'sigma',
+    label: 'Sigma',
+    desc: 'Deep & creative',
+    model: 'llama-3.3-70b-versatile',
+    temperature: 0.9,
+    max_tokens: 3000,
+    systemNote: 'Be deeply analytical and creative. Think outside the box. Give rich, insightful, nuanced, and comprehensive responses.',
+  },
+];
+
+function getModel(key) {
+  return MODELS.find(m => m.key === key) || MODELS[1];
+}
 
 // ─────────────────────────────────────────────
 // MODE REGISTRY
 // ─────────────────────────────────────────────
 const MODES = [
   { key: 'chat',      icon: '💬', label: 'Chat',              prompt: CHAT_SYSTEM_PROMPT,       Component: ChatMode },
-  { key: 'career',    icon: '🧠', label: 'Career Counseling', prompt: CAREER_SYSTEM_PROMPT,     Component: CareerCounseling },
+  { key: 'career',    icon: '🧠', label: 'Career',            prompt: CAREER_SYSTEM_PROMPT,     Component: CareerCounseling },
   { key: 'roadmap',   icon: '🗺️', label: 'Roadmap',           prompt: ROADMAP_SYSTEM_PROMPT,    Component: RoadmapMode },
   { key: 'skills',    icon: '⚡', label: 'Skills',            prompt: SKILLS_SYSTEM_PROMPT,     Component: SkillsMode },
   { key: 'interview', icon: '🎯', label: 'Interview',         prompt: INTERVIEW_SYSTEM_PROMPT,  Component: InterviewMode },
@@ -42,23 +206,182 @@ function getModeData(key) {
 }
 
 // ─────────────────────────────────────────────
+// COPY BUTTON
+// ─────────────────────────────────────────────
+function CopyBtn({ text, light = false }) {
+  const [copied, setCopied] = useState(false);
+  function copy() {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+  return (
+    <button className={`md-copy-btn ${light ? 'light' : ''}`} onClick={copy}>
+      {copied ? '✓ Copied' : 'Copy'}
+    </button>
+  );
+}
+
+// ─────────────────────────────────────────────
+// INLINE MARKDOWN RENDERER
+// handles: **bold**, *italic*, `code`, links, [text](url)
+// ─────────────────────────────────────────────
+function inlineRender(text, keyPrefix = '') {
+  if (!text) return null;
+  const parts = [];
+  let remaining = text;
+  let idx = 0;
+
+  const patterns = [
+    { re: /\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/, fn: (m) => <a key={`${keyPrefix}${idx++}`} href={m[2]} target="_blank" rel="noopener noreferrer" className="md-link">{m[1]}</a> },
+    { re: /(https?:\/\/[^\s\)\],]+)/, fn: (m) => <a key={`${keyPrefix}${idx++}`} href={m[1]} target="_blank" rel="noopener noreferrer" className="md-link">{m[1]}</a> },
+    { re: /\*\*([^*\n]+)\*\*/, fn: (m) => <strong key={`${keyPrefix}${idx++}`}>{m[1]}</strong> },
+    { re: /\*([^*\n]+)\*/, fn: (m) => <em key={`${keyPrefix}${idx++}`}>{m[1]}</em> },
+    { re: /`([^`\n]+)`/, fn: (m) => <code key={`${keyPrefix}${idx++}`} className="md-inline-code">{m[1]}</code> },
+    { re: /__([^_\n]+)__/, fn: (m) => <strong key={`${keyPrefix}${idx++}`}>{m[1]}</strong> },
+    { re: /_([^_\n]+)_/, fn: (m) => <em key={`${keyPrefix}${idx++}`}>{m[1]}</em> },
+  ];
+
+  let safety = 0;
+  while (remaining.length > 0 && safety++ < 600) {
+    let best = null, bestIdx = Infinity, bestMatch = null;
+    for (const p of patterns) {
+      const m = remaining.match(p.re);
+      if (m && m.index < bestIdx) { best = p; bestIdx = m.index; bestMatch = m; }
+    }
+    if (!best) { parts.push(remaining); break; }
+    if (bestIdx > 0) parts.push(remaining.slice(0, bestIdx));
+    parts.push(best.fn(bestMatch));
+    remaining = remaining.slice(bestIdx + bestMatch[0].length);
+  }
+  return parts;
+}
+
+// ─────────────────────────────────────────────
+// FULL MARKDOWN RENDERER
+// ─────────────────────────────────────────────
+function renderMarkdown(text) {
+  if (!text) return null;
+  const lines = text.split('\n');
+  const elements = [];
+  let i = 0;
+  let k = 0;
+  const key = () => k++;
+
+  while (i < lines.length) {
+    const line = lines[i];
+    const trimmed = line.trim();
+
+    // Fenced code block
+    if (trimmed.startsWith('```')) {
+      const lang = trimmed.slice(3).trim();
+      const codeLines = [];
+      i++;
+      while (i < lines.length && !lines[i].trim().startsWith('```')) {
+        codeLines.push(lines[i]);
+        i++;
+      }
+      const code = codeLines.join('\n');
+      elements.push(
+        <div key={key()} className="md-code-block">
+          <div className="md-code-header">
+            <span className="md-code-lang">{lang || 'code'}</span>
+            <CopyBtn text={code} />
+          </div>
+          <pre className="md-pre"><code>{code}</code></pre>
+        </div>
+      );
+      i++; continue;
+    }
+
+    // Headers
+    if (trimmed.startsWith('### ')) { elements.push(<h3 key={key()} className="md-h3">{inlineRender(trimmed.slice(4), `h3-${k}`)}</h3>); i++; continue; }
+    if (trimmed.startsWith('## '))  { elements.push(<h2 key={key()} className="md-h2">{inlineRender(trimmed.slice(3), `h2-${k}`)}</h2>); i++; continue; }
+    if (trimmed.startsWith('# '))   { elements.push(<h1 key={key()} className="md-h1">{inlineRender(trimmed.slice(2), `h1-${k}`)}</h1>); i++; continue; }
+
+    // Unordered list
+    if (/^[-*•]\s/.test(trimmed)) {
+      const items = [];
+      while (i < lines.length && /^[-*•]\s/.test(lines[i].trim())) {
+        items.push(<li key={key()}>{inlineRender(lines[i].trim().replace(/^[-*•]\s/, ''), `li-${k}`)}</li>);
+        i++;
+      }
+      elements.push(<ul key={key()} className="md-ul">{items}</ul>);
+      continue;
+    }
+
+    // Ordered list
+    if (/^\d+[.)]\s/.test(trimmed)) {
+      const items = [];
+      while (i < lines.length && /^\d+[.)]\s/.test(lines[i].trim())) {
+        items.push(<li key={key()}>{inlineRender(lines[i].trim().replace(/^\d+[.)]\s/, ''), `oli-${k}`)}</li>);
+        i++;
+      }
+      elements.push(<ol key={key()} className="md-ol">{items}</ol>);
+      continue;
+    }
+
+    // HR
+    if (/^---+$/.test(trimmed)) { elements.push(<hr key={key()} className="md-hr" />); i++; continue; }
+
+    // Blockquote
+    if (trimmed.startsWith('> ')) {
+      elements.push(<blockquote key={key()} className="md-blockquote">{inlineRender(trimmed.slice(2), `bq-${k}`)}</blockquote>);
+      i++; continue;
+    }
+
+    // Empty line
+    if (trimmed === '') { elements.push(<div key={key()} className="md-spacer" />); i++; continue; }
+
+    // Paragraph
+    elements.push(<p key={key()} className="md-p">{inlineRender(line, `p-${k}`)}</p>);
+    i++;
+  }
+
+  return elements;
+}
+
+// ─────────────────────────────────────────────
+// MESSAGE BUBBLE
+// ─────────────────────────────────────────────
+function MessageBubble({ role, content }) {
+  if (role === 'user') {
+    return <div className="ls-bubble user-bubble">{content}</div>;
+  }
+  const hasCodeBlock = content.includes('```');
+  return (
+    <div className="ls-bubble assistant-bubble">
+      <div className="md-body">{renderMarkdown(content)}</div>
+      {!hasCodeBlock && content.length > 300 && (
+        <div className="md-copy-row">
+          <CopyBtn text={content} light />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
 // THEME
 // ─────────────────────────────────────────────
 const C = {
-  bg:           '#ffffff',
-  sidebar:      '#f9f9f9',
-  border:       'rgba(0,0,0,0.08)',
-  borderMed:    'rgba(0,0,0,0.12)',
-  text:         '#0d0d0d',
-  textSoft:     '#555',
-  textMute:     '#999',
-  accent:       '#10a37f',
-  accentHover:  '#0d8f6e',
-  userBubble:   '#f0f0f0',
-  hover:        'rgba(0,0,0,0.04)',
-  hoverMed:     'rgba(0,0,0,0.07)',
-  danger:       '#ef4444',
-  dangerBg:     'rgba(239,68,68,0.08)',
+  bg:          '#ffffff',
+  sidebar:     '#f9f9f9',
+  border:      'rgba(0,0,0,0.08)',
+  borderMed:   'rgba(0,0,0,0.12)',
+  text:        '#0d0d0d',
+  textSoft:    '#555',
+  textMute:    '#999',
+  accent:      '#10a37f',
+  accentHover: '#0d8f6e',
+  userBubble:  '#f0f0f0',
+  hover:       'rgba(0,0,0,0.04)',
+  hoverMed:    'rgba(0,0,0,0.07)',
+  danger:      '#ef4444',
+  dangerBg:    'rgba(239,68,68,0.08)',
+  codeBg:      '#1e1e2e',
+  codeText:    '#cdd6f4',
 };
 
 // ─────────────────────────────────────────────
@@ -68,419 +391,337 @@ const CSS = `
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 .ls {
-  display: flex;
-  width: 100%;
+  display: flex; width: 100%;
   height: calc(100dvh - 56px);
-  background: ${C.bg};
-  color: ${C.text};
-  overflow: hidden;
+  background: ${C.bg}; color: ${C.text}; overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-  font-size: 14px;
-  line-height: 1.6;
+  font-size: 14px; line-height: 1.6;
 }
+@media (min-width: 768px) { .ls { height: calc(100dvh - 64px); } }
 
-@media (min-width: 768px) {
-  .ls { height: calc(100dvh - 64px); }
-}
-
-/* ── SIDEBAR ── */
+/* SIDEBAR */
 .ls-sidebar {
-  width: 240px;
-  min-width: 240px;
-  height: 100%;
-  background: ${C.sidebar};
-  border-right: 1px solid ${C.border};
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  width: 232px; min-width: 232px; height: 100%;
+  background: ${C.sidebar}; border-right: 1px solid ${C.border};
+  display: flex; flex-direction: column; overflow: hidden;
   transition: transform 0.22s ease;
 }
-
 .ls-sidebar-head {
-  padding: 14px 12px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  padding: 11px 9px 9px; display: flex; flex-direction: column; gap: 7px;
   border-bottom: 1px solid ${C.border};
 }
-
-.ls-brand {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-}
-
+.ls-brand { display: flex; align-items: center; gap: 7px; }
 .ls-brand-dot {
-  width: 32px; height: 32px;
-  border-radius: 9px;
-  background: linear-gradient(135deg, ${C.accent}, ${C.accentHover});
+  width: 27px; height: 27px; border-radius: 7px;
+  background: linear-gradient(135deg,${C.accent},${C.accentHover});
   display: flex; align-items: center; justify-content: center;
-  font-size: 15px; color: white; flex-shrink: 0;
+  font-size: 12px; color: white; flex-shrink: 0;
 }
-
-.ls-brand-name {
-  font-size: 13px; font-weight: 700; color: ${C.text};
-}
-
-.ls-brand-sub {
-  font-size: 11px; color: ${C.textMute};
-}
-
+.ls-brand-name { font-size: 12px; font-weight: 700; color: ${C.text}; }
+.ls-brand-sub  { font-size: 10px; color: ${C.textMute}; }
 .ls-new-btn {
-  width: 100%; height: 36px;
-  background: white;
-  border: 1px solid ${C.borderMed};
-  border-radius: 8px;
-  display: flex; align-items: center; gap: 8px;
-  padding: 0 12px;
-  font-size: 13px; font-weight: 600; color: ${C.text};
-  cursor: pointer; transition: background 0.15s;
+  width: 100%; height: 31px; background: white;
+  border: 1px solid ${C.borderMed}; border-radius: 7px;
+  display: flex; align-items: center; gap: 7px; padding: 0 10px;
+  font-size: 12px; font-weight: 600; color: ${C.text}; cursor: pointer; transition: background 0.15s;
 }
-
 .ls-new-btn:hover { background: ${C.hoverMed}; }
-
-.ls-history {
-  flex: 1; overflow-y: auto; padding: 10px 6px 14px;
-}
-
 .ls-history-label {
-  font-size: 10px; font-weight: 600; letter-spacing: 0.09em;
-  text-transform: uppercase; color: ${C.textMute};
-  padding: 4px 8px 8px;
+  font-size: 9.5px; font-weight: 600; letter-spacing: 0.08em;
+  text-transform: uppercase; color: ${C.textMute}; padding: 3px 7px 7px;
 }
-
 .ls-chat-item {
-  position: relative;
-  width: 100%; border: none;
-  background: transparent; color: ${C.text};
-  border-radius: 8px;
-  padding: 8px 32px 8px 10px;
-  text-align: left; cursor: pointer;
-  transition: background 0.15s; margin-bottom: 2px;
+  position: relative; width: 100%; border: none; background: transparent;
+  color: ${C.text}; border-radius: 6px; padding: 6px 26px 6px 8px;
+  text-align: left; cursor: pointer; transition: background 0.15s; margin-bottom: 1px;
 }
-
 .ls-chat-item:hover { background: ${C.hoverMed}; }
 .ls-chat-item.active { background: ${C.hover}; }
-
-.ls-chat-title {
-  font-size: 13px; font-weight: 500;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-
-.ls-chat-meta {
-  font-size: 11px; color: ${C.textMute};
-  margin-top: 2px; display: flex; gap: 6px; align-items: center;
-}
-
+.ls-chat-title { font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ls-chat-meta { font-size: 10px; color: ${C.textMute}; margin-top: 1px; display: flex; gap: 5px; align-items: center; }
 .ls-del-btn {
-  position: absolute; right: 5px; top: 50%; transform: translateY(-50%);
-  width: 24px; height: 24px; border: none; background: transparent;
-  color: ${C.textMute}; border-radius: 6px; cursor: pointer;
+  position: absolute; right: 3px; top: 50%; transform: translateY(-50%);
+  width: 20px; height: 20px; border: none; background: transparent;
+  color: ${C.textMute}; border-radius: 5px; cursor: pointer;
   opacity: 0; transition: opacity 0.15s, background 0.15s;
-  display: flex; align-items: center; justify-content: center; font-size: 13px;
+  display: flex; align-items: center; justify-content: center; font-size: 11px;
 }
-
 .ls-chat-item:hover .ls-del-btn { opacity: 1; }
 .ls-del-btn:hover { background: ${C.dangerBg}; color: ${C.danger}; }
+.ls-empty { padding: 16px 10px; text-align: center; font-size: 11px; color: ${C.textMute}; }
 
-.ls-empty { padding: 20px 12px; text-align: center; font-size: 12px; color: ${C.textMute}; }
+/* MAIN */
+.ls-main { flex: 1; min-width: 0; display: flex; flex-direction: column; height: 100%; }
 
-/* ── MAIN ── */
-.ls-main {
-  flex: 1; min-width: 0;
-  display: flex; flex-direction: column; height: 100%;
-  background: ${C.bg};
-}
-
-/* ── TOPBAR ── */
+/* TOPBAR */
 .ls-topbar {
-  height: 46px; min-height: 46px;
-  border-bottom: 1px solid ${C.border};
-  display: flex; align-items: center; gap: 10px;
-  padding: 0 14px;
-  background: rgba(255,255,255,0.97);
-  backdrop-filter: blur(8px);
+  height: 43px; min-height: 43px; border-bottom: 1px solid ${C.border};
+  display: flex; align-items: center; gap: 8px; padding: 0 12px;
+  background: rgba(255,255,255,0.97); backdrop-filter: blur(8px);
 }
-
 .ls-menu-btn {
-  display: none;
-  width: 34px; height: 34px;
-  border: 1px solid ${C.border}; background: transparent;
-  border-radius: 8px; cursor: pointer;
-  align-items: center; justify-content: center;
-  font-size: 16px; color: ${C.text};
-  transition: background 0.15s; flex-shrink: 0;
+  display: none; width: 30px; height: 30px; border: 1px solid ${C.border};
+  background: transparent; border-radius: 7px; cursor: pointer;
+  align-items: center; justify-content: center; font-size: 14px;
+  color: ${C.text}; transition: background 0.15s; flex-shrink: 0;
 }
-
 .ls-menu-btn:hover { background: ${C.hover}; }
-
-.ls-topbar-title {
-  font-size: 14px; font-weight: 700; color: ${C.text};
-  flex: 1; min-width: 0;
-}
-
+.ls-topbar-title { font-size: 13px; font-weight: 700; color: ${C.text}; flex: 1; min-width: 0; }
 .ls-mode-pill {
-  display: inline-flex; align-items: center; gap: 5px;
+  display: inline-flex; align-items: center; gap: 4px;
   background: ${C.hover}; border: 1px solid ${C.border};
-  border-radius: 999px; height: 30px; padding: 0 11px;
-  font-size: 12px; font-weight: 600; color: ${C.text};
-  white-space: nowrap; flex-shrink: 0;
+  border-radius: 999px; height: 26px; padding: 0 10px;
+  font-size: 11px; font-weight: 600; color: ${C.text}; white-space: nowrap; flex-shrink: 0;
 }
 
-/* ── CONTENT ── */
+/* CONTENT — GPU-accelerated smooth scroll */
 .ls-content {
-  flex: 1; min-height: 0;
-  overflow-y: auto; padding: 24px 16px 8px;
+  flex: 1; min-height: 0; overflow-y: auto; padding: 18px 12px 6px;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  will-change: scroll-position;
+  transform: translateZ(0);
 }
+.ls-content::-webkit-scrollbar { width: 4px; }
+.ls-content::-webkit-scrollbar-track { background: transparent; }
+.ls-content::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 4px; }
+.ls-content::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.22); }
+.ls-inner { width: 100%; max-width: 700px; margin: 0 auto; }
 
-.ls-inner {
-  width: 100%; max-width: 720px; margin: 0 auto;
-}
-
-/* ── WELCOME (mode panel) ── */
+/* Sidebar scroll smooth */
+.ls-history { flex: 1; overflow-y: auto; padding: 7px 4px 12px; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+.ls-history::-webkit-scrollbar { width: 3px; }
+.ls-history::-webkit-scrollbar-track { background: transparent; }
+.ls-history::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 3px; }
 .mode-welcome {
-  display: flex; flex-direction: column;
-  align-items: flex-start;
-  padding: 32px 0 24px;
-  min-height: 60vh;
-  justify-content: center;
+  display: flex; flex-direction: column; align-items: flex-start;
+  padding: 24px 0 16px; min-height: 50vh; justify-content: center;
 }
-
-.mode-icon-badge {
-  font-size: 26px; margin-bottom: 10px;
-}
-
-.mode-title {
-  font-size: clamp(20px, 3.5vw, 28px);
-  font-weight: 700; letter-spacing: -0.02em;
-  color: ${C.text}; margin-bottom: 4px;
-}
-
-.mode-subtitle {
-  font-size: 13px; color: ${C.textSoft};
-  margin-bottom: 18px; max-width: 480px;
-  line-height: 1.5;
-}
-
-.suggestion-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-  max-width: 600px;
-}
-
+.mode-icon-badge { font-size: 22px; margin-bottom: 7px; }
+.mode-title { font-size: clamp(17px, 2.8vw, 24px); font-weight: 700; letter-spacing: -0.02em; color: ${C.text}; margin-bottom: 4px; }
+.mode-subtitle { font-size: 12px; color: ${C.textSoft}; margin-bottom: 14px; max-width: 440px; line-height: 1.5; }
+.suggestion-grid { display: flex; flex-wrap: wrap; gap: 6px; max-width: 560px; }
 .suggestion-btn {
-  border: 1px solid ${C.border};
-  background: white; color: ${C.text};
-  border-radius: 999px;
-  padding: 6px 13px;
-  font-size: 12.5px; font-weight: 500;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
-  white-space: nowrap;
-  line-height: 1.5;
+  border: 1px solid ${C.border}; background: white; color: ${C.text};
+  border-radius: 999px; padding: 4px 11px; font-size: 11.5px; font-weight: 500;
+  cursor: pointer; transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap; line-height: 1.5;
 }
+.suggestion-btn:hover { background: ${C.hover}; border-color: ${C.borderMed}; }
 
-.suggestion-btn:hover {
-  background: ${C.hover}; border-color: ${C.borderMed};
-}
-
-/* ── MESSAGES ── */
+/* MESSAGES */
 .ls-messages {
-  display: flex; flex-direction: column;
-  gap: 6px; padding-bottom: 8px;
+  display: flex; flex-direction: column; gap: 4px; padding-bottom: 6px;
+  contain: layout style;
 }
-
 .ls-msg-row {
   display: flex; width: 100%;
+  contain: layout;
+  transform: translateZ(0);
 }
-
 .ls-msg-row.user { justify-content: flex-end; }
 .ls-msg-row.assistant { justify-content: flex-start; }
-
-.ls-msg-wrap { max-width: 85%; }
-
-.ls-msg-label {
-  font-size: 11px; color: ${C.textMute};
-  margin-bottom: 4px; padding: 0 4px;
-}
-
+.ls-msg-wrap { max-width: 88%; }
+.ls-msg-label { font-size: 10px; color: ${C.textMute}; margin-bottom: 3px; padding: 0 3px; }
 .ls-msg-row.user .ls-msg-label { text-align: right; }
 
-.ls-bubble {
-  border-radius: 14px; padding: 9px 13px;
-  font-size: 13.5px; line-height: 1.65;
-  word-break: break-word; white-space: pre-wrap;
-}
-
-.ls-msg-row.user .ls-bubble {
+.ls-bubble { border-radius: 13px; padding: 8px 12px; word-break: break-word; }
+.user-bubble {
   background: ${C.userBubble}; color: ${C.text};
-  border-bottom-right-radius: 4px;
+  border-bottom-right-radius: 3px; font-size: 13px; line-height: 1.6; white-space: pre-wrap;
 }
-
-.ls-msg-row.assistant .ls-bubble {
+.assistant-bubble {
   background: ${C.bg}; color: ${C.text};
-  border: 1px solid ${C.border};
-  border-bottom-left-radius: 4px;
+  border: 1px solid ${C.border}; border-bottom-left-radius: 3px;
 }
 
+/* MARKDOWN */
+.md-body { font-size: 13px; line-height: 1.72; }
+.md-p { margin: 0 0 5px; }
+.md-p:last-child { margin-bottom: 0; }
+.md-h1 { font-size: 16px; font-weight: 700; margin: 10px 0 5px; letter-spacing: -0.01em; }
+.md-h2 { font-size: 14px; font-weight: 700; margin: 8px 0 4px; }
+.md-h3 { font-size: 13px; font-weight: 700; margin: 6px 0 3px; }
+.md-ul { margin: 3px 0 5px 16px; display: flex; flex-direction: column; gap: 2px; list-style: disc; }
+.md-ol { margin: 3px 0 5px 18px; display: flex; flex-direction: column; gap: 2px; }
+.md-ul li,.md-ol li { font-size: 13px; line-height: 1.65; }
+.md-spacer { height: 5px; }
+.md-hr { border: none; border-top: 1px solid ${C.border}; margin: 7px 0; }
+.md-blockquote {
+  border-left: 3px solid ${C.accent}; padding: 3px 10px;
+  color: ${C.textSoft}; margin: 5px 0; font-style: italic; background: rgba(16,163,127,0.04); border-radius: 0 6px 6px 0;
+}
+.md-inline-code {
+  background: rgba(0,0,0,0.06); border-radius: 4px;
+  padding: 1px 5px; font-family: "SF Mono","Fira Code",Consolas,monospace; font-size: 12px;
+}
+.md-link { color: ${C.accent}; text-decoration: underline; text-decoration-style: dotted; word-break: break-all; }
+.md-link:hover { opacity: 0.75; }
+.md-code-block {
+  background: ${C.codeBg}; border-radius: 9px; overflow: hidden;
+  margin: 7px 0; border: 1px solid rgba(255,255,255,0.05);
+}
+.md-code-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 11px; background: rgba(255,255,255,0.04);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.md-code-lang { font-size: 10.5px; color: rgba(255,255,255,0.45); font-family: monospace; }
+.md-copy-btn {
+  font-size: 10.5px; color: rgba(255,255,255,0.55); background: transparent;
+  border: 1px solid rgba(255,255,255,0.14); border-radius: 5px;
+  padding: 2px 8px; cursor: pointer; transition: all 0.15s;
+}
+.md-copy-btn:hover { background: rgba(255,255,255,0.08); color: white; }
+.md-copy-btn.light { color: ${C.textMute}; border-color: ${C.border}; }
+.md-copy-btn.light:hover { background: ${C.hover}; color: ${C.text}; }
+.md-pre {
+  padding: 11px 13px; overflow-x: auto;
+  font-family: "SF Mono","Fira Code",Consolas,monospace;
+  font-size: 12px; line-height: 1.6; color: ${C.codeText}; white-space: pre;
+}
+.md-copy-row {
+  display: flex; justify-content: flex-end;
+  padding-top: 6px; margin-top: 5px; border-top: 1px solid ${C.border};
+}
+
+/* TYPING */
 .ls-typing {
-  display: flex; align-items: center; gap: 4px;
-  padding: 12px 14px;
+  display: flex; align-items: center; gap: 4px; padding: 10px 12px;
   background: ${C.bg}; border: 1px solid ${C.border};
-  border-radius: 16px; border-bottom-left-radius: 4px;
-  width: fit-content;
+  border-radius: 13px; border-bottom-left-radius: 3px; width: fit-content;
 }
-
 .ls-typing span {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: ${C.textMute};
+  width: 5px; height: 5px; border-radius: 50%; background: ${C.textMute};
   animation: ls-bounce 1.2s infinite;
 }
-
 .ls-typing span:nth-child(2) { animation-delay: 0.2s; }
 .ls-typing span:nth-child(3) { animation-delay: 0.4s; }
-
 @keyframes ls-bounce {
-  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-  30% { transform: translateY(-5px); opacity: 1; }
+  0%,60%,100% { transform: translateY(0); opacity: 0.35; }
+  30% { transform: translateY(-4px); opacity: 1; }
 }
 
-/* ── COMPOSER ── */
-.ls-composer {
-  border-top: 1px solid ${C.border};
-  background: rgba(255,255,255,0.97);
-  padding: 10px 14px 12px;
-}
-
-.ls-composer-inner {
-  width: 100%; max-width: 720px; margin: 0 auto;
-}
-
+/* COMPOSER */
+.ls-composer { border-top: 1px solid ${C.border}; background: rgba(255,255,255,0.97); padding: 7px 11px 9px; }
+.ls-composer-inner { width: 100%; max-width: 700px; margin: 0 auto; }
 .ls-composer-box {
-  border: 1px solid ${C.borderMed};
-  background: white; border-radius: 14px;
-  padding: 8px 8px 8px 14px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  display: flex; align-items: flex-end; gap: 8px;
+  border: 1px solid ${C.borderMed}; background: white; border-radius: 12px;
+  padding: 6px 6px 6px 11px; box-shadow: 0 2px 7px rgba(0,0,0,0.05);
+  display: flex; align-items: flex-end; gap: 6px;
 }
-
 .ls-plus-wrap { position: relative; flex-shrink: 0; }
-
 .ls-plus-btn {
-  width: 34px; height: 34px;
-  border: 1px solid ${C.border}; background: ${C.hover};
-  border-radius: 9px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 18px; color: ${C.textSoft}; font-weight: 300;
-  transition: background 0.15s; line-height: 1;
+  width: 28px; height: 28px; border: 1px solid ${C.border}; background: ${C.hover};
+  border-radius: 7px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 16px; color: ${C.textSoft}; transition: background 0.15s; line-height: 1;
 }
-
 .ls-plus-btn:hover { background: ${C.hoverMed}; color: ${C.text}; }
-
 .ls-textarea {
-  flex: 1; min-height: 22px; max-height: 180px;
-  resize: none; border: none; outline: none;
-  background: transparent; color: ${C.text};
-  font-size: 14px; line-height: 1.65;
-  padding: 6px 0; font-family: inherit;
+  flex: 1; min-height: 20px; max-height: 150px; resize: none; border: none; outline: none;
+  background: transparent; color: ${C.text}; font-size: 13px; line-height: 1.6;
+  padding: 4px 0; font-family: inherit;
 }
-
 .ls-textarea::placeholder { color: ${C.textMute}; }
-
 .ls-send-btn {
-  width: 34px; height: 34px; flex-shrink: 0;
-  border: none; background: ${C.accent}; color: white;
-  border-radius: 9px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 16px; transition: background 0.15s;
+  width: 28px; height: 28px; flex-shrink: 0; border: none; background: ${C.accent}; color: white;
+  border-radius: 7px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 14px; transition: background 0.15s;
 }
-
 .ls-send-btn:hover { background: ${C.accentHover}; }
-.ls-send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.ls-send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
-.ls-hint {
-  font-size: 11px; color: ${C.textMute};
-  text-align: center; margin-top: 7px;
+/* COMPOSER BOTTOM */
+.ls-composer-bottom {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 5px; gap: 6px; flex-wrap: wrap;
 }
+.ls-hint { font-size: 10px; color: ${C.textMute}; }
+.ls-controls { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
 
-/* ── MODE PICKER ── */
-.ls-mode-picker {
-  position: absolute; bottom: calc(100% + 8px); left: 0;
-  width: 300px;
-  background: white;
-  border: 1px solid ${C.borderMed};
-  border-radius: 14px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-  padding: 10px; z-index: 100;
-}
-
-.ls-mode-picker-title {
-  font-size: 11px; font-weight: 600; color: ${C.textMute};
-  text-transform: uppercase; letter-spacing: 0.08em;
-  padding: 2px 4px 10px;
-}
-
-.ls-mode-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0,1fr));
-  gap: 6px;
-}
-
-.ls-mode-btn {
+/* MODEL BUTTONS */
+.ls-model-btn {
+  height: 20px; padding: 0 7px; border-radius: 999px;
   border: 1px solid ${C.border}; background: transparent;
-  border-radius: 9px; padding: 8px 4px;
-  cursor: pointer; transition: background 0.15s, border-color 0.15s;
-  display: flex; flex-direction: column;
-  align-items: center; gap: 4px;
-  text-align: center;
+  font-size: 10px; font-weight: 600; color: ${C.textMute};
+  cursor: pointer; transition: all 0.15s; white-space: nowrap;
 }
+.ls-model-btn:hover { background: ${C.hover}; color: ${C.text}; }
+.ls-model-btn.active { background: ${C.accent}; color: white; border-color: ${C.accent}; }
 
+/* RESEARCH TOGGLE */
+.ls-research-btn {
+  height: 20px; padding: 0 7px; border-radius: 999px;
+  border: 1px solid ${C.border}; background: transparent;
+  font-size: 10px; font-weight: 600; color: ${C.textMute};
+  cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 4px;
+}
+.ls-research-btn:hover { background: ${C.hover}; color: ${C.text}; }
+.ls-research-btn.on { background: rgba(234,179,8,0.1); color: #92400e; border-color: rgba(234,179,8,0.35); }
+.ls-research-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+/* MODE PICKER */
+.ls-mode-picker {
+  position: absolute; bottom: calc(100% + 7px); left: 0;
+  width: 268px; background: white;
+  border: 1px solid ${C.borderMed}; border-radius: 12px;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.1); padding: 8px; z-index: 200;
+}
+.ls-mode-picker-title {
+  font-size: 9.5px; font-weight: 600; color: ${C.textMute};
+  text-transform: uppercase; letter-spacing: 0.08em; padding: 1px 3px 7px;
+}
+.ls-mode-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 4px; }
+.ls-mode-btn {
+  border: 1px solid ${C.border}; background: transparent; border-radius: 7px;
+  padding: 6px 2px; cursor: pointer; transition: background 0.15s,border-color 0.15s;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+}
 .ls-mode-btn:hover { background: ${C.hover}; border-color: ${C.borderMed}; }
-.ls-mode-btn.active { background: rgba(16,163,127,0.08); border-color: rgba(16,163,127,0.35); }
+.ls-mode-btn.active { background: rgba(16,163,127,0.08); border-color: rgba(16,163,127,0.28); }
+.ls-mode-btn-icon { font-size: 15px; line-height: 1; }
+.ls-mode-btn-label { font-size: 8.5px; font-weight: 600; color: ${C.text}; line-height: 1.2; text-align: center; }
 
-.ls-mode-btn-icon { font-size: 17px; line-height: 1; }
-.ls-mode-btn-label { font-size: 9.5px; font-weight: 600; color: ${C.text}; line-height: 1.2; }
-
-/* ── OVERLAY ── */
+/* OVERLAY */
 .ls-overlay {
-  display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,0.4); z-index: 70;
-  opacity: 0; transition: opacity 0.2s;
-  pointer-events: none;
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.36);
+  z-index: 70; opacity: 0; transition: opacity 0.2s; pointer-events: none;
 }
 
-/* ── MOBILE ── */
+/* MOBILE */
 @media (max-width: 767px) {
   .ls-menu-btn { display: flex; }
-
   .ls-sidebar {
     position: fixed; top: 0; left: 0; bottom: 0;
-    width: min(260px, 84vw); min-width: min(260px, 84vw);
+    width: min(245px, 80vw); min-width: min(245px, 80vw);
     z-index: 80; transform: translateX(-100%);
+    box-shadow: 4px 0 18px rgba(0,0,0,0.1);
   }
-
   .ls-sidebar.open { transform: translateX(0); }
+  .ls-overlay { display: block; }
+  .ls-overlay.show { opacity: 1; pointer-events: auto; }
+  .ls-content { padding: 12px 9px 5px; }
+  .ls-composer { padding: 5px 7px 7px; }
+  .ls-msg-wrap { max-width: 95%; }
 
-  .ls-overlay {
-    display: block;
-  }
-
-  .ls-overlay.show {
-    opacity: 1; pointer-events: auto;
-  }
-
-  .ls-content { padding: 16px 12px 8px; }
-  .ls-composer { padding: 8px 10px 10px; }
-
+  /* Mode picker: anchored left, width capped to not overflow screen */
   .ls-mode-picker {
-    width: calc(100vw - 32px);
-    left: 50%; transform: translateX(-50%);
+    left: 0; right: auto;
+    width: min(260px, calc(100vw - 20px));
+    max-width: calc(100vw - 20px);
   }
+  /* Always 3 cols on mobile */
+  .ls-mode-grid { grid-template-columns: repeat(3, 1fr); }
+  .ls-controls { gap: 3px; }
+}
 
-  .ls-mode-grid { grid-template-columns: repeat(3, minmax(0,1fr)); }
-
-  .ls-msg-wrap { max-width: 92%; }
+/* Extra small — same 3 cols, tighter picker */
+@media (max-width: 420px) {
+  .ls-mode-picker { width: calc(100vw - 16px); left: 0; }
+  .ls-mode-grid   { grid-template-columns: repeat(3, 1fr); }
+  .ls-mode-btn    { padding: 5px 1px; }
+  .ls-mode-btn-icon  { font-size: 14px; }
+  .ls-mode-btn-label { font-size: 8px; }
 }
 `;
 
@@ -488,13 +729,11 @@ const CSS = `
 // HELPERS
 // ─────────────────────────────────────────────
 function makeTitle(text, modeLabel) {
-  const clean = String(text || '').trim();
-  return clean ? clean.slice(0, 52) : `${modeLabel} chat`;
+  const c = String(text || '').trim();
+  return c ? c.slice(0, 52) : `${modeLabel} chat`;
 }
-
-function fmt(dateStr) {
-  try { return new Date(dateStr).toLocaleDateString(); }
-  catch { return ''; }
+function fmt(d) {
+  try { return new Date(d).toLocaleDateString(); } catch { return ''; }
 }
 
 // ─────────────────────────────────────────────
@@ -504,23 +743,27 @@ export default function Learning() {
   const [user, setUser]       = useState(null);
   const [profile, setProfile] = useState(null);
 
-  const [mode, setMode]           = useState('chat');
-  const [sidebarOpen, setSidebar] = useState(false);
+  const [mode, setMode]             = useState('chat');
+  const [modelKey, setModelKey]     = useState('beta');
+  const [research, setResearch]     = useState(false);
+  const [sidebarOpen, setSidebar]   = useState(false);
   const [modeMenuOpen, setModeMenu] = useState(false);
 
-  const [sessionId, setSessionId]   = useState(null);
-  const [sessions, setSessions]     = useState([]);
-  const [messages, setMessages]     = useState([]);
+  const [sessionId, setSessionId] = useState(null);
+  const [sessions, setSessions]   = useState([]);
+  const [messages, setMessages]   = useState([]);
 
   const [input, setInput]     = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
 
-  const textareaRef  = useRef(null);
-  const bottomRef    = useRef(null);
-  const modeMenuRef  = useRef(null);
+  const textareaRef = useRef(null);
+  const bottomRef   = useRef(null);
+  const contentRef  = useRef(null);
+  const modeMenuRef = useRef(null);
 
-  const currentMode = useMemo(() => getModeData(mode), [mode]);
+  const currentMode  = useMemo(() => getModeData(mode), [mode]);
+  const currentModel = useMemo(() => getModel(modelKey), [modelKey]);
 
   // Lock parent scroll
   useEffect(() => {
@@ -529,9 +772,9 @@ export default function Learning() {
       document.querySelector('.ul-main'),
       document.querySelector('main'),
     ].filter(Boolean);
-    const saved = targets.map(el => ({ el, overflow: el.style.overflow, height: el.style.height }));
+    const saved = targets.map(el => ({ el, ov: el.style.overflow, h: el.style.height }));
     targets.forEach(el => { el.style.overflow = 'hidden'; el.style.height = '100%'; });
-    return () => saved.forEach(({ el, overflow, height }) => { el.style.overflow = overflow; el.style.height = height; });
+    return () => saved.forEach(({ el, ov, h }) => { el.style.overflow = ov; el.style.height = h; });
   }, []);
 
   // Boot
@@ -557,27 +800,30 @@ export default function Learning() {
     return () => { active = false; };
   }, []);
 
-  // Auto resize textarea
+  // Auto-resize textarea
   useEffect(() => {
     const ta = textareaRef.current;
     if (!ta) return;
     ta.style.height = 'auto';
-    ta.style.height = `${Math.min(ta.scrollHeight, 180)}px`;
+    ta.style.height = `${Math.min(ta.scrollHeight, 150)}px`;
   }, [input]);
 
-  // Scroll to bottom
+  // Scroll to bottom — direct scrollTop is smoother than scrollIntoView on mobile
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    const el = contentRef.current;
+    if (!el) return;
+    // Use requestAnimationFrame to batch after paint
+    requestAnimationFrame(() => {
+      el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+    });
   }, [messages, sending]);
 
   // Close mode menu on outside click
   useEffect(() => {
     if (!modeMenuOpen) return;
-    function handler(e) {
-      if (modeMenuRef.current && !modeMenuRef.current.contains(e.target)) {
-        setModeMenu(false);
-      }
-    }
+    const handler = (e) => {
+      if (modeMenuRef.current && !modeMenuRef.current.contains(e.target)) setModeMenu(false);
+    };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [modeMenuOpen]);
@@ -594,8 +840,7 @@ export default function Learning() {
 
   async function loadSingleSession(id) {
     const { data, error } = await supabase
-      .from('career_counselor_sessions')
-      .select('*').eq('id', id).single();
+      .from('career_counselor_sessions').select('*').eq('id', id).single();
     if (!error && data) {
       setSessionId(data.id);
       setMode(data.mode || 'chat');
@@ -605,37 +850,25 @@ export default function Learning() {
   }
 
   function newChat(nextMode = mode) {
-    setSessionId(null);
-    setMessages([]);
-    setInput('');
-    setMode(nextMode);
-    setSidebar(false);
-    setModeMenu(false);
+    setSessionId(null); setMessages([]); setInput('');
+    setMode(nextMode); setSidebar(false); setModeMenu(false);
     setTimeout(() => textareaRef.current?.focus(), 50);
   }
 
-  async function saveSession(allMessages, curSessionId, firstText, curMode) {
+  async function saveSession(allMessages, curId, firstText, curMode) {
     if (!user) return null;
     const title = makeTitle(firstText, getModeData(curMode).label);
-
-    if (curSessionId) {
-      await supabase
-        .from('career_counselor_sessions')
+    if (curId) {
+      await supabase.from('career_counselor_sessions')
         .update({ messages: allMessages, mode: curMode, title, updated_at: new Date().toISOString() })
-        .eq('id', curSessionId);
+        .eq('id', curId);
       await loadSessions(user.id);
-      return curSessionId;
+      return curId;
     }
-
-    const { data, error } = await supabase
-      .from('career_counselor_sessions')
+    const { data, error } = await supabase.from('career_counselor_sessions')
       .insert([{ user_id: user.id, title, mode: curMode, messages: allMessages }])
       .select().single();
-
-    if (!error && data) {
-      await loadSessions(user.id);
-      return data.id;
-    }
+    if (!error && data) { await loadSessions(user.id); return data.id; }
     return null;
   }
 
@@ -647,20 +880,32 @@ export default function Learning() {
     if (user?.id) await loadSessions(user.id);
   }
 
-  async function handleSend(overrideText) {
+  const handleSend = useCallback(async (overrideText) => {
     const text = String(overrideText ?? input).trim();
     if (!text || sending) return;
 
     setSending(true);
-
     const userMsg = { role: 'user', content: text, created_at: new Date().toISOString() };
     const tempMessages = [...messages, userMsg];
     setMessages(tempMessages);
     setInput('');
 
-    // capture mode at send time so it doesn't change mid-request
-    const sendMode = mode;
-    const modeData = getModeData(sendMode);
+    const sendMode  = mode;
+    const modeData  = getModeData(sendMode);
+    const modelData = getModel(modelKey);
+
+    // Get first name for personalization
+    const firstName = profile?.full_name?.split(' ')?.[0] || null;
+
+    const finalSystemPrompt = [
+      modeData.prompt,
+      AIDLA_KNOWLEDGE,
+      firstName ? `\n## Current User\nThe user's name is ${firstName}. Address them by name occasionally to make it feel personal.` : '',
+      `\n## Response Style (${modelData.label} model)\n${modelData.systemNote}`,
+      research
+        ? `\n## Research Mode ACTIVE\nProvide in-depth, research-quality answers. Structure your response with clear sections. Support your points with reasoning. Cover multiple perspectives where relevant.`
+        : '',
+    ].filter(Boolean).join('\n');
 
     try {
       const res = await fetch(
@@ -674,18 +919,18 @@ export default function Learning() {
           body: JSON.stringify({
             messages: tempMessages.map(m => ({ role: m.role, content: m.content })),
             mode: sendMode,
-            systemPrompt: modeData.prompt, // pass the mode's own prompt
+            systemPrompt: finalSystemPrompt,
+            model: modelData.model,
+            temperature: modelData.temperature,
+            max_tokens: modelData.max_tokens,
           }),
         }
       );
-
       const data = await res.json();
       const reply = data?.choices?.[0]?.message?.content || '⚠️ Something went wrong. Please try again.';
-
       const assistantMsg = { role: 'assistant', content: reply, created_at: new Date().toISOString() };
       const allMessages = [...tempMessages, assistantMsg];
       setMessages(allMessages);
-
       const savedId = await saveSession(allMessages, sessionId, text, sendMode);
       if (!sessionId && savedId) setSessionId(savedId);
     } catch {
@@ -694,22 +939,18 @@ export default function Learning() {
       setMessages(allMessages);
       const savedId = await saveSession(allMessages, sessionId, text, sendMode);
       if (!sessionId && savedId) setSessionId(savedId);
+    } finally {
+      setSending(false); // ← always runs — fixes stuck typing indicator
     }
-
-    setSending(false);
-  }
+  }, [input, sending, messages, mode, modelKey, research, sessionId]);
 
   function onKeyDown(e) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
   }
 
   function pickMode(key) {
-    setMode(key);
     setModeMenu(false);
-    // if there are messages, start a fresh chat in the new mode
-    if (messages.length > 0) {
-      newChat(key);
-    }
+    if (messages.length > 0) { newChat(key); } else { setMode(key); }
   }
 
   const { Component: ModeComponent } = currentMode;
@@ -717,15 +958,11 @@ export default function Learning() {
   return (
     <>
       <style>{CSS}</style>
-
       <div className="ls">
-        {/* OVERLAY */}
-        <div
-          className={`ls-overlay ${sidebarOpen ? 'show' : ''}`}
-          onClick={() => setSidebar(false)}
-        />
 
-        {/* SIDEBAR */}
+        <div className={`ls-overlay ${sidebarOpen ? 'show' : ''}`} onClick={() => setSidebar(false)} />
+
+        {/* ── SIDEBAR ── */}
         <aside className={`ls-sidebar ${sidebarOpen ? 'open' : ''}`}>
           <div className="ls-sidebar-head">
             <div className="ls-brand">
@@ -736,11 +973,9 @@ export default function Learning() {
               </div>
             </div>
             <button className="ls-new-btn" onClick={() => newChat()}>
-              <span style={{ fontSize: 14 }}>✏️</span>
-              <span>New chat</span>
+              <span>✏️</span><span>New chat</span>
             </button>
           </div>
-
           <div className="ls-history">
             <div className="ls-history-label">Chats</div>
             {loading ? (
@@ -750,55 +985,40 @@ export default function Learning() {
             ) : sessions.map(s => {
               const m = getModeData(s.mode);
               return (
-                <button
-                  key={s.id}
-                  className={`ls-chat-item ${sessionId === s.id ? 'active' : ''}`}
-                  onClick={() => loadSingleSession(s.id)}
-                >
+                <button key={s.id} className={`ls-chat-item ${sessionId === s.id ? 'active' : ''}`} onClick={() => loadSingleSession(s.id)}>
                   <div className="ls-chat-title">{s.title || `${m.label} chat`}</div>
-                  <div className="ls-chat-meta">
-                    <span>{m.icon} {m.label}</span>
-                    <span>·</span>
-                    <span>{fmt(s.updated_at || s.created_at)}</span>
-                  </div>
-                  <button className="ls-del-btn" onClick={e => deleteChat(s.id, e)} title="Delete">🗑</button>
+                  <div className="ls-chat-meta"><span>{m.icon} {m.label}</span><span>·</span><span>{fmt(s.updated_at || s.created_at)}</span></div>
+                  <button className="ls-del-btn" onClick={e => deleteChat(s.id, e)}>🗑</button>
                 </button>
               );
             })}
           </div>
         </aside>
 
-        {/* MAIN */}
+        {/* ── MAIN ── */}
         <div className="ls-main">
 
           {/* TOPBAR */}
           <div className="ls-topbar">
-            <button className="ls-menu-btn" onClick={() => setSidebar(true)} aria-label="Menu">☰</button>
+            <button className="ls-menu-btn" onClick={() => setSidebar(true)}>☰</button>
             <div className="ls-topbar-title">
               {profile?.full_name ? `Hi ${profile.full_name.split(' ')[0]} 👋` : 'AIDLA Learning'}
             </div>
-            <div className="ls-mode-pill">
-              <span>{currentMode.icon}</span>
-              <span>{currentMode.label}</span>
-            </div>
+            <div className="ls-mode-pill"><span>{currentMode.icon}</span><span>{currentMode.label}</span></div>
           </div>
 
-          {/* CONTENT — Learning.jsx owns ALL message rendering */}
-          <div className="ls-content">
+          {/* CONTENT */}
+          <div className="ls-content" ref={contentRef}>
             <div className="ls-inner">
               {messages.length === 0 ? (
-                /* Welcome screen — rendered by mode component */
                 <ModeComponent onSuggestionClick={handleSend} />
               ) : (
-                /* Messages — rendered ONLY here, never in mode components */
                 <div className="ls-messages">
                   {messages.map((m, i) => (
                     <div key={i} className={`ls-msg-row ${m.role}`}>
                       <div className="ls-msg-wrap">
-                        <div className="ls-msg-label">
-                          {m.role === 'user' ? 'You' : `AIDLA · ${currentMode.label}`}
-                        </div>
-                        <div className="ls-bubble">{m.content}</div>
+                        <div className="ls-msg-label">{m.role === 'user' ? 'You' : `AIDLA · ${currentMode.label}`}</div>
+                        <MessageBubble role={m.role} content={m.content} />
                       </div>
                     </div>
                   ))}
@@ -806,9 +1026,7 @@ export default function Learning() {
                     <div className="ls-msg-row assistant">
                       <div className="ls-msg-wrap">
                         <div className="ls-msg-label">AIDLA · {currentMode.label}</div>
-                        <div className="ls-typing">
-                          <span /><span /><span />
-                        </div>
+                        <div className="ls-typing"><span /><span /><span /></div>
                       </div>
                     </div>
                   )}
@@ -823,28 +1041,15 @@ export default function Learning() {
             <div className="ls-composer-inner">
               <div className="ls-composer-box">
 
-                {/* + MODE PICKER */}
+                {/* MODE PICKER */}
                 <div className="ls-plus-wrap" ref={modeMenuRef}>
-                  <button
-                    className="ls-plus-btn"
-                    onClick={() => setModeMenu(v => !v)}
-                    aria-label="Switch mode"
-                    title="Switch mode"
-                  >
-                    +
-                  </button>
-
+                  <button className="ls-plus-btn" onClick={() => setModeMenu(v => !v)} title="Switch mode">+</button>
                   {modeMenuOpen && (
                     <div className="ls-mode-picker">
                       <div className="ls-mode-picker-title">Switch mode</div>
                       <div className="ls-mode-grid">
                         {MODES.map(m => (
-                          <button
-                            key={m.key}
-                            className={`ls-mode-btn ${mode === m.key ? 'active' : ''}`}
-                            onClick={() => pickMode(m.key)}
-                            title={m.label}
-                          >
+                          <button key={m.key} className={`ls-mode-btn ${mode === m.key ? 'active' : ''}`} onClick={() => pickMode(m.key)} title={m.label}>
                             <span className="ls-mode-btn-icon">{m.icon}</span>
                             <span className="ls-mode-btn-label">{m.label}</span>
                           </button>
@@ -855,25 +1060,28 @@ export default function Learning() {
                 </div>
 
                 <textarea
-                  ref={textareaRef}
-                  className="ls-textarea"
-                  value={input}
-                  onChange={e => setInput(e.target.value)}
-                  onKeyDown={onKeyDown}
-                  placeholder={`Message ${currentMode.label}...`}
-                  rows={1}
+                  ref={textareaRef} className="ls-textarea" value={input}
+                  onChange={e => setInput(e.target.value)} onKeyDown={onKeyDown}
+                  placeholder={`Message ${currentMode.label}...`} rows={1}
                 />
-
-                <button
-                  className="ls-send-btn"
-                  onClick={() => handleSend()}
-                  disabled={!input.trim() || sending}
-                  aria-label="Send"
-                >
-                  ↑
-                </button>
+                <button className="ls-send-btn" onClick={() => handleSend()} disabled={!input.trim() || sending}>↑</button>
               </div>
-              <div className="ls-hint">Enter to send · Shift+Enter for new line · {currentMode.icon} {currentMode.label}</div>
+
+              {/* BOTTOM ROW */}
+              <div className="ls-composer-bottom">
+                <span className="ls-hint">↵ send · ⇧↵ new line · {currentMode.icon} {currentMode.label}</span>
+                <div className="ls-controls">
+                  <button className={`ls-research-btn ${research ? 'on' : ''}`} onClick={() => setResearch(v => !v)} title="Research mode">
+                    <span className="ls-research-dot" />
+                    {research ? 'Research ON' : 'Research'}
+                  </button>
+                  {MODELS.map(m => (
+                    <button key={m.key} className={`ls-model-btn ${modelKey === m.key ? 'active' : ''}`} onClick={() => setModelKey(m.key)} title={m.desc}>
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
