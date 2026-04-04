@@ -1,275 +1,383 @@
 import { useNavigate } from "react-router-dom";
 
-function CardLink({ title, subtitle, to, icon, isSoon }) {
-  const navigate = useNavigate();
-
+// ── Floating AIDLA Bot Bubble ──
+function BotBubble({ onClick }) {
   return (
-    <button onClick={() => navigate(to)} className="card-3d">
-      <div className="card-icon">{icon}</div>
-      <div className="card-content">
-        <div className="card-title">{title}</div>
-        <div className="card-subtitle">{subtitle}</div>
-      </div>
-      {isSoon && <span className="badge-soon">Coming Soon</span>}
+    <div className="bot-wrap" onClick={onClick} title="Ask AIDLA Bot">
+      <div className="bot-ring ring-1" />
+      <div className="bot-ring ring-2" />
+      <button className="bot-fab">
+        <span className="bot-icon">🤖</span>
+      </button>
+      <div className="bot-tooltip">Ask AIDLA Bot</div>
+    </div>
+  );
+}
+
+// ── Hero Card (featured, frosted tint) ──
+function HeroCard({ title, subtitle, icon, to, accentClass, badgeColor }) {
+  const navigate = useNavigate();
+  return (
+    <button className={`hero-card ${accentClass}`} onClick={() => navigate(to)}>
+      <span className={`hero-badge ${badgeColor}`}>✦ Featured</span>
+      <span className="hero-icon">{icon}</span>
+      <div className="hero-title">{title}</div>
+      <div className="hero-sub">{subtitle}</div>
+      <span className="hero-arrow">→</span>
     </button>
   );
 }
 
-export default function Dashboard() {
-  const css = `
-    .dashboard-container {
-      animation: fadeIn 0.4s ease-out;
-    }
-
-    .dashboard-header {
-      margin-bottom: 24px;
-    }
-
-    .dashboard-title {
-      font-size: 1.8rem;
-      font-weight: 900;
-      color: #1e3a8a;
-      margin-bottom: 6px;
-      letter-spacing: -0.5px;
-    }
-
-    .dashboard-subtitle {
-      color: #64748b;
-      font-size: 0.95rem;
-      font-weight: 500;
-    }
-
-    /* Universal Responsive Grid */
-    .cards-grid {
-      display: grid;
-      /* Adapts from 1 column on small phones to multiple on desktops */
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 20px;
-    }
-
-    @media (max-width: 768px) {
-      .cards-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 16px;
-      }
-    }
-
-    /* 3D Neumorphic Card Styles */
-    .card-3d {
-      background: #f8fafc;
-      border: none;
-      border-radius: 20px;
-      padding: 24px 20px;
-      text-align: left;
-      cursor: pointer;
-      display: flex;
-      align-items: flex-start;
-      gap: 16px;
-      box-shadow: 6px 6px 14px rgba(15, 23, 42, 0.05), -6px -6px 14px rgba(255, 255, 255, 1);
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      position: relative;
-      overflow: hidden;
-      width: 100%;
-    }
-
-    .card-3d:hover {
-      transform: translateY(-5px);
-      box-shadow: 10px 10px 20px rgba(15, 23, 42, 0.08), -10px -10px 20px rgba(255, 255, 255, 1);
-    }
-
-    .card-3d:active {
-      transform: translateY(1px);
-      box-shadow: inset 4px 4px 10px rgba(15, 23, 42, 0.06), inset -4px -4px 10px rgba(255, 255, 255, 1);
-    }
-
-    /* Icon Container */
-    .card-icon {
-      font-size: 1.8rem;
-      background: #e0e7ff;
-      min-width: 54px;
-      height: 54px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 16px;
-      box-shadow: inset 2px 2px 5px rgba(255, 255, 255, 1), 2px 2px 5px rgba(15, 23, 42, 0.05);
-    }
-
-    .card-content {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      margin-top: 4px;
-    }
-
-    .card-title {
-      font-weight: 800;
-      font-size: 1.1rem;
-      color: #0f172a;
-      margin-bottom: 6px;
-    }
-
-    .card-subtitle {
-      color: #64748b;
-      font-size: 0.85rem;
-      line-height: 1.4;
-      padding-right: 10px;
-    }
-
-    /* Neumorphic "Coming Soon" Badge */
-    .badge-soon {
-      position: absolute;
-      top: 14px;
-      right: 14px;
-      background: #f1f5f9;
-      color: #94a3b8;
-      font-size: 0.65rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      padding: 5px 10px;
-      border-radius: 20px;
-      box-shadow: inset 2px 2px 4px rgba(15,23,42,0.04), inset -2px -2px 4px rgba(255,255,255,1);
-      letter-spacing: 0.5px;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Mobile Adjustments */
-    @media (max-width: 600px) {
-      .cards-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
-      }
-      .dashboard-header {
-        margin-bottom: 16px;
-      }
-      .dashboard-title {
-        font-size: 1.5rem;
-        margin-bottom: 4px;
-      }
-      .dashboard-subtitle {
-        font-size: 0.85rem;
-      }
-      .card-3d {
-        padding: 12px 10px;
-        gap: 8px;
-        border-radius: 14px;
-      }
-      .card-icon {
-        min-width: 38px;
-        height: 38px;
-        font-size: 1.2rem;
-        border-radius: 10px;
-      }
-      .card-content {
-        margin-top: 0px;
-      }
-      .card-title {
-        font-size: 0.85rem;
-        margin-bottom: 3px;
-        font-weight: 700;
-      }
-      .card-subtitle {
-        font-size: 0.65rem;
-        line-height: 1.2;
-        padding-right: 0px;
-      }
-    }
-  `;
-
+// ── Regular Card ──
+function RegCard({ title, subtitle, icon, to, iconClass, isSoon }) {
+  const navigate = useNavigate();
   return (
-    <div className="dashboard-container">
-      <style>{css}</style>
-
-      <div className="dashboard-header">
-        <h2 className="dashboard-title">Dashboard</h2>
-        <p className="dashboard-subtitle">
-          Welcome to your AIDLA user area. Use the modules below to explore features.
-        </p>
+    <button className="reg-card" onClick={() => navigate(to)} disabled={isSoon}>
+      <div className={`reg-icon ${iconClass}`}>
+        <span className="reg-icon-inner">{icon}</span>
       </div>
-
-      <div className="cards-grid">
-        <CardLink 
-          title="Test" 
-          subtitle="Testing & assessments" 
-          to="/user/test" 
-          icon="✅" 
-          isSoon={false} 
-        />
-        <CardLink 
-          title="AI Career Coach" 
-          subtitle="Your Personalized AI Career Advisor" 
-          to="/user/learning" 
-          icon="📖" 
-          isSoon={false} 
-        />
-        <CardLink 
-          title="Courses" 
-          subtitle="Paid & free specialized courses" 
-          to="/user/courses" 
-          icon="🎓" 
-          isSoon={false} 
-        />
-        <CardLink 
-          title="Mining" 
-          subtitle="Start mining AIDLA coins" 
-          to="/user/mining" 
-          icon="💎" 
-          isSoon={false} 
-        />
-        <CardLink 
-          title="Lucky Draw" 
-          subtitle="Scheduled draws & big prizes" 
-          to="/user/lucky-draw" 
-          icon="🎟️" 
-          isSoon={false} 
-        />
-        <CardLink 
-          title="Lucky Wheel" 
-          subtitle="Spin the wheel & win rewards" 
-          to="/user/lucky-wheel" 
-          icon="🎡" 
-          isSoon={false} 
-        />
-        <CardLink 
-          title="Shop" 
-          subtitle="Buy products with AIDLA coins" 
-          to="/user/shop" 
-          icon="🛍️" 
-          isSoon={false} 
-        />
-        <CardLink
-        title="Resources"
-        subtitle="Access and download all your study materials, notes, past papers and resources"
-        to="/user/UserResources"
-        icon="📚"
-        isSoon={false}
-        />
-        <CardLink
-        title="AutoTube"
-        subtitle="Your Full Youtube automation Assistance"
-        to="/user/AutoTubeStudio"
-        icon="🎬"
-        isSoon={false}
-        />
-        <CardLink 
-          title="AIDLA Bot" 
-          subtitle="Ask anything about AIDLA" 
-          to="/user/bot" 
-          icon="🤖" 
-          isSoon={false} 
-        />
-        <CardLink 
-          title="Follow Us" 
-          subtitle="Join our social media channels" 
-          to="/user/social" 
-          icon="📱" 
-          isSoon={false} 
-        />
+      <div className="reg-text">
+        <div className="reg-title">{title}</div>
+        <div className="reg-sub">{subtitle}</div>
       </div>
+      {isSoon && <span className="badge-soon">Soon</span>}
+    </button>
+  );
+}
+
+// ── Section ──
+function Section({ label, labelClass, children }) {
+  return (
+    <div className="section-block">
+      <div className={`section-label ${labelClass}`}>{label}</div>
+      <div className="cards-grid">{children}</div>
     </div>
   );
 }
+
+export default function Dashboard() {
+  const navigate = useNavigate();
+
+  return (
+    <div className="dashboard">
+      <style>{CSS}</style>
+
+      {/* Header */}
+      <div className="dash-header">
+        <h2 className="dash-title">Dashboard</h2>
+        <p className="dash-sub">Welcome to your AIDLA user area. Explore your features below.</p>
+      </div>
+
+      {/* Hero Row */}
+      <div className="hero-row">
+        <HeroCard
+          title="AI Career Coach"
+          subtitle="Your personalized AI-powered career advisor, always ready."
+          icon="📖"
+          to="/user/learning"
+          accentClass="hero-blue"
+          badgeColor="badge-blue"
+        />
+        <HeroCard
+          title="Courses"
+          subtitle="Paid & free specialized courses tailored for your growth."
+          icon="🎓"
+          to="/user/courses"
+          accentClass="hero-emerald"
+          badgeColor="badge-emerald"
+        />
+      </div>
+
+      {/* Learn */}
+      <Section label="📘 Learn" labelClass="label-blue">
+        <RegCard title="Test"      subtitle="Testing & assessments"             icon="✅" to="/user/test"          iconClass="ic-blue" />
+        <RegCard title="Resources" subtitle="Study materials & past papers"      icon="📚" to="/user/UserResources"  iconClass="ic-blue" />
+        <RegCard title="Mining"    subtitle="Start mining AIDLA coins"           icon="💎" to="/user/mining"         iconClass="ic-blue" />
+      </Section>
+
+      {/* Earn & Play */}
+      <Section label="🏆 Earn & Play" labelClass="label-amber">
+        <RegCard title="Lucky Draw"  subtitle="Scheduled draws & big prizes"   icon="🎟️" to="/user/lucky-draw"   iconClass="ic-amber" />
+        <RegCard title="Lucky Wheel" subtitle="Spin the wheel & win rewards"   icon="🎡" to="/user/lucky-wheel"  iconClass="ic-amber" />
+        <RegCard title="Shop"        subtitle="Buy products with AIDLA coins"  icon="🛍️" to="/user/shop"         iconClass="ic-amber" />
+      </Section>
+
+      {/* Tools */}
+      <Section label="🛠️ Tools" labelClass="label-purple">
+        <RegCard title="AutoTube"  subtitle="Full YouTube automation assistant" icon="🎬" to="/user/AutoTubeStudio" iconClass="ic-purple" />
+        <RegCard title="Follow Us" subtitle="Join our social media channels"    icon="📱" to="/user/social"         iconClass="ic-coral" />
+      </Section>
+
+      {/* Floating Bot */}
+      <BotBubble onClick={() => navigate("/user/bot")} />
+    </div>
+  );
+}
+
+const CSS = `
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Serif+Display&display=swap');
+
+  .dashboard {
+    font-family: 'DM Sans', system-ui, sans-serif;
+    position: relative;
+    min-height: 60vh;
+    animation: dashIn 0.45s cubic-bezier(0.16,1,0.3,1) both;
+  }
+  @keyframes dashIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  /* ── Frosted background mesh ── */
+  .dashboard::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 20% 20%, rgba(219,234,254,0.55) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 60% at 80% 80%, rgba(209,250,229,0.45) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 40% at 60% 30%, rgba(237,233,254,0.35) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .dashboard > * { position: relative; z-index: 1; }
+
+  /* ── Header ── */
+  .dash-header { margin-bottom: 22px; }
+  .dash-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2rem; font-weight: 400;
+    color: #0f172a; letter-spacing: -0.5px; line-height: 1.1;
+    margin-bottom: 6px;
+  }
+  .dash-sub { font-size: 0.88rem; color: #64748b; font-weight: 500; }
+
+  /* ── Hero Row ── */
+  .hero-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+
+  .hero-card {
+    border: none; border-radius: 22px;
+    padding: 22px 20px 20px;
+    cursor: pointer; text-align: left;
+    position: relative; overflow: hidden;
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    transition: transform 0.22s cubic-bezier(0.16,1,0.3,1), box-shadow 0.22s;
+    display: flex; flex-direction: column;
+    box-shadow: 0 2px 0 rgba(255,255,255,0.8) inset, 0 8px 32px rgba(15,23,42,0.07);
+  }
+  .hero-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: 22px;
+    border: 1px solid rgba(255,255,255,0.75);
+    pointer-events: none;
+  }
+  .hero-card:hover  { transform: translateY(-4px); box-shadow: 0 2px 0 rgba(255,255,255,0.8) inset, 0 16px 40px rgba(15,23,42,0.10); }
+  .hero-card:active { transform: scale(0.98); }
+
+  .hero-blue    { background: rgba(219,234,254,0.62); }
+  .hero-emerald { background: rgba(209,250,229,0.62); }
+
+  .hero-badge {
+    font-size: 9px; font-weight: 800;
+    letter-spacing: 0.8px; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 20px;
+    display: inline-block; margin-bottom: 14px;
+    backdrop-filter: blur(8px); width: fit-content;
+  }
+  .badge-blue    { background: rgba(219,234,254,0.9); color: #1e40af; border: 1px solid rgba(147,197,253,0.5); }
+  .badge-emerald { background: rgba(209,250,229,0.9); color: #065f46; border: 1px solid rgba(110,231,183,0.5); }
+
+  .hero-icon  { font-size: 2rem; margin-bottom: 10px; display: block; }
+  .hero-title { font-size: 1rem; font-weight: 800; color: #0f172a; margin-bottom: 5px; letter-spacing: -0.3px; }
+  .hero-sub   { font-size: 0.78rem; color: #475569; line-height: 1.5; flex: 1; }
+  .hero-arrow {
+    position: absolute; bottom: 18px; right: 20px;
+    font-size: 1rem; color: rgba(15,23,42,0.2);
+    transition: color 0.2s, transform 0.2s;
+  }
+  .hero-card:hover .hero-arrow { color: rgba(15,23,42,0.5); transform: translateX(3px); }
+
+  /* ── Section ── */
+  .section-block { margin-bottom: 22px; }
+  .section-label {
+    font-size: 10px; font-weight: 800;
+    letter-spacing: 1.2px; text-transform: uppercase;
+    margin-bottom: 10px; padding: 0 2px;
+  }
+  .label-blue   { color: #1e40af; }
+  .label-amber  { color: #92400e; }
+  .label-purple { color: #5b21b6; }
+
+  /* ── Cards Grid ── */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  /* ── Regular Card ── */
+  .reg-card {
+    background: rgba(255,255,255,0.58);
+    border: 1px solid rgba(255,255,255,0.85);
+    border-radius: 16px;
+    padding: 13px 13px;
+    cursor: pointer; text-align: left;
+    display: flex; align-items: center; gap: 11px;
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    transition: transform 0.18s cubic-bezier(0.16,1,0.3,1), background 0.18s, box-shadow 0.18s;
+    position: relative; overflow: hidden;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.9) inset, 0 2px 8px rgba(15,23,42,0.04);
+    width: 100%;
+  }
+  .reg-card:hover {
+    background: rgba(255,255,255,0.78);
+    transform: translateY(-2px);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.9) inset, 0 8px 20px rgba(15,23,42,0.07);
+  }
+  .reg-card:active  { transform: scale(0.97); }
+  .reg-card:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .reg-icon {
+    width: 40px; height: 40px; border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    backdrop-filter: blur(8px);
+  }
+  .reg-icon-inner { font-size: 18px; line-height: 1; }
+
+  .ic-blue   { background: rgba(219,234,254,0.8);  border: 1px solid rgba(147,197,253,0.35); }
+  .ic-amber  { background: rgba(254,243,199,0.8);  border: 1px solid rgba(252,211,77,0.35); }
+  .ic-purple { background: rgba(237,233,254,0.8);  border: 1px solid rgba(196,181,253,0.35); }
+  .ic-coral  { background: rgba(254,226,226,0.8);  border: 1px solid rgba(252,165,165,0.35); }
+
+  .reg-title { font-size: 0.82rem; font-weight: 700; color: #0f172a; margin-bottom: 2px; letter-spacing: -0.15px; }
+  .reg-sub   { font-size: 0.7rem; color: #64748b; line-height: 1.3; }
+
+  .badge-soon {
+    position: absolute; top: 9px; right: 9px;
+    background: rgba(241,245,249,0.85);
+    color: #94a3b8; font-size: 0.6rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.4px;
+    padding: 3px 7px; border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.8);
+  }
+
+  /* ── Floating Bot ── */
+  .bot-wrap {
+    position: fixed;
+    bottom: 28px; right: 24px;
+    z-index: 9999;
+    cursor: pointer;
+  }
+
+  .bot-ring {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(59,130,246,0.2);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .ring-1 {
+    width: 58px; height: 58px;
+    animation: botPulse 2.4s infinite ease-out;
+  }
+  .ring-2 {
+    width: 58px; height: 58px;
+    animation: botPulse 2.4s 0.8s infinite ease-out;
+  }
+  @keyframes botPulse {
+    0%   { transform: translate(-50%,-50%) scale(1);   opacity: 0.7; }
+    100% { transform: translate(-50%,-50%) scale(2);   opacity: 0; }
+  }
+
+  .bot-fab {
+    position: relative; z-index: 2;
+    width: 54px; height: 54px; border-radius: 50%;
+    background: rgba(255,255,255,0.75);
+    border: 1px solid rgba(255,255,255,0.95);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 4px 20px rgba(59,130,246,0.25), 0 1px 0 rgba(255,255,255,0.9) inset;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.16,1,0.3,1), box-shadow 0.2s;
+  }
+  .bot-fab:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 28px rgba(59,130,246,0.35), 0 1px 0 rgba(255,255,255,0.9) inset;
+  }
+  .bot-fab:active { transform: scale(0.93); }
+  .bot-icon { font-size: 22px; line-height: 1; }
+
+  .bot-tooltip {
+    position: absolute;
+    bottom: 62px; right: 0;
+    background: rgba(255,255,255,0.88);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.95);
+    border-radius: 10px;
+    padding: 6px 12px;
+    font-size: 11px; font-weight: 700; color: #1e3a8a;
+    white-space: nowrap;
+    box-shadow: 0 4px 16px rgba(15,23,42,0.08);
+    opacity: 0; pointer-events: none;
+    transform: translateY(4px);
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .bot-wrap:hover .bot-tooltip {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ══════════════════════════════
+     MOBILE  ≤ 640px
+  ══════════════════════════════ */
+  @media (max-width: 640px) {
+    .dash-title { font-size: 1.55rem; }
+    .dash-sub   { font-size: 0.8rem; }
+    .dash-header { margin-bottom: 16px; }
+
+    .hero-row { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+    .hero-card { padding: 14px 13px 30px; border-radius: 17px; }
+    .hero-icon  { font-size: 1.6rem; margin-bottom: 7px; }
+    .hero-title { font-size: 0.82rem; }
+    .hero-sub   { font-size: 0.68rem; }
+    .hero-badge { font-size: 8px; padding: 3px 8px; margin-bottom: 10px; }
+
+    .cards-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .reg-card   { padding: 11px 10px; border-radius: 13px; gap: 9px; }
+    .reg-icon   { width: 34px; height: 34px; border-radius: 9px; }
+    .reg-icon-inner { font-size: 15px; }
+    .reg-title  { font-size: 0.75rem; }
+    .reg-sub    { font-size: 0.62rem; }
+
+    .section-block  { margin-bottom: 16px; }
+    .section-label  { font-size: 9px; }
+
+    .bot-wrap { bottom: 18px; right: 16px; }
+    .bot-fab  { width: 48px; height: 48px; }
+    .bot-icon { font-size: 20px; }
+  }
+
+  /* ══════════════════════════════
+     EXTRA SMALL  ≤ 380px
+  ══════════════════════════════ */
+  @media (max-width: 380px) {
+    .hero-row { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .hero-card { padding: 12px 10px 28px; border-radius: 14px; }
+    .hero-title { font-size: 0.76rem; }
+    .hero-sub   { font-size: 0.62rem; }
+    .hero-icon  { font-size: 1.4rem; }
+
+    .reg-card  { padding: 9px 8px; gap: 7px; }
+    .reg-icon  { width: 30px; height: 30px; border-radius: 8px; }
+    .reg-icon-inner { font-size: 13px; }
+    .reg-title { font-size: 0.7rem; }
+    .reg-sub   { font-size: 0.58rem; }
+  }
+`;
