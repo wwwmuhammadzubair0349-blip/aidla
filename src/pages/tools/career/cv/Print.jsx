@@ -1,48 +1,52 @@
 // career/cv/Print.jsx
-import React, { useState, useEffect, useRef } from 'react';
+// ─────────────────────────────────────────────────────────────────
+// UNIVERSAL ATS-FRIENDLY PDF — works on ALL devices & browsers
+//
+// Strategy: open a clean new window containing ONLY the CV HTML,
+// then call window.print() inside it. This is exactly how
+// Certificate.jsx works — no html2canvas, no screenshot, real text.
+//
+// ✅ Desktop Chrome/Edge/Firefox  → Save as PDF (real text)
+// ✅ Mobile Safari (iOS)          → Share → Print → Save as PDF
+// ✅ Mobile Chrome (Android)      → Menu → Print → Save as PDF
+// ✅ Mobile Desktop View          → Same as desktop (fixed!)
+// ✅ ATS-friendly                 → Real selectable text, not image
+// ─────────────────────────────────────────────────────────────────
 
-/* ================================================================
-   PAPER DIMENSIONS (Physical Print Sizes)
-================================================================ */
+import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+
+/* ──────────────────────────────────────────────────────────────
+   PAPER DIMENSIONS
+────────────────────────────────────────────────────────────── */
 const PAPER_SIZES = {
-  a4: { w: 794, h: 1123, label: 'A4', mm_w: 210, mm_h: 297 },
-  letter: { w: 816, h: 1056, label: 'Letter', mm_w: 216, mm_h: 279 },
-  legal: { w: 816, h: 1344, label: 'Legal', mm_w: 216, mm_h: 356 },
+  a4:     { mm_w: 210, mm_h: 297, label: 'A4' },
+  letter: { mm_w: 216, mm_h: 279, label: 'Letter' },
+  legal:  { mm_w: 216, mm_h: 356, label: 'Legal' },
 };
 
-/* ================================================================
-   DETECT MOBILE
-================================================================ */
-function isMobileDevice() {
-  return /Mobi|Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent)
-    || (navigator.maxTouchPoints > 1 && /Macintosh/i.test(navigator.userAgent)); // iPad
+/* ──────────────────────────────────────────────────────────────
+   DETECT MOBILE (for tip text only — NOT for logic branching)
+────────────────────────────────────────────────────────────── */
+function isMobile() {
+  return /Mobi|Android|iPhone|iPad|iPod|Opera Mini|IEMobile/i.test(navigator.userAgent)
+    || (navigator.maxTouchPoints > 1 && /Macintosh/i.test(navigator.userAgent));
 }
 
-/* ================================================================
-   CLEANUP OLD PRINT ARTIFACTS
-================================================================ */
-function cleanupExistingPrintArtifacts() {
-  document.getElementById('__cv_print_wrapper__')?.remove();
-  document.getElementById('__cv_print_style__')?.remove();
-  document.body.classList.remove('cv-printing');
-}
-
-/* ================================================================
-   VIP ATS-FRIENDLY PRINT CSS ENGINE
-================================================================ */
-function buildPrintCss(paper) {
+/* ──────────────────────────────────────────────────────────────
+   BUILD PRINT CSS
+────────────────────────────────────────────────────────────── */
+function buildPrintWindowCss(paper) {
   const { mm_w, mm_h } = PAPER_SIZES[paper] || PAPER_SIZES.a4;
-
   return `
     @page {
       size: ${mm_w}mm ${mm_h}mm;
-      margin: 12mm 0mm; 
+      margin: 10mm 0mm;
     }
-    
     @page :first {
-      margin-top: 12mm; 
+      margin-top: 12mm;
     }
-
+    *, *::before, *::after { box-sizing: border-box; }
     html, body {
       margin: 0 !important;
       padding: 0 !important;
@@ -50,282 +54,196 @@ function buildPrintCss(paper) {
       -webkit-print-color-adjust: exact !important;
               print-color-adjust: exact !important;
               color-adjust: exact !important;
+      width: ${mm_w}mm;
     }
-
-    body.cv-printing > *:not(#__cv_print_wrapper__) {
-      display: none !important;
-    }
-
-    body.cv-printing #__cv_print_wrapper__ {
-      display: block !important;
+    .cv-doc {
       width: ${mm_w}mm !important;
-      margin: 0 auto !important;
-      padding: 0 !important;
-      background: #ffffff !important;
-    }
-
-    body.cv-printing .cv-doc {
-      width: 100% !important;
-      min-height: 100vh !important;
-      height: auto !important;
+      min-height: ${mm_h}mm !important;
       margin: 0 !important;
       padding: 0 8mm !important;
       box-shadow: none !important;
-      border: none !important;
       border-radius: 0 !important;
       overflow: visible !important;
     }
-
-    body.cv-printing .layout-swiss-clean .cv-doc,
-    body.cv-printing .layout-sidebar-dark .cv-doc,
-    body.cv-printing .layout-infographic .cv-doc,
-    body.cv-printing .layout-gulf-premium .cv-doc {
-      padding: 0 !important; 
+    .layout-swiss-clean .cv-doc,
+    .layout-sidebar-dark .cv-doc,
+    .layout-infographic .cv-doc,
+    .layout-gulf-premium .cv-doc,
+    .layout-double-col .cv-doc,
+    .layout-slate-pro .cv-doc,
+    .layout-dubai-pro .cv-doc,
+    .layout-bold-header .cv-doc,
+    .layout-coral-modern .cv-doc,
+    .layout-navy-exec .cv-doc {
+      padding: 0 !important;
     }
-    
-    body.cv-printing .layout-sidebar-dark .cv-sidebar {
-      background: #0b1120 !important;
-      color: #ffffff !important;
-    }
-
-    body.cv-printing .cv-item {
-      page-break-inside: avoid !important;
-      break-inside: avoid-page !important;
-      display: block !important; 
-      margin-bottom: 12px;
-    }
-
-    body.cv-printing .cv-photo-wrapper,
-    body.cv-printing .cv-sec-title,
-    body.cv-printing .cv-info-card,
-    body.cv-printing .cv-lang-item {
-      page-break-inside: avoid !important;
-      break-inside: avoid !important;
-    }
-
-    body.cv-printing .cv-sec-title {
-      page-break-after: avoid !important;
-      break-after: avoid !important;
-    }
-
-    body.cv-printing .cv-item-header {
-      page-break-after: avoid !important;
-      break-after: avoid !important;
-      page-break-inside: avoid !important;
-      break-inside: avoid !important;
-    }
-
-    body.cv-printing .cv-bullets {
-      page-break-inside: auto !important;
-      break-inside: auto !important;
-    }
-    
-    body.cv-printing .cv-bullets li {
-      page-break-inside: avoid !important;
-      break-inside: avoid !important;
-    }
-
-    body.cv-printing .layout-gulf-premium.cv-doc {
+    .layout-gulf-premium .cv-doc {
       border-top: 12mm solid var(--ac) !important;
     }
-
-    body.cv-printing [data-print-ignore="true"],
-    body.cv-printing .cv-modal-backdrop {
-      display: none !important;
+    .layout-sidebar-dark .cv-sidebar {
+      background: #0b1120 !important;
+      color: #ffffff !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
     }
+    .cv-item {
+      page-break-inside: avoid !important;
+      break-inside: avoid-page !important;
+      display: block !important;
+      margin-bottom: 12px;
+    }
+    .cv-photo-wrapper,
+    .cv-sec-title,
+    .cv-info-card,
+    .cv-lang-item {
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+    }
+    .cv-sec-title {
+      page-break-after: avoid !important;
+      break-after: avoid !important;
+    }
+    .cv-item-header {
+      page-break-after: avoid !important;
+      break-after: avoid !important;
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+    }
+    .cv-bullets li {
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+    }
+    .cv-body.has-right { display: grid !important; }
+    .cv-body.has-sidebar { display: block !important; }
+    .cv-body.has-sidebar::after { content: ""; display: table; clear: both; }
   `;
 }
 
-/* ================================================================
-   DESKTOP: NATIVE PRINT DIALOG
-================================================================ */
-function executePrint({ paperRef, paper, fullName, filename, toast }) {
-  const src = paperRef?.current;
-
-  if (!src) {
-    toast?.('Preview not ready — please wait a moment.', 'err');
+/* ──────────────────────────────────────────────────────────────
+   CORE PRINT FUNCTION
+────────────────────────────────────────────────────────────── */
+function executePrint({ paperRef, paper, filename, toast }) {
+  const paperEl = paperRef?.current;
+  if (!paperEl) {
+    toast?.('Preview not ready — please wait.', 'err');
     return;
   }
 
-  cleanupExistingPrintArtifacts();
+  const cvHtml = paperEl.innerHTML;
+  const { mm_w } = PAPER_SIZES[paper] || PAPER_SIZES.a4;
+  const printCss = buildPrintWindowCss(paper);
+  const safeTitle = (filename || 'CV').replace(/\s+/g, '_').replace(/[^\w\-_.]/g, '');
 
-  const clone = src.cloneNode(true);
-  clone.removeAttribute('id');
-  clone.style.cssText = `
-    display: block !important;
-    transform: none !important;
-    position: static !important;
-    width: 100% !important;
-    height: auto !important;
-    box-shadow: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  `;
+  const win = window.open('', '_blank', 'width=960,height=700');
 
-  const wrapper = document.createElement('div');
-  wrapper.id = '__cv_print_wrapper__';
-  wrapper.appendChild(clone);
-  document.body.appendChild(wrapper);
-
-  const styleEl = document.createElement('style');
-  styleEl.id = '__cv_print_style__';
-  styleEl.media = 'print';
-  styleEl.textContent = buildPrintCss(paper || 'a4');
-  document.head.appendChild(styleEl);
-
-  const prevTitle = document.title;
-  const safeFilename = (filename || fullName || 'CV').replace(/\s+/g, '_').replace(/[^\w\-_.]/g, '');
-  document.title = safeFilename;
-
-  document.body.classList.add('cv-printing');
-
-  let cleaned = false;
-  const cleanup = () => {
-    if (cleaned) return;
-    cleaned = true;
-    document.title = prevTitle;
-    cleanupExistingPrintArtifacts();
-  };
-
-  window.addEventListener('afterprint', cleanup, { once: true });
-
-  requestAnimationFrame(() => {
-    setTimeout(() => {
-      window.print();
-      setTimeout(cleanup, 3000);
-    }, 250);
-  });
-}
-
-/* ================================================================
-   MOBILE: html2canvas + jsPDF GENERATION
-================================================================ */
-async function loadScript(src) {
-  return new Promise((resolve, reject) => {
-    if (document.querySelector(`script[src="${src}"]`)) {
-      resolve();
-      return;
-    }
-    const s = document.createElement('script');
-    s.src = src;
-    s.onload = resolve;
-    s.onerror = () => reject(new Error(`Failed to load: ${src}`));
-    document.head.appendChild(s);
-  });
-}
-
-async function executeMobilePdf({ paperRef, paper, fullName, filename, toast, setProgress }) {
-  const src = paperRef?.current;
-  if (!src) {
-    toast?.('Preview not ready — please wait a moment.', 'err');
+  if (!win) {
+    toast?.('Please allow popups for this site to download your PDF.', 'err');
     return;
   }
 
-  try {
-    setProgress('Loading PDF engine…');
-
-    // Load libraries sequentially (jsPDF depends on nothing; html2canvas is standalone)
-    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
-    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
-
-    setProgress('Rendering pages…');
-
-    const paperKey = paper || 'a4';
-    const { mm_w, mm_h } = PAPER_SIZES[paperKey];
-
-    // Scale factor: render at 2× for sharpness
-    const SCALE = 2;
-
-    // Temporarily expand the element so it's fully visible for canvas capture
-    const prevTransform = src.style.transform;
-    const prevPosition = src.style.position;
-    src.style.transform = 'none';
-    src.style.position = 'static';
-
-    const canvas = await window.html2canvas(src, {
-      scale: SCALE,
-      useCORS: true,
-      allowTaint: true,
-      backgroundColor: '#ffffff',
-      logging: false,
-      onclone: (doc) => {
-        // Hide print-ignore elements inside the clone
-        doc.querySelectorAll('[data-print-ignore="true"], .cv-modal-backdrop').forEach(el => {
-          el.style.display = 'none';
-        });
-      },
-    });
-
-    src.style.transform = prevTransform;
-    src.style.position = prevPosition;
-
-    setProgress('Building PDF…');
-
-    const { jsPDF } = window.jspdf;
-
-    // Orientation: portrait for all standard sizes
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: [mm_w, mm_h],
-      compress: true,
-    });
-
-    const imgData = canvas.toDataURL('image/jpeg', 0.92);
-    const imgWidth = mm_w;
-    const imgHeight = (canvas.height * mm_w) / canvas.width; // preserve aspect ratio
-
-    let yOffset = 0;
-    let pageIndex = 0;
-
-    while (yOffset < imgHeight) {
-      if (pageIndex > 0) pdf.addPage([mm_w, mm_h], 'portrait');
-
-      // Crop section for this page using a temp canvas
-      const pageCanvas = document.createElement('canvas');
-      const pageHeightPx = (mm_h / mm_w) * canvas.width;
-      pageCanvas.width = canvas.width;
-      pageCanvas.height = Math.min(pageHeightPx, canvas.height - pageIndex * pageHeightPx);
-
-      const ctx = pageCanvas.getContext('2d');
-      ctx.drawImage(
-        canvas,
-        0, pageIndex * pageHeightPx,         // source x, y
-        canvas.width, pageCanvas.height,      // source w, h
-        0, 0,                                  // dest x, y
-        canvas.width, pageCanvas.height        // dest w, h
-      );
-
-      const pageData = pageCanvas.toDataURL('image/jpeg', 0.92);
-      const sliceHeight = (pageCanvas.height / canvas.width) * mm_w;
-
-      pdf.addImage(pageData, 'JPEG', 0, 0, mm_w, sliceHeight);
-
-      yOffset += mm_h;
-      pageIndex++;
+  win.document.write(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${safeTitle}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Sora:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Lora:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background: #c5cfe0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-family: system-ui, sans-serif;
     }
+    .banner {
+      width: 100%; background: #0f172a; color: #fff;
+      padding: 12px 20px;
+      display: flex; align-items: center;
+      justify-content: space-between; gap: 12px;
+      flex-wrap: wrap; position: sticky; top: 0; z-index: 100;
+    }
+    .banner-text { font-size: 13px; font-weight: 600; line-height: 1.5; }
+    .banner-text strong { color: #fcd34d; }
+    .save-btn {
+      background: #2563eb; color: #fff; border: none;
+      padding: 10px 22px; border-radius: 8px;
+      font-size: 14px; font-weight: 800; cursor: pointer;
+      white-space: nowrap; box-shadow: 0 4px 12px rgba(37,99,235,.4);
+      display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+      font-family: system-ui, sans-serif;
+    }
+    .mobile-steps {
+      width: 100%; background: #1e293b;
+      padding: 10px 20px; display: none;
+    }
+    .steps-row { display: flex; gap: 16px; flex-wrap: wrap; }
+    .step { display: flex; align-items: flex-start; gap: 8px;
+      font-size: 12px; color: #94a3b8; line-height: 1.4; }
+    .step-num {
+      background: #2563eb; color: #fff;
+      width: 20px; height: 20px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 800; flex-shrink: 0; margin-top: 1px;
+    }
+    .cv-wrap {
+      margin: 24px auto; width: ${mm_w}mm;
+      background: #fff;
+      box-shadow: 0 8px 40px rgba(0,0,0,.25);
+    }
+    @media print {
+      html, body { background: #fff !important; display: block !important; min-height: auto !important; }
+      .banner, .mobile-steps { display: none !important; }
+      .cv-wrap { margin: 0 !important; box-shadow: none !important; width: 100% !important; }
+      ${printCss}
+    }
+  </style>
+</head>
+<body>
+  <div class="banner">
+    <div class="banner-text">
+      📄 Your CV is ready — <strong>ATS-friendly real text PDF</strong>.
+      <span id="dtip"> Set Destination → <strong>Save as PDF</strong> and uncheck <strong>Headers and footers</strong>.</span>
+    </div>
+    <button class="save-btn" onclick="window.print()">⬇ Save as PDF</button>
+  </div>
+  <div class="mobile-steps" id="msteps">
+    <div class="steps-row">
+      <div class="step"><div class="step-num">1</div><div><strong style="color:#e2e8f0">iOS Safari:</strong> Tap Share → Print → Pinch out → Save as PDF</div></div>
+      <div class="step"><div class="step-num">2</div><div><strong style="color:#e2e8f0">Android Chrome:</strong> Tap Save as PDF above → Done</div></div>
+      <div class="step"><div class="step-num">3</div><div><strong style="color:#e2e8f0">Samsung:</strong> Menu (⋮) → Print → Save as PDF</div></div>
+    </div>
+  </div>
+  <div class="cv-wrap">${cvHtml}</div>
+  <script>
+    var mob = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+      || (navigator.maxTouchPoints > 1 && /Macintosh/i.test(navigator.userAgent));
+    if (mob) {
+      document.getElementById('msteps').style.display = 'block';
+      document.getElementById('dtip').style.display = 'none';
+    } else {
+      // Auto-open print dialog on desktop after fonts load
+      window.addEventListener('load', function() {
+        setTimeout(function() { window.print(); }, 600);
+      });
+    }
+  </script>
+</body>
+</html>`);
 
-    const safeFilename = (filename || fullName || 'CV')
-      .replace(/\s+/g, '_')
-      .replace(/[^\w\-_.]/g, '') + '.pdf';
-
-    pdf.save(safeFilename);
-    setProgress(null);
-    toast?.('PDF downloaded successfully!', 'ok');
-
-  } catch (err) {
-    setProgress(null);
-    console.error('Mobile PDF generation failed:', err);
-    toast?.('PDF generation failed. Try on a desktop browser for best results.', 'err');
-  }
+  win.document.close();
 }
 
-/* ================================================================
-   VIP DOWNLOAD MODAL UI
-================================================================ */
-function PrintModal({ defaultName, paper, onConfirm, onCancel, isMobile }) {
+/* ──────────────────────────────────────────────────────────────
+   MODAL
+────────────────────────────────────────────────────────────── */
+function PrintModal({ defaultName, paper, onConfirm, onCancel }) {
   const [name, setName] = useState(defaultName);
   const inp = useRef(null);
+  const mobile = isMobile();
 
   useEffect(() => {
     inp.current?.focus();
@@ -334,133 +252,149 @@ function PrintModal({ defaultName, paper, onConfirm, onCancel, isMobile }) {
 
   const confirm = () => onConfirm(name?.trim() || defaultName);
 
-  return (
+  return createPortal(
     <div
-      className="cv-modal-backdrop"
+      onClick={(e) => e.target === e.currentTarget && onCancel()}
       style={{
-        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-        background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999,
+        position: 'fixed', inset: 0, zIndex: 999999,
+        background: 'rgba(15,23,42,0.65)',
+        backdropFilter: 'blur(6px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
         padding: '16px',
       }}
-      role="presentation"
-      onClick={(e) => e.target === e.currentTarget && onCancel()}
     >
-      <div
-        className="cv-modal"
-        style={{
-          background: '#fff', padding: '24px', borderRadius: '16px',
-          width: '100%', maxWidth: '420px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
-        }}
-        role="dialog"
-      >
-        <h3 style={{ margin: '0 0 8px 0', fontSize: '1.2rem', color: '#0f172a', fontWeight: 800 }}>
-          📥 Save Document as PDF
-        </h3>
-
-        <p style={{ margin: '0 0 16px 0', fontSize: '0.85rem', color: '#475569', lineHeight: 1.5 }}>
-          Your CV has been formatted for <strong>Applicant Tracking Systems (ATS)</strong>. Name your file below before downloading.
-        </p>
-
-        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-          File Name
-        </label>
-        <input
-          ref={inp}
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && confirm()}
-          style={{
-            width: '100%', padding: '10px 14px', borderRadius: '8px',
-            border: '2px solid #e2e8f0', fontSize: '0.9rem', marginBottom: '16px',
-            outline: 'none', transition: '0.2s', boxSizing: 'border-box'
-          }}
-          onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-          onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
-        />
-
-        {/* Show different tips based on device */}
-        {isMobile ? (
+      <div style={{
+        background: '#fff', borderRadius: '20px',
+        width: '100%', maxWidth: '440px',
+        boxShadow: '0 24px 60px rgba(0,0,0,0.25)',
+        overflow: 'hidden',
+        maxHeight: 'calc(100vh - 32px)',
+        display: 'flex', flexDirection: 'column',
+      }}>
+        {/* Header */}
+        <div style={{
+          background: 'linear-gradient(135deg,#0f172a,#1e3a8a)',
+          padding: '20px 24px',
+          display: 'flex', alignItems: 'center', gap: '12px',
+          flexShrink: 0,
+        }}>
           <div style={{
-            background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px',
-            padding: '12px', marginBottom: '20px', fontSize: '0.75rem', color: '#166534'
-          }}>
-            <strong>📱 Mobile Download:</strong><br />
-            The PDF will be generated and downloaded directly to your device. Check your Downloads folder after tapping "Save Document".
+            width: '40px', height: '40px', borderRadius: '10px',
+            background: 'rgba(255,255,255,0.12)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '1.2rem', flexShrink: 0,
+          }}>📄</div>
+          <div>
+            <div style={{ color: '#fff', fontWeight: 800, fontSize: '1rem' }}>Save CV as PDF</div>
+            <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.75rem', marginTop: '2px' }}>
+              ATS-friendly · Real text · Works everywhere
+            </div>
           </div>
-        ) : (
-          <div style={{
-            background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px',
-            padding: '12px', marginBottom: '20px', fontSize: '0.75rem', color: '#334155'
-          }}>
-            <strong>💡 Pro Tip for Chrome/Edge:</strong><br />
-            In the print window, make sure to <strong>UNCHECK "Headers and footers"</strong> so the web URL doesn't print at the top of Page 2.
-          </div>
-        )}
+        </div>
 
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <button
-            onClick={onCancel}
-            style={{
-              flex: 1, padding: '10px', background: '#f1f5f9', color: '#475569',
-              border: 'none', borderRadius: '8px', fontWeight: 700, cursor: 'pointer'
-            }}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={confirm}
-            style={{
-              flex: 2, padding: '10px', background: '#0f172a', color: '#fff',
-              border: 'none', borderRadius: '8px', fontWeight: 700, cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(15,23,42,0.2)'
-            }}
-          >
-            Save Document
-          </button>
+        {/* Body */}
+        <div style={{ padding: '20px 24px', overflowY: 'auto', flex: 1 }}>
+          {/* ATS badge */}
+          <div style={{
+            background: '#f0fdf4', border: '1px solid #86efac',
+            borderRadius: '10px', padding: '10px 14px',
+            marginBottom: '16px', fontSize: '0.78rem', color: '#166534',
+            display: 'flex', alignItems: 'flex-start', gap: '8px', lineHeight: 1.55,
+          }}>
+            <span style={{ fontSize: '1rem', flexShrink: 0 }}>✅</span>
+            <span><strong>100% ATS-Friendly.</strong> Real text PDF — recruiters' systems can read every word. Not a screenshot.</span>
+          </div>
+
+          {/* Filename */}
+          <label style={{
+            display: 'block', fontSize: '0.72rem', fontWeight: 800,
+            color: '#334155', marginBottom: '6px',
+            textTransform: 'uppercase', letterSpacing: '0.06em',
+          }}>File Name</label>
+          <div style={{ position: 'relative', marginBottom: '16px' }}>
+            <input
+              ref={inp}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && confirm()}
+              style={{
+                width: '100%', padding: '11px 48px 11px 14px',
+                borderRadius: '10px', border: '2px solid #e2e8f0',
+                fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box',
+                fontWeight: 600, color: '#0f172a', transition: 'border-color 0.2s',
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#2563eb'}
+              onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+            />
+            <span style={{
+              position: 'absolute', right: '14px', top: '50%',
+              transform: 'translateY(-50%)',
+              fontSize: '0.72rem', color: '#94a3b8', fontWeight: 700,
+            }}>.pdf</span>
+          </div>
+
+          {/* Tip */}
+          {mobile ? (
+            <div style={{
+              background: '#eff6ff', border: '1px solid #bfdbfe',
+              borderRadius: '10px', padding: '12px 14px', marginBottom: '20px',
+              fontSize: '0.75rem', color: '#1e40af', lineHeight: 1.6,
+            }}>
+              <strong>📱 Mobile:</strong> A preview opens in a new tab. Tap <strong>"Save as PDF"</strong> at the top, or use your browser's Share / Print menu.
+            </div>
+          ) : (
+            <div style={{
+              background: '#f8fafc', border: '1px solid #e2e8f0',
+              borderRadius: '10px', padding: '12px 14px', marginBottom: '20px',
+              fontSize: '0.75rem', color: '#334155', lineHeight: 1.6,
+            }}>
+              <strong>💡 Tip:</strong> The print dialog opens automatically. Set <strong>Destination → Save as PDF</strong> and uncheck <strong>"Headers and footers"</strong>.
+            </div>
+          )}
+
+          {/* Buttons */}
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button
+              onClick={onCancel}
+              style={{
+                flex: 1, padding: '12px', background: '#f1f5f9',
+                color: '#475569', border: 'none', borderRadius: '10px',
+                fontWeight: 700, cursor: 'pointer', fontSize: '0.88rem',
+              }}
+            >Cancel</button>
+            <button
+              onClick={confirm}
+              style={{
+                flex: 2, padding: '12px',
+                background: 'linear-gradient(135deg,#1e3a8a,#2563eb)',
+                color: '#fff', border: 'none', borderRadius: '10px',
+                fontWeight: 800, cursor: 'pointer', fontSize: '0.88rem',
+                boxShadow: '0 4px 14px rgba(37,99,235,0.35)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+              }}
+            >
+              <svg width="16" height="16" fill="none" stroke="currentColor"
+                strokeWidth="2.5" viewBox="0 0 24 24"
+                strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Save as PDF
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
-/* ================================================================
-   PROGRESS OVERLAY (mobile PDF generation)
-================================================================ */
-function ProgressOverlay({ message }) {
-  if (!message) return null;
-  return (
-    <div style={{
-      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(4px)',
-      display: 'flex', flexDirection: 'column', alignItems: 'center',
-      justifyContent: 'center', zIndex: 999999, gap: '16px',
-    }}>
-      {/* Spinner */}
-      <div style={{
-        width: '48px', height: '48px', borderRadius: '50%',
-        border: '4px solid rgba(255,255,255,0.2)',
-        borderTopColor: '#ffffff',
-        animation: 'cv-spin 0.8s linear infinite',
-      }} />
-      <style>{`@keyframes cv-spin { to { transform: rotate(360deg); } }`}</style>
-      <p style={{ color: '#ffffff', fontWeight: 700, fontSize: '0.95rem', margin: 0 }}>
-        {message}
-      </p>
-      <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', margin: 0 }}>
-        Please don't close this page…
-      </p>
-    </div>
-  );
-}
-
-/* ================================================================
-   MAIN COMPONENT
-================================================================ */
+/* ──────────────────────────────────────────────────────────────
+   MAIN EXPORT
+────────────────────────────────────────────────────────────── */
 export default function Print({ paperRef, paper, fullName, toast }) {
   const [showModal, setShowModal] = useState(false);
-  const [progress, setProgress] = useState(null); // null = hidden
-  const mobile = isMobileDevice();
 
   const handleClick = () => {
     if (!fullName?.trim()) {
@@ -472,12 +406,7 @@ export default function Print({ paperRef, paper, fullName, toast }) {
 
   const handleConfirm = (filename) => {
     setShowModal(false);
-
-    if (mobile) {
-      executeMobilePdf({ paperRef, paper, fullName, filename, toast, setProgress });
-    } else {
-      executePrint({ paperRef, paper, fullName, filename, toast });
-    }
+    executePrint({ paperRef, paper, filename, toast });
   };
 
   const defaultFilename = (fullName || 'My_CV')
@@ -486,37 +415,36 @@ export default function Print({ paperRef, paper, fullName, toast }) {
 
   return (
     <>
-      {/* Progress overlay for mobile rendering */}
-      <ProgressOverlay message={progress} />
-
       {showModal && (
         <PrintModal
           defaultName={defaultFilename}
           paper={paper || 'a4'}
           onConfirm={handleConfirm}
           onCancel={() => setShowModal(false)}
-          isMobile={mobile}
         />
       )}
 
-      <div className="cv-prev-print" data-print-ignore="true">
+      <div data-print-ignore="true" style={{ width: '100%' }}>
         <button
           onClick={handleClick}
           style={{
-            width: '100%', padding: '14px', background: '#2563eb', color: '#fff',
-            border: 'none', borderRadius: '12px', fontWeight: 800, cursor: 'pointer',
-            fontSize: '0.9rem', boxShadow: '0 6px 20px rgba(37, 99, 235, 0.3)',
+            width: '100%', padding: '14px',
+            background: 'linear-gradient(135deg,#1e3a8a,#2563eb)',
+            color: '#fff', border: 'none', borderRadius: '12px',
+            fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem',
+            boxShadow: '0 6px 20px rgba(37,99,235,0.35)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
             transition: 'all 0.2s',
           }}
           onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
           onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
         >
-          <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5"
-            viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="7 10 12 15 17 10"></polyline>
-            <line x1="12" y1="15" x2="12" y2="3"></line>
+          <svg width="18" height="18" fill="none" stroke="currentColor"
+            strokeWidth="2.5" viewBox="0 0 24 24"
+            strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
           </svg>
           Download PDF
         </button>
