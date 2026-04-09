@@ -44,13 +44,22 @@ const S = {
 };
 
 const CATS = [
-  { value:"general",         label:"🌐 General" },
-  { value:"coins_rewards",   label:"🪙 Coins & Rewards" },
-  { value:"tests_quizzes",   label:"📝 Tests & Quizzes" },
-  { value:"lucky_draw",      label:"🎲 Lucky Draw & Wheel" },
-  { value:"account_profile", label:"👤 Account & Profile" },
-  { value:"withdrawals",     label:"💵 Withdrawals" },
-  { value:"education",       label:"🎓 Education" },
+  { value: "general",               label: "🌐 General" },
+  { value: "coins_rewards",         label: "🪙 Coins & Rewards" },
+  { value: "tests_quizzes",         label: "📝 Tests & Quizzes" },
+  { value: "lucky_draw",            label: "🎲 Lucky Draw & Wheel" },
+  { value: "account_profile",       label: "👤 Account & Profile" },
+  { value: "withdrawals",           label: "💵 Withdrawals" },
+  { value: "education",             label: "🎓 Education" },
+  { value: "career",                label: "💼 Career" },
+  { value: "finance",               label: "💰 Finance" },
+  { value: "health",                label: "🏥 Health" },
+  { value: "scholarships",          label: "🏅 Scholarships" },
+  { value: "pakistan_boards",       label: "📋 Pakistan Boards" },
+  { value: "university_admissions", label: "🏛️ University Admissions" },
+  { value: "study_abroad",          label: "✈️ Study Abroad" },
+  { value: "technology",            label: "💻 Technology" },
+  { value: "css_pms",               label: "🏛 CSS & PMS" },
 ];
 
 const STATUSES = ["draft","scheduled","published"];

@@ -166,8 +166,45 @@
   font-size: clamp(0.92rem, 2.5vw, 1.02rem);
   line-height: 1.75;
   color: #334155;
-  white-space: pre-wrap;
   margin-bottom: 20px;
+}
+
+.faqp-answer-text p { margin-bottom: 12px; }
+
+.faqp-answer-text ul,
+.faqp-answer-text ol {
+  padding-left: 20px;
+  margin: 10px 0 14px;
+}
+
+.faqp-answer-text li {
+  margin-bottom: 6px;
+  line-height: 1.65;
+}
+
+.faqp-answer-text strong {
+  color: #0b1437;
+  font-weight: 700;
+}
+
+.faqp-answer-text a {
+  color: #1a3a8f;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.2s;
+}
+
+.faqp-answer-text a:hover { color: #3b82f6; }
+
+.faqp-answer-text blockquote {
+  border-left: 4px solid #f59e0b;
+  padding: 10px 16px;
+  background: rgba(245,158,11,0.06);
+  border-radius: 0 10px 10px 0;
+  font-style: italic;
+  color: #475569;
+  margin: 16px 0;
 }
 
 /* Author */

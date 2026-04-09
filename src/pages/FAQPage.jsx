@@ -9,13 +9,22 @@ import "./FAQPage.css";
 const SITE_URL = "https://www.aidla.online";
 
 const CATEGORIES = [
-  { id: "general",         label: "General",         icon: "🌐" },
-  { id: "coins_rewards",   label: "Coins & Rewards",  icon: "🪙" },
-  { id: "tests_quizzes",   label: "Tests & Quizzes",  icon: "📝" },
-  { id: "lucky_draw",      label: "Lucky Draw",       icon: "🎲" },
-  { id: "account_profile", label: "Account",          icon: "👤" },
-  { id: "withdrawals",     label: "Withdrawals",      icon: "💵" },
-  { id: "education",       label: "Education",        icon: "🎓" },
+  { id: "general",               label: "General",          icon: "🌐" },
+  { id: "coins_rewards",         label: "Coins & Rewards",  icon: "🪙" },
+  { id: "tests_quizzes",         label: "Tests & Quizzes",  icon: "📝" },
+  { id: "lucky_draw",            label: "Lucky Draw",       icon: "🎲" },
+  { id: "account_profile",       label: "Account",          icon: "👤" },
+  { id: "withdrawals",           label: "Withdrawals",      icon: "💵" },
+  { id: "education",             label: "Education",        icon: "🎓" },
+  { id: "career",                label: "Career",           icon: "💼" },
+  { id: "finance",               label: "Finance",          icon: "💰" },
+  { id: "health",                label: "Health",           icon: "🏥" },
+  { id: "scholarships",          label: "Scholarships",     icon: "🏅" },
+  { id: "pakistan_boards",       label: "Pakistan Boards",  icon: "📋" },
+  { id: "university_admissions", label: "Admissions",       icon: "🏛️" },
+  { id: "study_abroad",          label: "Study Abroad",     icon: "✈️" },
+  { id: "technology",            label: "Technology",       icon: "💻" },
+  { id: "css_pms",               label: "CSS & PMS",        icon: "🏛" },
 ];
 const CAT_MAP = Object.fromEntries(CATEGORIES.map(c => [c.id, c]));
 
@@ -106,11 +115,15 @@ function RelatedCard({ faq }) {
 }
 
 /* ─────────────────── Ask Question Form ─────────────────── */
-function AskForm() {
-  const [form, setForm]   = useState({ name: "", email: "", question: "" });
-  const [state, setState] = useState("idle");
-  const [msg, setMsg]     = useState("");
+function AskForm({ onSubmit }) {
+  const [form, setForm]     = useState({ name: "", email: "", question: "" });
+  const [state, setState]   = useState("idle");
+  const [msg, setMsg]       = useState("");
+  const [duplicate, setDuplicate] = useState(null); // { question, slug }
   const charLeft = 500 - form.question.length;
+
+  const FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auto-faq-generator`;
+  const ANON_KEY     = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
@@ -124,63 +137,237 @@ function AskForm() {
     if (form.question.length < 10) {
       setState("err"); setMsg("Question must be at least 10 characters."); return;
     }
+
+    setState("loading");
+
+    // ── Check duplicate first ──
+    try {
+      const res = await fetch(FUNCTION_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          secret:   "aidla_faqs_2025",
+          action:   "check_duplicate",
+          question: form.question.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (data.ok && data.isDuplicate && data.matchedSlug) {
+        setDuplicate({
+          question: data.matchedQuestion,
+          slug:     data.matchedSlug,
+        });
+        setState("idle");
+        return;
+      }
+    } catch {
+      // If check fails — continue to submit normally
+    }
+
+    // ── Submit question ──
+    const { error } = await supabase.from("user_questions").insert({
+      name:     form.name.trim(),
+      email:    form.email.trim().toLowerCase(),
+      question: form.question.trim(),
+    });
+
+    if (error) {
+      setState("err"); setMsg("Something went wrong. Please try again.");
+    } else {
+      setState("ok");
+      setMsg("✅ Question submitted! Our team will answer and publish it soon.");
+      setForm({ name: "", email: "", question: "" });
+      if (onSubmit) onSubmit();
+    }
+  };
+
+  const handleSubmitAnyway = async () => {
+    setDuplicate(null);
     setState("loading");
     const { error } = await supabase.from("user_questions").insert({
-      name: form.name.trim(),
-      email: form.email.trim().toLowerCase(),
+      name:     form.name.trim(),
+      email:    form.email.trim().toLowerCase(),
       question: form.question.trim(),
     });
     if (error) {
       setState("err"); setMsg("Something went wrong. Please try again.");
     } else {
       setState("ok");
-      setMsg("✅ Question submitted! We'll email you when it's answered.");
+      setMsg("✅ Question submitted! Our team will answer and publish it soon.");
       setForm({ name: "", email: "", question: "" });
+      if (onSubmit) onSubmit();
     }
   };
 
   return (
-    <div className="faqp-ask-wrap" id="ask">
-      <div className="faqp-ask-header">
-        <span className="faqp-ask-icon" aria-hidden="true">💬</span>
-        <div>
-          <h2 className="faqp-ask-title">Still have questions?</h2>
-          <p className="faqp-ask-sub">Ask us — we'll answer and publish it to help others.</p>
-        </div>
-      </div>
-
-      {state === "ok"  && <div className="faqp-msg faqp-msg--ok" role="alert">{msg}</div>}
-      {state === "err" && <div className="faqp-msg faqp-msg--err" role="alert">{msg}</div>}
-
-      {state !== "ok" && (
-        <>
-          <div className="faqp-ask-row2">
-            <div>
-              <label className="faqp-label" htmlFor="faqp-name">Your Name *</label>
-              <input id="faqp-name" className="faqp-input" placeholder="Muhammad Ali" value={form.name} onChange={e => set("name", e.target.value)} autoComplete="name" />
+    <>
+      {/* ── Duplicate Modal ── */}
+      {duplicate && (
+        <div style={{
+          position: "fixed", inset: 0,
+          background: "rgba(0,0,0,0.55)",
+          zIndex: 9999,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 20,
+        }}>
+          <div style={{
+            background: "#fff",
+            borderRadius: 20,
+            padding: 28,
+            maxWidth: 420,
+            width: "100%",
+            boxShadow: "0 24px 60px rgba(0,0,0,0.2)",
+            textAlign: "center",
+          }}>
+            <div style={{ fontSize: "2.5rem", marginBottom: 12 }}>💡</div>
+            <h3 style={{
+              fontFamily: "'Playfair Display', serif",
+              fontSize: "1.2rem",
+              fontWeight: 900,
+              color: "#0b1437",
+              margin: "0 0 8px",
+            }}>
+              We Already Have This Answer!
+            </h3>
+            <p style={{
+              fontSize: "0.85rem",
+              color: "#64748b",
+              margin: "0 0 16px",
+            }}>
+              Your question is similar to an existing FAQ:
+            </p>
+            <div style={{
+              background: "#f0f4ff",
+              border: "1.5px solid rgba(26,58,143,0.15)",
+              borderRadius: 12,
+              padding: "12px 16px",
+              marginBottom: 20,
+              fontSize: "0.9rem",
+              fontWeight: 700,
+              color: "#0b1437",
+              lineHeight: 1.4,
+            }}>
+              "{duplicate.question}"
             </div>
-            <div>
-              <label className="faqp-label" htmlFor="faqp-email">Email Address *</label>
-              <input id="faqp-email" className="faqp-input" type="email" placeholder="you@email.com" value={form.email} onChange={e => set("email", e.target.value)} autoComplete="email" />
+            <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+              
+                <a href={`/faqs/${duplicate.slug}`}
+                style={{
+                  padding: "10px 22px",
+                  borderRadius: 30,
+                  background: "linear-gradient(135deg,#0b1437,#1a3a8f)",
+                  color: "#fff",
+                  textDecoration: "none",
+                  fontWeight: 800,
+                  fontSize: "0.88rem",
+                }}
+              >
+                View Answer →
+              </a>
+              <button
+                onClick={handleSubmitAnyway}
+                style={{
+                  padding: "10px 22px",
+                  borderRadius: 30,
+                  background: "#fff",
+                  border: "1.5px solid rgba(26,58,143,0.2)",
+                  color: "#475569",
+                  fontWeight: 700,
+                  fontSize: "0.88rem",
+                  cursor: "pointer",
+                }}
+              >
+                Submit Anyway
+              </button>
+              <button
+                onClick={() => setDuplicate(null)}
+                style={{
+                  padding: "10px 22px",
+                  borderRadius: 30,
+                  background: "#fff",
+                  border: "1.5px solid #e2e8f0",
+                  color: "#94a3b8",
+                  fontWeight: 700,
+                  fontSize: "0.88rem",
+                  cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
             </div>
           </div>
-          <label className="faqp-label" htmlFor="faqp-question">Your Question *</label>
-          <textarea
-            id="faqp-question"
-            className="faqp-textarea"
-            placeholder="Type your question clearly…"
-            value={form.question}
-            onChange={e => set("question", e.target.value.slice(0, 500))}
-            rows={4}
-          />
-          <div className="faqp-char-count" aria-live="polite">{charLeft} characters left</div>
-          <button className="faqp-submit" onClick={handleSubmit} disabled={state === "loading"}>
-            {state === "loading" ? <span className="faqp-spinner" aria-label="Submitting..." /> : "🚀 Submit Question"}
-          </button>
-          <p className="faqp-privacy">🔒 Your email is only used to notify you — never shared publicly.</p>
-        </>
+        </div>
       )}
-    </div>
+
+      {/* ── Ask Form ── */}
+      <div className="ask-form-wrap" id="ask-question">
+        <div className="ask-form-header">
+          <span className="ask-form-icon" aria-hidden="true">💬</span>
+          <div>
+            <h2 className="ask-form-title">Can't find your answer?</h2>
+            <p className="ask-form-sub">Ask us — our team will answer and publish it to help others.</p>
+          </div>
+        </div>
+
+        {state === "ok"  && <div className="ask-msg ask-msg--ok" role="alert">{msg}</div>}
+        {state === "err" && <div className="ask-msg ask-msg--err" role="alert">{msg}</div>}
+
+        {state !== "ok" && (
+          <div className="ask-form-body">
+            <div className="ask-row-2">
+              <div>
+                <label className="ask-label" htmlFor="ask-name">Your Name *</label>
+                <input
+                  id="ask-name"
+                  className="ask-input"
+                  placeholder="Muhammad Ali"
+                  value={form.name}
+                  onChange={e => set("name", e.target.value)}
+                  autoComplete="name"
+                />
+              </div>
+              <div>
+                <label className="ask-label" htmlFor="ask-email">Email Address *</label>
+                <input
+                  id="ask-email"
+                  className="ask-input"
+                  type="email"
+                  placeholder="you@email.com"
+                  value={form.email}
+                  onChange={e => set("email", e.target.value)}
+                  autoComplete="email"
+                />
+              </div>
+            </div>
+            <label className="ask-label" htmlFor="ask-question">Your Question *</label>
+            <textarea
+              id="ask-question"
+              className="ask-textarea"
+              placeholder="Type your question clearly..."
+              value={form.question}
+              onChange={e => set("question", e.target.value.slice(0, 500))}
+              rows={4}
+            />
+            <div className="ask-char-count" aria-live="polite">{charLeft} characters left</div>
+            <button
+              className="ask-submit"
+              onClick={handleSubmit}
+              disabled={state === "loading"}
+            >
+              {state === "loading"
+                ? <span className="ask-spinner" aria-label="Checking..." />
+                : "🚀 Submit Question"}
+            </button>
+            <p className="ask-privacy">🔒 Your email is only used to notify you — never shared publicly.</p>
+          </div>
+        )}
+      </div>
+    </>
   );
 }
 
@@ -425,9 +612,10 @@ const { data: rel } = await supabase.rpc("get_related_faqs", {
               <span className="faqp-answer-label-dot" aria-hidden="true" />
               Official Answer
             </div>
-            <div className="faqp-answer-text">
-              {faq.answer}
-            </div>
+            <div 
+  className="faqp-answer-text"
+  dangerouslySetInnerHTML={{ __html: faq.answer }}
+/>
 
             {/* Author attribution */}
             <div className="faqp-answer-author">

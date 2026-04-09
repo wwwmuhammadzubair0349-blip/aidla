@@ -394,8 +394,35 @@
   line-height: 1.7;
   color: #334155;
   padding-top: 14px;
-  white-space: pre-wrap;
 }
+
+.faq-answer-text p { margin-bottom: 10px; }
+
+.faq-answer-text ul,
+.faq-answer-text ol {
+  padding-left: 18px;
+  margin: 8px 0 12px;
+}
+
+.faq-answer-text li {
+  margin-bottom: 5px;
+  line-height: 1.6;
+}
+
+.faq-answer-text strong {
+  color: #0b1437;
+  font-weight: 700;
+}
+
+.faq-answer-text a {
+  color: #1a3a8f;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.2s;
+}
+
+.faq-answer-text a:hover { color: #3b82f6; }
 
 /* Highlight */
 .faq-highlight {

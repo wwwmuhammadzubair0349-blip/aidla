@@ -15,7 +15,6 @@ const BANNED_WORDS = [
   "fuck","shit","ass","bitch","bastard","dick","pussy","cock","nigger","faggot",
   "whore","slut","rape","kill yourself","kys","sex","nude","naked","porn",
   "xxx","boobs","penis","vagina","harassment","abuse",
-  // Urdu/Hindi offensive
   "madarchod","bhenchod","gaand","lund","chutiya","harami","kamina","randi",
 ];
 
@@ -38,9 +37,9 @@ function validateContent(text) {
 function timeAgo(iso) {
   if (!iso) return "";
   const s = Math.floor((Date.now() - new Date(iso)) / 1000);
-  if (s < 60)   return "just now";
-  if (s < 3600) return `${Math.floor(s/60)}m ago`;
-  if (s < 86400)return `${Math.floor(s/3600)}h ago`;
+  if (s < 60)    return "just now";
+  if (s < 3600)  return `${Math.floor(s/60)}m ago`;
+  if (s < 86400) return `${Math.floor(s/3600)}h ago`;
   if (s < 604800)return `${Math.floor(s/86400)}d ago`;
   return new Date(iso).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"});
 }
@@ -158,7 +157,7 @@ function PostCard({ post, currentUserId, currentEmail, currentUserProfile, isAdm
   const [commentCount,setCommentCount]= useState(post.comment_count || 0);
   const [posting,     setPosting]     = useState(false);
   const [menuOpen,    setMenuOpen]    = useState(false);
-  const [reportTarget,setReportTarget]= useState(null); // {id, type}
+  const [reportTarget,setReportTarget]= useState(null);
   const [reportDone,  setReportDone]  = useState(false);
   const menuRef = useRef(null);
 
@@ -166,7 +165,6 @@ function PostCard({ post, currentUserId, currentEmail, currentUserProfile, isAdm
   const isAdminPost= post.profiles?.email === ADMIN_EMAIL;
   const displayName= isAdminPost ? "AIDLA_Official" : (post.profiles?.full_name || "User");
 
-  // close menu on outside click
   useEffect(() => {
     const handler = e => { if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false); };
     document.addEventListener("mousedown", handler);
@@ -181,7 +179,6 @@ function PostCard({ post, currentUserId, currentEmail, currentUserProfile, isAdm
       .eq("is_deleted", false)
       .order("created_at", { ascending: true });
     if (!data || data.length === 0) { setComments([]); return; }
-    // Fetch profiles separately
     const userIds = [...new Set(data.map(c => c.user_id))];
     const { data: profileRows } = await supabase
       .from("users_profiles").select("user_id,full_name,avatar_url,email").in("user_id", userIds);
@@ -216,7 +213,6 @@ function PostCard({ post, currentUserId, currentEmail, currentUserProfile, isAdm
       .insert({ post_id: post.id, user_id: currentUserId, content: commentText.trim() })
       .select("*").single();
     if (!error && data) {
-      // attach current user profile locally
       const withProfile = { ...data, profiles: currentUserProfile };
       setComments(p => [...p, withProfile]);
       setCommentCount(c => c+1);
@@ -256,7 +252,6 @@ function PostCard({ post, currentUserId, currentEmail, currentUserProfile, isAdm
     <div className={`fd-post-card ${post.is_pinned ? "fd-pinned" : ""}`}>
       {post.is_pinned && <div className="fd-pin-badge">📌 Pinned</div>}
 
-      {/* ── Report modal ── */}
       {reportTarget && (
         <ReportModal
           onClose={() => setReportTarget(null)}
@@ -267,7 +262,6 @@ function PostCard({ post, currentUserId, currentEmail, currentUserProfile, isAdm
         <div className="fd-report-toast">✅ Report submitted. Thank you!</div>
       )}
 
-      {/* ── Post header ── */}
       <div className="fd-post-header">
         <Avatar profile={post.profiles} size={42} />
         <div className="fd-post-meta">
@@ -299,17 +293,14 @@ function PostCard({ post, currentUserId, currentEmail, currentUserProfile, isAdm
         </div>
       </div>
 
-      {/* ── Repost badge ── */}
       {post.repost_of && post.original && (
         <div className="fd-repost-badge">
           🔁 Reposted from <strong>{post.original.profiles?.full_name || "User"}</strong>
         </div>
       )}
 
-      {/* ── Content ── */}
       <div className="fd-post-content">{post.content}</div>
 
-      {/* ── Actions ── */}
       <div className="fd-post-actions">
         <button className={`fd-action-btn ${liked?"fd-liked":""}`} onClick={handleLike}>
           <span className="fd-action-icon">{liked ? "❤️" : "🤍"}</span>
@@ -329,7 +320,6 @@ function PostCard({ post, currentUserId, currentEmail, currentUserProfile, isAdm
         </button>
       </div>
 
-      {/* ── Comments ── */}
       {showComments && (
         <div className="fd-comments-section">
           {comments.map(c => (
@@ -341,8 +331,6 @@ function PostCard({ post, currentUserId, currentEmail, currentUserProfile, isAdm
               onReport={(id) => setReportTarget({id, type:"comment"})}
             />
           ))}
-
-          {/* Write comment */}
           <div className="fd-comment-input-row">
             <div className="fd-comment-input-wrap">
               <input
@@ -393,10 +381,8 @@ function ComposeBox({ profile, userId, isAdmin, onPosted, repostOf = null, onCan
     const { data, error: err } = await supabase.from("feed_posts")
       .insert(payload).select("*").single();
     if (err) {
-      console.error("[handlePost] error:", err);
       setError(err.message || "Failed to post. Please try again.");
     } else {
-      // Attach profile locally — no need to re-fetch from DB
       const newPost = { ...data, profiles: profile, user_liked: false, repost_count: 0 };
       setContent(""); setFeeling(""); setLocation(""); setShowFeelings(false);
       if (onPosted) onPosted(newPost);
@@ -485,17 +471,16 @@ export default function Feed() {
   const [userId,     setUserId]     = useState(null);
   const [userEmail,  setUserEmail]  = useState(null);
   const [posts,      setPosts]      = useState([]);
-  const [loading,    setLoading]    = useState(false);  // false until user loaded
-  const [hasMore,    setHasMore]    = useState(false);  // false until first load
+  const [loading,    setLoading]    = useState(false);
+  const [hasMore,    setHasMore]    = useState(false);
   const [page,       setPage]       = useState(0);
   const [repostOf,   setRepostOf]   = useState(null);
-  const [fetchingMore, setFetchingMore] = useState(false); // separate flag for pagination
-  const loaderRef  = useRef(null);
-  const userIdRef  = useRef(null); // stable ref for use inside callbacks
+  const [fetchingMore, setFetchingMore] = useState(false);
+  const loaderRef   = useRef(null);
+  const userIdRef   = useRef(null);
 
   const isAdmin = userEmail === ADMIN_EMAIL;
 
-  // ── Load user, THEN load posts ───────────────────────────────
   useEffect(() => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -506,12 +491,10 @@ export default function Feed() {
       const { data: p } = await supabase.from("users_profiles")
         .select("full_name,avatar_url,email").eq("user_id", user.id).single();
       if (p) setProfile(p);
-      // Only start loading posts after we have the user id
       doLoadPosts(0, true, user.id);
     })();
   }, []); // eslint-disable-line
 
-  // ── Core load function ───────────────────────────────────────
   const doLoadPosts = async (pageNum, replace, uid) => {
     if (replace) setLoading(true);
     else setFetchingMore(true);
@@ -519,7 +502,6 @@ export default function Feed() {
     const from = pageNum * PAGE_SIZE;
     const to   = from + PAGE_SIZE - 1;
 
-    // Fetch posts
     const { data, error } = await supabase
       .from("feed_posts")
       .select("*")
@@ -533,14 +515,12 @@ export default function Feed() {
       const userIds   = [...new Set(data.map(p => p.user_id))];
       const repostIds = data.map(p => p.repost_of).filter(Boolean);
 
-      // Fetch profiles for all post authors
       const { data: profileRows } = await supabase
         .from("users_profiles")
         .select("user_id,full_name,avatar_url,email")
         .in("user_id", userIds);
       const profileMap = Object.fromEntries((profileRows||[]).map(p => [p.user_id, p]));
 
-      // Fetch original posts for reposts
       let originalMap = {};
       if (repostIds.length > 0) {
         const { data: origRows } = await supabase
@@ -554,7 +534,6 @@ export default function Feed() {
         }
       }
 
-      // Fetch which posts current user liked
       const { data: likedRows } = await supabase
         .from("feed_likes").select("post_id").eq("user_id", uid).in("post_id", postIds);
       const likedSet = new Set((likedRows||[]).map(r => r.post_id));
@@ -584,38 +563,63 @@ export default function Feed() {
     doLoadPosts(pageNum, replace, uid);
   }, []); // eslint-disable-line
 
-  // ── Infinite scroll — stable observer, no deps that change ───
   useEffect(() => {
     const observer = new IntersectionObserver(entries => {
       if (!entries[0].isIntersecting) return;
-      // Read latest values via refs to avoid stale closure
       if (isFetchingMoreRef.current || !hasMoreRef.current) return;
       loadPosts(pageRef.current + 1, false);
     }, { rootMargin: "200px", threshold: 0 });
 
     if (loaderRef.current) observer.observe(loaderRef.current);
     return () => observer.disconnect();
-  }, [loadPosts]); // loadPosts is stable (empty deps)
+  }, [loadPosts]);
 
-  // Keep refs in sync so the observer always sees latest values
-  const hasMoreRef      = useRef(hasMore);
+  const hasMoreRef        = useRef(hasMore);
   const isFetchingMoreRef = useRef(fetchingMore);
-  const pageRef         = useRef(page);
-  useEffect(() => { hasMoreRef.current = hasMore; },        [hasMore]);
-  useEffect(() => { isFetchingMoreRef.current = fetchingMore; }, [fetchingMore]);
-  useEffect(() => { pageRef.current = page; },              [page]);
+  const pageRef           = useRef(page);
+  useEffect(() => { hasMoreRef.current = hasMore; },              [hasMore]);
+  useEffect(() => { isFetchingMoreRef.current = fetchingMore; },  [fetchingMore]);
+  useEffect(() => { pageRef.current = page; },                    [page]);
 
   const handlePosted = (newPost) => {
     setPosts(prev => [{ ...newPost, user_liked: false }, ...prev]);
   };
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // THE FIX: robust delete — tries soft delete first, falls back to hard
+  // delete, and reverts optimistic removal if both fail.
+  // ─────────────────────────────────────────────────────────────────────────
   const handleDelete = async (postId) => {
     if (!window.confirm("Delete this post?")) return;
-    await supabase.from("feed_posts").update({ is_deleted: true }).eq("id", postId);
+
+    // 1. Optimistically remove from UI immediately
     setPosts(prev => prev.filter(p => p.id !== postId));
+
+    // 2. Try soft delete first (update is_deleted = true)
+    const { error: softErr } = await supabase
+      .from("feed_posts")
+      .update({ is_deleted: true })
+      .eq("id", postId);
+
+    if (!softErr) return; // ✅ soft delete succeeded, we're done
+
+    // 3. Soft delete failed (e.g. column missing or RLS blocks UPDATE)
+    //    Fall back to hard delete
+    const { error: hardErr } = await supabase
+      .from("feed_posts")
+      .delete()
+      .eq("id", postId);
+
+    if (!hardErr) return; // ✅ hard delete succeeded
+
+    // 4. Both failed — revert the optimistic removal and tell the user
+    console.error("Delete failed — soft:", softErr, "hard:", hardErr);
+    alert("Could not delete this post. You may not have permission.");
+    // Re-fetch to restore the post in UI
+    loadPosts(0, true);
   };
 
-  const handleReport = async (postId) => {
+  const handleReport = async () => {
     // handled inside PostCard
   };
 
@@ -632,7 +636,6 @@ export default function Feed() {
         )}
       </div>
 
-      {/* ── Compose ── */}
       {userId && (
         <ComposeBox
           profile={profile}
@@ -644,7 +647,6 @@ export default function Feed() {
         />
       )}
 
-      {/* ── Posts ── */}
       <div className="fd-posts-list">
         {posts.map(post => (
           <PostCard
@@ -662,7 +664,6 @@ export default function Feed() {
         ))}
       </div>
 
-      {/* Initial full-page loading spinner */}
       {loading && (
         <div className="fd-loading">
           <div className="fd-spinner" />
@@ -677,7 +678,6 @@ export default function Feed() {
         </div>
       )}
 
-      {/* Pagination loader — only shown while fetching next page */}
       {fetchingMore && (
         <div className="fd-loading">
           <div className="fd-spinner" />
@@ -689,7 +689,6 @@ export default function Feed() {
         <div className="fd-end">You've seen all posts ✓</div>
       )}
 
-      {/* Sentinel — placed below last post, only active when there's more to load */}
       {hasMore && <div ref={loaderRef} style={{ height: 20 }} />}
     </div>
   );
@@ -704,7 +703,6 @@ const CSS = `
     padding-bottom: 40px;
   }
 
-  /* ── Feed header ── */
   .fd-feed-header {
     display: flex; align-items: center; justify-content: space-between;
     margin-bottom: 18px;
@@ -720,7 +718,6 @@ const CSS = `
     color: #0369a1; font-size: 0.78rem; font-weight: 700;
   }
 
-  /* ── Compose box ── */
   .fd-compose {
     background: rgba(255,255,255,0.92);
     border: 1px solid rgba(30,58,138,0.1);
@@ -804,7 +801,6 @@ const CSS = `
   .fd-post-btn:active:not(:disabled) { transform: translateY(3px); box-shadow: none; }
   .fd-post-btn:disabled { background: #cbd5e1; box-shadow: 0 3px 0 #94a3b8; cursor: not-allowed; }
 
-  /* ── Repost preview ── */
   .fd-repost-preview {
     background: rgba(59,130,246,0.05); border: 1.5px solid rgba(59,130,246,0.15);
     border-radius: 12px; padding: 11px 14px; margin-bottom: 10px;
@@ -817,7 +813,6 @@ const CSS = `
     border: none; background: none; cursor: pointer; white-space: nowrap;
   }
 
-  /* ── Post card ── */
   .fd-post-card {
     background: rgba(255,255,255,0.92);
     border: 1px solid rgba(30,58,138,0.08);
@@ -837,7 +832,6 @@ const CSS = `
     font-size: 0.74rem; font-weight: 700; color: #b45309;
   }
 
-  /* ── Post header ── */
   .fd-post-header {
     display: flex; align-items: flex-start; gap: 11px; margin-bottom: 12px;
   }
@@ -852,7 +846,6 @@ const CSS = `
   }
   .fd-dot { color: #cbd5e1; }
 
-  /* ── Menu ── */
   .fd-post-menu-wrap, .fd-comment-menu-wrap { position: relative; }
   .fd-dot-btn {
     background: none; border: none; cursor: pointer;
@@ -877,20 +870,17 @@ const CSS = `
   }
   .fd-dropdown button:hover { background: rgba(30,58,138,0.07); }
 
-  /* ── Repost badge ── */
   .fd-repost-badge {
     font-size: 0.79rem; color: #64748b; margin-bottom: 8px;
     padding: 5px 10px; background: rgba(59,130,246,0.05);
     border-radius: 8px; border-left: 3px solid #3b82f6;
   }
 
-  /* ── Post content ── */
   .fd-post-content {
     font-size: 0.95rem; color: #1e293b; line-height: 1.65;
     white-space: pre-wrap; word-break: break-word; margin-bottom: 14px;
   }
 
-  /* ── Actions ── */
   .fd-post-actions {
     display: flex; gap: 2px; flex-wrap: wrap;
     padding-top: 10px; border-top: 1px solid rgba(30,58,138,0.06);
@@ -906,7 +896,6 @@ const CSS = `
   .fd-liked:hover { color: #e11d48; }
   .fd-action-icon { font-size: 1rem; }
 
-  /* ── Comments ── */
   .fd-comments-section {
     margin-top: 12px; padding-top: 12px;
     border-top: 1px solid rgba(30,58,138,0.06);
@@ -952,10 +941,9 @@ const CSS = `
   .fd-comment-send:hover:not(:disabled) { filter: brightness(1.1); transform: scale(1.05); }
   .fd-comment-send:disabled { background: #cbd5e1; cursor: not-allowed; }
 
-  /* ── Report modal ── */
   .fd-overlay {
     position: fixed; inset: 0; z-index: 9999;
-    background: rgba(2,6,23,0.5); backdrop-filter: blur(6px);
+    background: rgba(2,6,23,0.55);
     display: flex; align-items: center; justify-content: center; padding: 16px;
   }
   .fd-modal {
@@ -1007,7 +995,6 @@ const CSS = `
   }
   @keyframes fdToastIn { from{opacity:0;transform:translateX(-50%) translateY(-8px);} to{opacity:1;transform:translateX(-50%) translateY(0);} }
 
-  /* ── Loading / empty ── */
   .fd-loading {
     display: flex; align-items: center; gap: 10px; justify-content: center;
     padding: 24px; color: #64748b; font-size: 0.85rem; font-weight: 600;
@@ -1027,7 +1014,6 @@ const CSS = `
     color: #cbd5e1; font-size: 0.8rem; font-weight: 600;
   }
 
-  /* ── Mobile ── */
   @media (max-width: 580px) {
     .fd-post-card, .fd-compose { padding: 14px; border-radius: 15px; }
     .fd-action-btn span:last-child { display: none; }

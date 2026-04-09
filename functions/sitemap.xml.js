@@ -103,7 +103,7 @@ export async function onRequestGet(context) {
       // ── Content pages ──
       { loc: `${base}/blogs`,          changefreq: "daily",   priority: 0.9  },
       { loc: `${base}/news`,           changefreq: "daily",   priority: 0.9  },
-      { loc: `${base}/faqs`,           changefreq: "daily",   priority: 0.95 },
+      { loc: `${base}/faqs`, changefreq: "weekly", priority: 0.95 },
       { loc: `${base}/resources`,      changefreq: "daily",   priority: 0.9  },
       { loc: `${base}/leaderboard`,    changefreq: "daily",   priority: 0.7  },
       { loc: `${base}/autotube`,       changefreq: "weekly",  priority: 0.85 },
