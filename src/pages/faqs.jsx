@@ -607,13 +607,16 @@ const filtered = search.trim().length >= 2 && searchResults !== null
       });
 
   /* ── Group by category (for "all" view) ── */
-  const grouped = {};
-  if (activeCat === "all") {
-    CATEGORIES.slice(1).forEach(cat => {
-      const items = filtered.filter(f => f.category === cat.id);
-      if (items.length) grouped[cat.id] = items;
-    });
-  }
+const grouped = {};
+if (activeCat === "all") {
+  CATEGORIES.filter(c => c.id !== "all").forEach(cat => {
+    const items = filtered.filter(f => f.category === cat.id);
+    if (items.length) grouped[cat.id] = items;
+  });
+  const knownIds = new Set(CATEGORIES.map(c => c.id));
+  const orphans = filtered.filter(f => !knownIds.has(f.category));
+  if (orphans.length) grouped["__other__"] = orphans;
+}
 
   /* ── SEO meta ── */
   const activeCatObj = CAT_MAP[activeCat];
