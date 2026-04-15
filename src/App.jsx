@@ -524,7 +524,7 @@ export default function App() {
         <Route path="/blogs/:slug"                     element={<BlogPost />} />
         <Route path="/news"                            element={<News />} />
         <Route path="/news/:slug"                      element={<NewsPost />} />
-        <Route path="/Leaderboard" element={<Navigate to="/leaderboard" replace />} />
+
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/contact"                         element={<Contact />} />
         <Route path="/privacy-policy"                  element={<PrivacyPolicy />} />

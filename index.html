@@ -17,12 +17,6 @@
     <meta name="author" content="AIDLA Team" />
     <meta name="robots" content="index, follow" />
 
-    <!-- Important:
-         Do NOT keep a fixed canonical homepage URL here
-         Do NOT keep a fixed og:url homepage URL here
-         These must be set per page in React/Helmet
-    -->
-
     <!-- Open Graph Fallback -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="AIDLA" />
@@ -75,29 +69,22 @@
       />
     </noscript>
     <script>
-  const url = window.location.href;
-
-  const meta = document.createElement("meta");
-  meta.setAttribute("property", "og:url");
-  meta.setAttribute("content", url);
-
-  document.head.appendChild(meta);
-</script>
-<link rel="icon" type="image/x-icon" href="/favicon.ico" />
-<link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-<link rel="manifest" href="/site.webmanifest" />
-<meta name="theme-color" content="#1a3a8f" />
+      const url = window.location.href;
+      const meta = document.createElement("meta");
+      meta.setAttribute("property", "og:url");
+      meta.setAttribute("content", url);
+      document.head.appendChild(meta);
+    </script>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#1a3a8f" />
   </head>
 
   <body>
     <div id="root"></div>
-
     <script type="module" src="/src/main.jsx"></script>
-
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- HEAVY SCRIPTS REMOVED FROM HERE -->
   </body>
 </html>
