@@ -39,7 +39,6 @@ const CATEGORIES = [
       { to: "/tools/ai/email-writer",   emoji: "📧", label: "AI Email Writer",   desc: "AI writes professional emails — open directly in Gmail or Outlook.", badge: "AI", badgeColor: "#7c3aed" },
       { to: "/tools/ai/interview-prep", emoji: "🎯", label: "AI Interview Prep", desc: "Enter a job title — get interview questions with ideal answers.",    badge: "AI", badgeColor: "#7c3aed" },
       { to: "/tools/ai/linkedin-bio",   emoji: "💼", label: "AI LinkedIn Bio",   desc: "Generate a powerful LinkedIn About section in seconds.",             badge: "AI", badgeColor: "#7c3aed" },
-      { to: "/tools/ai/cover-letter",   emoji: "✉️", label: "AI Cover Letter",   desc: "AI writes a tailored cover letter for any job in seconds.",          badge: "AI", badgeColor: "#7c3aed" },
     ],
   },
   {

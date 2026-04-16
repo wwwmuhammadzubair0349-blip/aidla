@@ -36,7 +36,6 @@ const PublicCourseDetail = lazy(() => import("./pages/PublicCourseDetail.jsx"));
 // AI Tools
 const InterviewPrep     = lazy(() => import("./pages/tools/ai/interview-prep/interview-prep.jsx"));
 const LinkedInBio       = lazy(() => import("./pages/tools/ai/linkedin-bio/linkedin-bio.jsx"));
-const CoverLetterAI     = lazy(() => import("./pages/tools/ai/cover-letter/cover-letter.jsx"));
  
 // Education Tools
 const PercentageCalculator  = lazy(() => import("./pages/tools/education/percentage-calculator/percentage-calculator.jsx"));
@@ -562,7 +561,6 @@ export default function App() {
 // AI Tools
 <Route path="/tools/ai/interview-prep"                element={<InterviewPrep />} />
 <Route path="/tools/ai/linkedin-bio" element={<LinkedInBio />} />
-<Route path="/tools/ai/cover-letter"                  element={<CoverLetterAI />} />
  
 // Education Tools
 <Route path="/tools/education/percentage-calculator"  element={<PercentageCalculator />} />
