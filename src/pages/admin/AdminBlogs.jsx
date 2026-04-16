@@ -805,14 +805,16 @@ async function compressImage(file) {
   });
 }
 
-const suggestCoverImage = async () => {
+const suggestCoverImage = async (forceRefresh = false) => {
   if (!title.trim()) return showMsg("Enter a title first to get image suggestions", "error");
   setSuggestingImage(true);
+  // Always clear old suggestions before fetching new ones
   setSuggestedImages([]);
   try {
     const FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auto-blog`;
     const CRON_SECRET  = import.meta.env.VITE_AUTO_BLOG_SECRET || "change_me_secret";
 
+    // Add a cache-busting timestamp to force fresh API calls
     const response = await fetch(FUNCTION_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -820,6 +822,7 @@ const suggestCoverImage = async () => {
         secret: CRON_SECRET,
         mode: "image_suggest",
         title: title,
+        _t: Date.now()  // <-- This ensures browser doesn't cache the request
       })
     });
 
@@ -1172,15 +1175,26 @@ const { error: upErr } = await supabase.storage.from("blogs").upload(filePath, c
       placeholder="https://images.unsplash.com/…"
     />
 
-    {/* AI Suggest Button */}
-    <button
-      type="button"
-      onClick={suggestCoverImage}
-      disabled={suggestingImage}
-      style={{ marginTop:10, padding:"8px 16px", background:"linear-gradient(135deg,#7c3aed,#a855f7)", color:"#fff", border:"none", borderRadius:8, fontWeight:700, fontSize:"0.8rem", cursor:suggestingImage?"not-allowed":"pointer", opacity:suggestingImage?0.7:1 }}
-    >
-      {suggestingImage ? "✨ Finding images…" : "✨ AI Suggest Images"}
-    </button>
+{/* AI Suggest Button + Refresh */}
+<div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+  <button
+    type="button"
+    onClick={() => suggestCoverImage()}
+    disabled={suggestingImage}
+    style={{ padding:"8px 16px", background:"linear-gradient(135deg,#7c3aed,#a855f7)", color:"#fff", border:"none", borderRadius:8, fontWeight:700, fontSize:"0.8rem", cursor:suggestingImage?"not-allowed":"pointer", opacity:suggestingImage?0.7:1, flex:1 }}
+  >
+    {suggestingImage ? "✨ Finding images…" : "✨ AI Suggest Images"}
+  </button>
+  <button
+    type="button"
+    onClick={() => suggestCoverImage(true)}
+    disabled={suggestingImage}
+    style={{ padding:"8px 16px", background:"#f1f5f9", border:"1px solid #cbd5e1", borderRadius:8, fontWeight:700, fontSize:"0.8rem", cursor:suggestingImage?"not-allowed":"pointer", color:"#334155" }}
+    title="Get new random images"
+  >
+    🔄 Refresh
+  </button>
+</div>
 
     {/* Suggested Images Grid */}
     {suggestedImages.length > 0 && (
