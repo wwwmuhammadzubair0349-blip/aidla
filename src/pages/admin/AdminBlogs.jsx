@@ -639,6 +639,8 @@ export default function Blogs() {
   const [coverUrl, setCoverUrl]         = useState("");
   const[coverPath, setCoverPath]       = useState("");
   const [uploading, setUploading]       = useState(false);
+  const [suggestingImage, setSuggestingImage] = useState(false);
+const [suggestedImages, setSuggestedImages] = useState([]);
   const [tags, setTags]                 = useState("");
   const [activeTab, setActiveTab]       = useState("content");
 
@@ -656,6 +658,7 @@ export default function Blogs() {
     setMetaTitle(""); setMetaDescription("");
     setCanonicalUrl(""); setCoverUrl(""); setCoverPath(""); setTags("");
     setComments([]); setShowComments(false);
+    setSuggestedImages([]);
     showMsg("", "info");
   };
 
@@ -784,6 +787,52 @@ export default function Blogs() {
     await load(); showMsg(editing ? "Updated ✅" : "Created ✅", "success"); resetForm();
   };
 
+async function compressImage(file) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const MAX = 1200;
+      let w = img.width, h = img.height;
+      if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
+      const canvas = document.createElement("canvas");
+      canvas.width = w; canvas.height = h;
+      canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      canvas.toBlob((blob) => resolve(blob), "image/webp", 0.80);
+    };
+    img.src = url;
+  });
+}
+
+const suggestCoverImage = async () => {
+  if (!title.trim()) return showMsg("Enter a title first to get image suggestions", "error");
+  setSuggestingImage(true);
+  setSuggestedImages([]);
+  try {
+    const FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auto-blog`;
+    const CRON_SECRET  = import.meta.env.VITE_AUTO_BLOG_SECRET || "change_me_secret";
+
+    const response = await fetch(FUNCTION_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        secret: CRON_SECRET,
+        mode: "image_suggest",
+        title: title,
+      })
+    });
+
+    const data = await response.json();
+    if (!data.ok) throw new Error(data.error || "Failed");
+    setSuggestedImages(data.images || []);
+    if (!data.images?.length) showMsg("No images found, try a different title", "info");
+  } catch (e) {
+    console.error("Suggest image error:", e);
+    showMsg(`Error: ${e.message || "Could not fetch suggestions"}`, "error");
+  }
+  setSuggestingImage(false);
+};
   const onUploadCover = async (file) => {
     showMsg("", "info"); if (!file) return; setUploading(true);
     try {
@@ -793,7 +842,8 @@ export default function Blogs() {
       const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
       const safeExt = ["jpg","jpeg","png","webp"].includes(ext) ? ext : "jpg";
       const filePath = `covers/${uid}/${Date.now()}.${safeExt}`;
-      const { error: upErr } = await supabase.storage.from("blogs").upload(filePath, file, { upsert:true });
+      const compressed = await compressImage(file);
+const { error: upErr } = await supabase.storage.from("blogs").upload(filePath, compressed, { upsert:true });
       if (upErr) throw upErr;
       const { data: pubData } = supabase.storage.from("blogs").getPublicUrl(filePath);
       if (!pubData?.publicUrl) throw new Error("Public URL not generated");
@@ -1112,12 +1162,52 @@ export default function Blogs() {
                       <input type="file" accept="image/*" disabled={uploading} style={{ display:"none" }} onChange={e=>onUploadCover(e.target.files?.[0])}/>
                     </label>
                   )}
-                  {!coverUrl && (
-                    <div style={{ marginTop:12 }}>
-                      <label className="ab-label">Or enter image URL directly</label>
-                      <input className="ab-input" value={coverUrl} onChange={e=>setCoverUrl(e.target.value)} placeholder="https://images.unsplash.com/…"/>
-                    </div>
-                  )}
+                 {!coverUrl && (
+  <div style={{ marginTop:12 }}>
+    <label className="ab-label">Or enter image URL directly</label>
+    <input 
+      className="ab-input" 
+      value={coverUrl} 
+      onChange={e=>setCoverUrl(e.target.value)} 
+      placeholder="https://images.unsplash.com/…"
+    />
+
+    {/* AI Suggest Button */}
+    <button
+      type="button"
+      onClick={suggestCoverImage}
+      disabled={suggestingImage}
+      style={{ marginTop:10, padding:"8px 16px", background:"linear-gradient(135deg,#7c3aed,#a855f7)", color:"#fff", border:"none", borderRadius:8, fontWeight:700, fontSize:"0.8rem", cursor:suggestingImage?"not-allowed":"pointer", opacity:suggestingImage?0.7:1 }}
+    >
+      {suggestingImage ? "✨ Finding images…" : "✨ AI Suggest Images"}
+    </button>
+
+    {/* Suggested Images Grid */}
+    {suggestedImages.length > 0 && (
+      <div style={{ marginTop:14 }}>
+        <div style={{ fontSize:"0.72rem", fontWeight:800, color:"#7c3aed", marginBottom:8, textTransform:"uppercase", letterSpacing:"1px" }}>
+          Click to use →
+        </div>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8 }}>
+          {suggestedImages.map((img, i) => (
+            <div
+              key={i}
+              onClick={() => { setCoverUrl(img.url); setSuggestedImages([]); showMsg("Image selected! Click Save to publish.", "success"); }}
+              style={{ cursor:"pointer", borderRadius:10, overflow:"hidden", border:"2px solid transparent", transition:"border 0.2s" }}
+              onMouseEnter={e=>e.currentTarget.style.border="2px solid #7c3aed"}
+              onMouseLeave={e=>e.currentTarget.style.border="2px solid transparent"}
+            >
+              <img src={img.url} alt={img.description} style={{ width:"100%", height:80, objectFit:"cover", display:"block" }}/>
+              <div style={{ padding:"4px 6px", background:"#f8faff", fontSize:"0.6rem", color:"#475569", fontWeight:600 }}>
+                📷 {img.photographer}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+)}
                 </div>
               </div>
             )}
