@@ -1,0 +1,114 @@
+# ============================================================
+#  Cloudflare Pages — _headers
+#  Place this file in your project's /public folder.
+#  Cloudflare Pages reads it automatically on deploy.
+#
+#  FIX 3 — Cache lifetimes (-8,537 KiB)
+#  ======================================
+#  Lighthouse penalises resources with short/no cache headers.
+#  Without explicit headers, Cloudflare serves assets with
+#  "Cache-Control: public, max-age=0, must-revalidate" —
+#  meaning the browser re-downloads EVERYTHING on every visit.
+#
+#  With these headers:
+#    - JS/CSS/fonts/images: cached 1 year (immutable)
+#      Safe because Vite adds content hashes to filenames.
+#      When you deploy a new version, the hash changes →
+#      browser fetches the new file automatically.
+#    - HTML: never cached (so users always get the latest index.html)
+#    - API routes: not cached (dynamic data)
+# ============================================================
+
+
+# ── HTML — Never cache (always fresh) ──────────────────────
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+# The SPA entry point
+/
+  Cache-Control: public, max-age=0, must-revalidate
+
+
+# ── JS chunks — Cache 1 year (Vite hashes filenames) ───────
+/assets/*.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/*.mjs
+  Cache-Control: public, max-age=31536000, immutable
+
+
+# ── CSS — Cache 1 year (Vite hashes filenames) ─────────────
+/assets/*.css
+  Cache-Control: public, max-age=31536000, immutable
+
+
+# ── Fonts — Cache 1 year ───────────────────────────────────
+/assets/*.woff2
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/*.woff
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/*.ttf
+  Cache-Control: public, max-age=31536000, immutable
+
+
+# ── Images — Cache 1 year ──────────────────────────────────
+/assets/*.webp
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/*.avif
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/*.png
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/*.jpg
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/*.jpeg
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/*.svg
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/*.ico
+  Cache-Control: public, max-age=31536000, immutable
+
+
+# ── Public root images (og-image, logo, etc.) ──────────────
+# These don't have hashes — use a shorter cache (1 week)
+# so you can update them by replacing the file.
+/*.png
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+
+/*.jpg
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+
+/*.jpeg
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+
+/*.svg
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+
+/*.webp
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+
+/*.ico
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+
+
+# ── Web App Manifest + Service Worker ──────────────────────
+/manifest.json
+  Cache-Control: public, max-age=86400
+
+/sw.js
+  Cache-Control: public, max-age=0, must-revalidate
+
+
+# ── Security headers (bonus — improves Best Practices score) ─
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()

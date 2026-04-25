@@ -1,0 +1,99 @@
+User-agent: *
+Allow: /
+
+# Private / non-public areas
+Disallow: /admin/
+Disallow: /user/
+Disallow: /signup
+Disallow: /login
+Disallow: /forgot-password
+Disallow: /reset-password
+
+# Explicitly allow important public sections
+Allow: /
+Allow: /about
+Allow: /blogs
+Allow: /blogs/
+Allow: /news
+Allow: /news/
+Allow: /faqs
+Allow: /faqs/
+Allow: /tools
+Allow: /tools/
+Allow: /leaderboard
+Allow: /contact
+Allow: /privacy-policy
+Allow: /terms
+
+# Major AI crawlers / AI search / AI assistants
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Amazonbot
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: meta-externalagent
+Allow: /
+
+User-agent: FacebookBot
+Allow: /
+
+User-agent: meta-externalfetcher
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: YouBot
+Allow: /
+
+User-agent: Diffbot
+Allow: /
+
+User-agent: ImagesiftBot
+Allow: /
+
+User-agent: cohere-ai
+Allow: /
+
+User-agent: omgili
+Allow: /
+
+User-agent: Grok
+Allow: /
+
+User-agent: ia_archiver
+Allow: /
+
+Sitemap: https://www.aidla.online/sitemap.xml
+Host: https://www.aidla.online

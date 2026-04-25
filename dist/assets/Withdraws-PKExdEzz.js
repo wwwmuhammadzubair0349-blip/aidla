@@ -1,0 +1,1 @@
+import{r as e}from"./vendor-motion-DyarDpDD.js";var t=e();function n(){return(0,t.jsxs)(`div`,{children:[(0,t.jsx)(`h2`,{style:{marginTop:0},children:`Withdraw Management`}),(0,t.jsx)(`p`,{style:{color:`var(--muted)`},children:`Coming soon...`})]})}export{n as default};
